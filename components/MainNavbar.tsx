@@ -14,6 +14,8 @@ const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {
               <Link 
                 href={route}
                 className="text-lg p-2 rounded-lg transition-colors duration-300 ease-in-out hover:bg-white hover:text-black hover:underline"
+                id="na-buttons"
+                data-umami-event={route}
               >
                 {`/${displayText}`}
               </Link>
