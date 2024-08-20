@@ -19,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Using Script component for Umami */}
-        <script
+        <Script
           src="https://cloud.umami.is/script.js"
           data-website-id="227d51b5-5f5f-42aa-a9eb-a38128095d7b"
         />
