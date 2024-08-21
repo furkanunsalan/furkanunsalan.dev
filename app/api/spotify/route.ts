@@ -2,9 +2,7 @@
 import { NextRequest } from 'next/server';
 import { getNowPlaying } from '@/lib/spotify';
 
-export const config = {
-  runtime: 'experimental-edge',
-};
+export const runtime = 'experimental-edge';
 
 export async function GET(req: NextRequest) {
   try {
