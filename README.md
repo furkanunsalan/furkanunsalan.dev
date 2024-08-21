@@ -69,4 +69,4 @@ For more detailed information on how to integrate with the Spotify API, check ou
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 ## Contact
-If you have any questions, feel free to reach out to me at `your-email@example.com`.
+If you have any questions, feel free to reach out to me at `me@furkanunsalan.dev`.
