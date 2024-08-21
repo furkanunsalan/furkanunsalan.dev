@@ -2,32 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
+/* Apply smooth transitions for background and text color changes */
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  @apply transition-colors duration-300 ease-in-out;
 }
 
+/* Default dark theme styles (black background) */
+body {
+  color: rgb(255, 255, 255); /* White text for dark mode */
+  background-color: rgb(0, 0, 0); /* Black background for dark mode */
+}
+
+/* Light theme styles applied when 'light' class is present on the html element */
+html.light body {
+  color: rgb(0, 0, 0); /* Black text for light mode */
+  background-color: rgb(255, 255, 255); /* White background for light mode */
+}
+
+/* Custom utility class using Tailwind layer */
 @layer utilities {
   .text-balance {
-    text-wrap: balance;
+    text-wrap: balance; /* Experimental CSS property for text balancing */
   }
 }
