@@ -1,4 +1,4 @@
-import NowPlaying from "@/components/CurrentlyListening";
+import NowPlaying from "@/components/NowPlaying";
 
 export default function Me() {
     return (

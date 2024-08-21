@@ -1,16 +1,69 @@
 // app/api/now-playing/route.ts
-import { NextResponse } from 'next/server';
-import { getNowPlaying } from '@/lib/spotify'; // Adjust the import path accordingly
+import { NextRequest } from 'next/server';
+import { getNowPlaying } from '@/lib/spotify';
 
-export async function GET() {
+export const config = {
+  runtime: 'experimental-edge',
+};
+
+export async function GET(req: NextRequest) {
   try {
     const response = await getNowPlaying();
-    if (!response.ok) {
-      return NextResponse.json({ error: 'Failed to fetch now playing' }, { status: 500 });
+
+    if (response.status === 204 || response.status > 400) {
+      return new Response(JSON.stringify({ isPlaying: false }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+          'cache-control': 'no-cache', // Ensure no caching
+        },
+      });
     }
-    const data = await response.json();
-    return NextResponse.json(data);
+
+    const song = await response.json();
+
+    if (song.item === null) {
+      return new Response(JSON.stringify({ isPlaying: false }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+          'cache-control': 'no-cache', // Ensure no caching
+        },
+      });
+    }
+
+    const isPlaying = song.is_playing;
+    const title = song.item.name;
+    const artist = song.item.artists[0]?.name ?? 'Unknown Artist'; // Get the first artist's name or fallback
+    const album = song.item.album.name;
+    const albumImageUrl = song.item.album.images[0]?.url ?? ''; // Fallback if no image URL
+    const songUrl = song.item.external_urls.spotify;
+
+    return new Response(
+      JSON.stringify({
+        album,
+        albumImageUrl,
+        artist,
+        isPlaying,
+        songUrl,
+        title,
+      }),
+      {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+          'cache-control': 'no-cache', // Ensure no caching
+        },
+      }
+    );
   } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    console.error('Error in /api/spotify:', err);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: {
+        'content-type': 'application/json',
+        'cache-control': 'no-cache', // Ensure no caching
+      },
+    });
   }
 }

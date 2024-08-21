@@ -1,51 +1,57 @@
-const client_id = process.env.SPOTIFY_CLIENT_ID ?? ""; // Fallback to empty string if undefined
-const client_secret = process.env.SPOTIFY_CLIENT_SECRET ?? ""; // Fallback to empty string if undefined
-const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN ?? ""; // Fallback to empty string if undefined
+// lib/spotify.ts
+const client_id = process.env.SPOTIFY_CLIENT_ID || '';
+const client_secret = process.env.SPOTIFY_CLIENT_SECRET || '';
+const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN || '';
 
-const basic = Buffer.from(`${client_id}:${client_secret}`).toString("base64"); // `btoa` is browser-specific, use Buffer in Node.js
-const NOW_PLAYING_ENDPOINT = `https://api.spotify.com/v1/me/player/currently-playing`;
-const TOP_TRACKS_ENDPOINT = `https://api.spotify.com/v1/me/top/tracks`;
-const TOKEN_ENDPOINT = `https://accounts.spotify.com/api/token`;
+const basic = Buffer.from(`${client_id}:${client_secret}`).toString('base64');
+const NOW_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
+const TOP_TRACKS_ENDPOINT = 'https://api.spotify.com/v1/me/top/tracks';
+const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
 
 const getAccessToken = async () => {
   if (!refresh_token) {
-    throw new Error("Refresh token is required");
+    throw new Error('Refresh token is required');
   }
 
   const response = await fetch(TOKEN_ENDPOINT, {
-    method: "POST",
+    method: 'POST',
     headers: {
       Authorization: `Basic ${basic}`,
-      "Content-Type": "application/x-www-form-urlencoded",
+      'Content-Type': 'application/x-www-form-urlencoded'
     },
     body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refresh_token,
-    }),
+      grant_type: 'refresh_token',
+      refresh_token
+    })
   });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch access token: ${response.statusText}`);
   }
+
   return response.json();
 };
 
 export const getNowPlaying = async () => {
-  const { access_token } = await getAccessToken();
+  try {
+    const { access_token } = await getAccessToken();
 
-  return fetch(NOW_PLAYING_ENDPOINT, {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-  });
-};
+    const response = await fetch(NOW_PLAYING_ENDPOINT, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        'Cache-Control': 'no-cache', // Prevents caching
+        'Pragma': 'no-cache', // For HTTP 1.0 caches
+        'Expires': '0', // Sets expiration to immediate
+      }
+    });
 
-export const getTopTracks = async () => {
-  const { access_token } = await getAccessToken();
+    if (!response.ok) {
+      throw new Error(`Failed to fetch now playing: ${response.statusText}`);
+    }
 
-  return fetch(TOP_TRACKS_ENDPOINT, {
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-    },
-  });
+    return response;
+  } catch (error) {
+    console.error('Error fetching now playing:', error);
+    throw error;
+  }
 };
