@@ -84,7 +84,7 @@ export default function NowPlaying() {
   }
 
   return (
-    <div className="flex flex-row-reverse items-center sm:flex-row mb-8 space-x-0 sm:space-x-2 w-full">
+    <div className="flex flex-row-reverse items-center sm:flex-row mb-8 mt-4 space-x-0 sm:space-x-2 w-full">
       {data?.songUrl ? (
         <AnimatedBars />
       ) : (
