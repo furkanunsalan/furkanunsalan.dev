@@ -38,13 +38,15 @@ export default function BreadcrumbNavigator() {
   const latestBreadcrumbHref = "/" + pathSegments.join("/");
   const latestBreadcrumbName =
     pathSegments[pathSegments.length - 1]?.charAt(0).toUpperCase() +
-    pathSegments[pathSegments.length - 1]?.slice(1) || "Home";
+      pathSegments[pathSegments.length - 1]?.slice(1) || "Home";
 
   // Get the active route from the pathSegments
   const activeRoute = `/${pathSegments.join("/")}`;
 
   // Filter out the active route from the mainRoutes
-  const filteredRoutes = mainRoutes.filter(route => route.href !== activeRoute);
+  const filteredRoutes = mainRoutes.filter(
+    (route) => route.href !== activeRoute && route.href !== "/"
+  );
 
   return (
     <div className="relative flex justify-center mt-8">
@@ -53,7 +55,9 @@ export default function BreadcrumbNavigator() {
           <BreadcrumbItem>
             <BreadcrumbLink
               href="/"
-              className={pathname === "/" ? "text-green-500 text-xl" : "text-xl"}
+              className={
+                pathname === "/" ? "text-green-500 text-xl" : "text-xl"
+              }
             >
               Home
             </BreadcrumbLink>
@@ -94,7 +98,7 @@ export default function BreadcrumbNavigator() {
                   {latestBreadcrumbName}
                 </DropdownMenuTrigger>
                 {isDropdownOpen && (
-                  <DropdownMenuContent className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md">
+                  <DropdownMenuContent className="absolute left-0 mt-2 w-48 bg-white dark:bg-zinc-800 shadow-lg rounded-md border border-zinc-200 dark:border-zinc-700">
                     {filteredRoutes.map((route) => (
                       <DropdownMenuItem
                         key={route.href}
@@ -102,7 +106,7 @@ export default function BreadcrumbNavigator() {
                       >
                         <a
                           href={route.href}
-                          className="block px-4 py-2 text-gray-800 hover:bg-gray-200"
+                          className="rounded-md block px-4 py-2 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-200"
                         >
                           {route.name}
                         </a>

@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes";
 
-export default function GithubCommitImg() {
+export default function GithubCommitHistory() {
   const { theme } = useTheme();
 
   return (

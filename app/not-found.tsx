@@ -1,5 +1,9 @@
 "use client";
 
+import MainNavbar from "@/components/MainNavbar";
+
+const routes = ["/me", "/work", "/projects", "/photos", "/blog"];
+
 export default function NotFound() {
   return (
     <>
@@ -9,6 +13,7 @@ export default function NotFound() {
           <div className="text-l mt-4">
             This is not the page you are looking for
           </div>
+          <MainNavbar routes={routes} />
         </div>
       </div>
     </>

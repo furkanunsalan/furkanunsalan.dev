@@ -8,12 +8,12 @@ const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {
         {routes.map((route, index) => {
           // Use the route for both href and display text
           const displayText = route === "/" ? "Home" : route.substring(1); // Adjust display text for root route
-          
+
           return (
             <li key={index}>
-              <Link 
+              <Link
                 href={route}
-                className="text-lg p-2 rounded-lg transition-colors duration-300 ease-in-out hover:bg-white hover:text-black hover:underline"
+                className="text-lg p-2 rounded-lg transition-colors duration-300 ease-in-out text-zinc-900 dark:text-zinc-100 hover:bg-zinc-300 dark:hover:bg-zinc-700 hover:text-black dark:hover:text-white hover:underline"
                 id="na-buttons"
                 data-umami-event={route}
               >
