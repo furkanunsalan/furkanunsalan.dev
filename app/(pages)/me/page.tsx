@@ -7,7 +7,7 @@ export default function Me() {
   return (
     <>
       <div className="flex flex-col items-center text-center p-4 mt-8">
-        <h1 className="text-3xl font-bold mb-4">Hi! I&apos;m Furkan 👋</h1>
+        <h1 className="text-3xl font-bold mb-4">Hi! I&apos;m <span className="bg-red-600 dark:bg-red-800 text-white p-1 rounded-md">Furkan</span></h1>
         <p className="text-lg mb-4">
           Student @ Haliç who loves software development and
           photography.

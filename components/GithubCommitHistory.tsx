@@ -6,7 +6,7 @@ export default function GithubCommitHistory() {
   const { theme } = useTheme();
 
   return (
-    <picture>
+    <picture className="mb-8">
       {theme == "dark" ? (
         <source srcSet="https://ssr-contributions-svg.vercel.app/_/furkanunsalan?format=svg&amp;weeks=30&amp;dark=true" />
       ) : (
