@@ -2,7 +2,7 @@ import Time from "@/components/Time";
 import MainNavbar from "@/components/MainNavbar";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
-const routes = ["/me", "/work", "/projects", "/photos", "/blog"];
+const routes = ["/me", "/experience", "/projects", "/photos", "/blog"];
 
 export default function Home() {
   return (

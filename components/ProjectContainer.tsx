@@ -9,7 +9,6 @@ export default function ProjectContainer({ project }: { project: Project }) {
   const router = useRouter();
 
   const handleNavigation = () => {
-    console.log('Navigating to slug:', slug); // Debugging statement
     router.push(`/projects/${slug}`); // Assuming you're using `id` for the slug, you could use a specific slug if available.
   };
 

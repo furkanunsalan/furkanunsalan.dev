@@ -26,7 +26,7 @@ export default function Tool({ tool }: { tool: ToolType }) {
           <Link
             href={link}
             target="_blank"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-zinc-700 text-white rounded-lg hover:bg-zinc-600 transition"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-secondary-light dark:bg-secondary-dark rounded-lg hover:bg-hover-light hover:dark:bg-hover-dark transition"
           >
             <FaShoppingCart size={16} />
           </Link>

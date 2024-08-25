@@ -20,3 +20,25 @@ export type Project = {
     github?: string;
     update: string;
 }
+
+export type Work = {
+    id: number;
+    type: string;
+    organization: string;
+    title: string;
+    start_date: string;
+    end_date?: string;
+    comment: string;
+    achievements: string[];
+}
+
+export type Certificate = {
+    id: number;
+    name: string;
+    issue_date: string;
+    comment: string;
+    issuing_company: string;
+    topics: string[];
+    link: string;
+    image_link: string;
+}

@@ -11,13 +11,5 @@ export const projects: Project[] = [
     link: "https://map.furkanunsalan.dev",
     github: "https://github.com/furkanunsalan/TravelMap",
     update: "16-08-2024",
-  },
-  {
-    id: 2,
-    slug: "project-two",
-    title: "Project Two",
-    short_description: "Short description of project two",
-    description: "Detailed description of project two",
-    update: "2025-06-13",
   }
 ];
