@@ -42,3 +42,17 @@ export type Certificate = {
     link: string;
     image_link: string;
 }
+
+export type BlogPost = {
+    slug: string;
+    title: string;
+    date: string;
+    tags: string[]; // Tags as an array of strings
+}
+
+export type BlogPostData = {
+    title: string;
+    date: string;
+    content: string;
+    tags: string[]; // Explicitly type tags as an array of strings
+  }
