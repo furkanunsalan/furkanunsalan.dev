@@ -20,6 +20,7 @@ function Photo({ alt_description, links, urls, description, width, height }: Pho
       <Link
         href={links.html}
         className="block overflow-hidden rounded-lg saturate-50 transition-transform duration-700 hover:scale-105 hover:saturate-100"
+        data-umami-event={description + " -> unsplash"}
       >
         <NextImage
           src={`${urls.raw}&q=90&w=800`}

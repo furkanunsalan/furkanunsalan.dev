@@ -6,6 +6,7 @@ export default function SocialNavigator() {
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline"
+            data-umami-event="X"
           >
             X
           </a>
@@ -15,6 +16,7 @@ export default function SocialNavigator() {
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline"
+            data-umami-event="Github"
           >
             Github
           </a>
@@ -24,11 +26,12 @@ export default function SocialNavigator() {
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline"
+            data-umami-event="Linkedin"
           >
             Linkedin
           </a>
           <span>/</span>
-          <a href="mailto:hi@furkanunsalan.dev" className="hover:underline">
+          <a href="mailto:hi@furkanunsalan.dev" className="hover:underline" data-umami-event="Mail">
             Mail
           </a>
           <span>/</span>
@@ -37,6 +40,7 @@ export default function SocialNavigator() {
             target="_blank"
             rel="noopener noreferrer"
             className="hover:underline"
+            data-umami-event="CV"
           >
             CV
           </a>

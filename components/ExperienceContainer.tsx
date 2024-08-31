@@ -1,8 +1,15 @@
+"use client";
+
 import type { Work } from "@/types";
+import { motion } from "framer-motion";
 
 export default function ExperienceContainer({ work }: { work: Work }) {
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+    >
       <div key={work.id} className="mb-8 border-b border-zinc-800 pb-4">
         <p className="text-sm opacity-60">
           {work.start_date} - {work.end_date || "Current"}
@@ -12,6 +19,6 @@ export default function ExperienceContainer({ work }: { work: Work }) {
         <p className="text-sm opacity-60">{work.type}</p>
         <p className="mt-2">{work.comment}</p>
       </div>
-    </div>
+    </motion.div>
   );
 }

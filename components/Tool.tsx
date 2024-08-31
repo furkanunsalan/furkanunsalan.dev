@@ -1,12 +1,18 @@
 import type { Tool as ToolType } from "@/types";
 import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import Link from "next/link"; // If you are using Next.js for routing
+import { motion } from "framer-motion"; // Import Framer Motion
 
 export default function Tool({ tool }: { tool: ToolType }) {
   const { name, comment, brand, favorite, what, link } = tool;
 
   return (
-    <article className="flex justify-between items-start border-b border-b-zinc-200 py-4 sm:py-8 dark:border-b-zinc-800">
+    <motion.article
+      className="flex justify-between items-start border-b border-b-zinc-200 py-4 sm:py-8 dark:border-b-zinc-800"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: "easeIn" }}
+    >
       <div className="flex-1">
         <header>
           <h6 className="flex flex-row font-mono text-sm uppercase tracking-wider opacity-50 dark:opacity-40">
@@ -27,11 +33,12 @@ export default function Tool({ tool }: { tool: ToolType }) {
             href={link}
             target="_blank"
             className="inline-flex items-center gap-2 px-4 py-2 bg-secondary-light dark:bg-secondary-dark rounded-lg hover:bg-hover-light hover:dark:bg-hover-dark transition"
+            data-umami-event={name + " -> Web"}
           >
             <FaShoppingCart size={16} />
           </Link>
         </footer>
       )}
-    </article>
+    </motion.article>
   );
 }

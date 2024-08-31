@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link";
 import React from "react";
+import { motion } from "framer-motion"
 
 const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {
   return (
@@ -10,7 +13,11 @@ const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {
           const displayText = route === "/" ? "Home" : route.substring(1); // Adjust display text for root route
 
           return (
-            <li key={index}>
+            <motion.li key={index}
+            initial={{opacity:0, y:10}}
+            animate={{opacity:1, y:0}}
+            transition={{ duration: 0.5, delay:0.1 }}
+            >
               <Link
                 href={route}
                 className="text-lg p-2 rounded-lg transition-colors duration-300 ease-in-out hover:bg-secondary-light dark:hover:bg-secondary-dark hover:underline"
@@ -19,7 +26,7 @@ const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {
               >
                 {`/${displayText}`}
               </Link>
-            </li>
+            </motion.li>
           );
         })}
       </ul>

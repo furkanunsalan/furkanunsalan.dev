@@ -55,6 +55,7 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block text-white px-6 py-3 hover:bg-hover-dark bg-secondary-dark rounded-lg transition"
+                data-umami-event={project.slug + " Website"}
               >
                 Visit the Site
               </a>
@@ -66,6 +67,7 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block text-white px-6 py-3 hover:bg-hover-dark bg-secondary-dark rounded-lg transition"
+                data-umami-event={project.slug + " Github"}
               >
                 View on GitHub
               </a>
