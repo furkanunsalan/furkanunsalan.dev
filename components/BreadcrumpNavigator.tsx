@@ -36,7 +36,7 @@ export default function BreadcrumbNavigator() {
   const mainRoutes = [
     { name: "Home", href: "/" },
     { name: "Me", href: "/me" },
-    { name: "Work", href: "/work" },
+    { name: "Experience", href: "/experience" },
     { name: "Projects", href: "/projects" },
     { name: "Photos", href: "/photos" },
     { name: "Blog", href: "/blog" },
