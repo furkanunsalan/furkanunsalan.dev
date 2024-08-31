@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 
 export async function getBlogPostBySlug(slug: string) {
-    const filePath = path.join(process.cwd(), 'app/(pages)/blog/blogs', `${slug}.md`);
+    const filePath = path.join(process.cwd(), 'app/(pages)/blog/blog-posts', `${slug}.md`);
     
     if (!fs.existsSync(filePath)) {
       return null;
@@ -37,7 +37,7 @@ export async function getBlogPostBySlug(slug: string) {
   }
 
   export async function getBlogPosts() {
-    const blogDir = path.join(process.cwd(), 'app/(pages)/blog/blogs');
+    const blogDir = path.join(process.cwd(), 'app/(pages)/blog/blog-posts');
     const files = fs.readdirSync(blogDir);
   
     const posts = files.map((filename) => {

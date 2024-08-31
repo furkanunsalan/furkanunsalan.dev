@@ -11,5 +11,15 @@ export const projects: Project[] = [
     link: "https://map.furkanunsalan.dev",
     github: "https://github.com/furkanunsalan/TravelMap",
     update: "16/08/2024",
+  },
+  {
+    id: 2,
+    slug: "golden-mind",
+    image: "/photos/projects/golden-mind.png",
+    title: "Golden Mind",
+    short_description: "GoldenMind is a project developed to address issues like bullying and psychological support for students. It offers innovative tools to understand and solve these challenges using surveys, data analysis, and AI.",
+    description: "The GoldenMind Project was developed as part of the 2024 Teknofest Psychology Technological Applications competition to tackle issues like bullying and the need for psychological support in schools. Over 8 months of development, GoldenMind implemented a series of innovative tools to gather and analyze student feedback, focusing on mental health and well-being. The project includes a mobile app compatible with both Android and iOS for interacting with students through brief surveys, a React-based web platform for centralized management and data visualization, and the GoldenAI tool that utilizes fine-tuned machine learning models for detailed personal, class, and school-level analysis. Despite the project's initial success and high evaluation, it did not advance past the competition&apos;s final stage but remains a significant step towards creating technology-driven psychological support systems in schools. GoldenMind is open to community contributions to further enhance its capabilities and impact.",
+    link: "https://goldenmind.vercel.app",
+    update: "23/07/2024",
   }
 ];
