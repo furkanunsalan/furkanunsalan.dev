@@ -5,6 +5,7 @@ import NowPlaying from "@/components/NowPlaying";
 import SocialNavigator from "@/components/SocialNavigator";
 import ToolTabs from "@/components/ToolTabs";
 import { tools } from "@/lib/my-tools";
+import { Link } from "lucide-react";
 
 export default function Me() {
   return (
@@ -67,7 +68,7 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.2 }}
             >
-              <strong>📐 Working On:</strong> Buildog
+              <strong>📐 Working On:</strong> <a href="https://github.com/buildog-dev/buildog">Buildog</a>
             </motion.li>
             <motion.li
               className="mb-2"
