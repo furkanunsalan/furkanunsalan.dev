@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "This is a collection of moments and scenes I&apos;ve captured through my lens. Each photo reflects my journey, experiences, and the beauty I see in the world around me. I hope you enjoy exploring my work as much as I enjoyed taking these photos.",
 };
 
-export const revalidate = 86400; // 60*60*24
+export const revalidate = 3600; // 60*60*24
 
 export default async function PhotosPage() {
   const photos = await unsplash.getPhotos();
