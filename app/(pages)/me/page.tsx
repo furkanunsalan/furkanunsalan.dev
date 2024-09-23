@@ -60,7 +60,7 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1 }}
             >
-              <strong>📖 Reading:</strong> Feel Good Productivity - Ali Abdaal
+              <strong>📖 Reading:</strong> Atomic Habits - James Clear
             </motion.li>
             <motion.li
               className="mb-2"
@@ -87,7 +87,7 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.6 }}
             >
-              <strong>🍿 Watching:</strong> Silicon Valley
+              <strong>🍿 Watching:</strong> Nothing Currently
             </motion.li>
           </ul>
         </motion.div>
