@@ -8,9 +8,10 @@ type NowPlayingSong = {
   songUrl: string;
   title: string;
   artist: string;
+  isPlaying: boolean; // Boolean to check if song is currently playing
 };
 
-const fetcher = (url: string) => fetch(url, { cache: 'no-store' }).then(res => res.json()); // Set cache to 'no-store'
+const fetcher = (url: string) => fetch(url, { cache: 'no-store' }).then(res => res.json());
 
 function AnimatedBars() {
   React.useEffect(() => {
@@ -72,11 +73,11 @@ function AnimatedBars() {
   );
 }
 
-export default function NowPlaying() {
+export default function Spotify() {
   const { data, error } = useSWR<NowPlayingSong>('/api/spotify', fetcher, {
-    revalidateOnFocus: true, // Ensure refetch on focus
-    revalidateOnReconnect: true, // Ensure refetch on reconnect
-    dedupingInterval: 0 // Disable deduping to ensure fresh fetch
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    dedupingInterval: 0
   });
 
   if (error) {
@@ -85,7 +86,7 @@ export default function NowPlaying() {
 
   return (
     <div className="flex flex-row-reverse items-center sm:flex-row mb-8 mt-4 space-x-0 sm:space-x-2 w-full">
-      {data?.songUrl ? (
+      {data?.isPlaying ? (
         <AnimatedBars />
       ) : (
         <svg className="h-4 w-4 ml-auto mt-auto md:mt-[-2px]" viewBox="0 0 168 168">
@@ -96,7 +97,7 @@ export default function NowPlaying() {
         </svg>
       )}
       <div className="inline-flex flex-col sm:flex-row w-full max-w-full truncate">
-        {data?.songUrl ? (
+        {data?.songUrl && data.isPlaying ? (
           <a
             className="capsize text-gray-800 dark:text-gray-200 font-medium max-w-max truncate"
             href={data.songUrl}
@@ -105,6 +106,11 @@ export default function NowPlaying() {
           >
             {data.title}
           </a>
+        ) : data?.title ? (
+          // Display the last played song in italic if no song is currently playing
+          <p className="capsize text-gray-800 dark:text-gray-200 font-medium italic">
+            Last Played: {data.title}
+          </p>
         ) : (
           <p className="capsize text-gray-800 dark:text-gray-200 font-medium">
             Not Playing
@@ -113,7 +119,7 @@ export default function NowPlaying() {
         <span className="capsize mx-2 text-gray-500 dark:text-gray-300 hidden sm:block">
           {' – '}
         </span>
-        <p className="capsize text-gray-500 dark:text-gray-300 max-w-max truncate">
+        <p className="capsize text-gray-500 dark:text-gray-300 max-w-max truncate italic">
           {data?.artist ?? 'Spotify'}
         </p>
       </div>

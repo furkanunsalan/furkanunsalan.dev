@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import NowPlaying from "@/components/NowPlaying";
+import Spotify from "@/components/NowPlaying";
 import SocialNavigator from "@/components/SocialNavigator";
 import ToolTabs from "@/components/ToolTabs";
 import { tools } from "@/lib/my-tools";
@@ -78,7 +78,7 @@ export default function Me() {
             >
               <strong className="mr-2">🎧 Listening:</strong>
               <div className="text-center mt-2">
-                <NowPlaying />
+                <Spotify />
               </div>
             </motion.li>
             <motion.li
