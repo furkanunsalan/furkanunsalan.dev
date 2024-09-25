@@ -1,11 +1,10 @@
-// lib/spotify.ts
 const client_id = process.env.SPOTIFY_CLIENT_ID || '';
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET || '';
 const refresh_token = process.env.SPOTIFY_REFRESH_TOKEN || '';
 
 const basic = Buffer.from(`${client_id}:${client_secret}`).toString('base64');
 const NOW_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing';
-const TOP_TRACKS_ENDPOINT = 'https://api.spotify.com/v1/me/top/tracks';
+const RECENTLY_PLAYED_ENDPOINT = 'https://api.spotify.com/v1/me/player/recently-played?limit=1'; // Fetch only the last played song
 const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token';
 
 const getAccessToken = async () => {
@@ -52,6 +51,31 @@ export const getNowPlaying = async () => {
     return response;
   } catch (error) {
     console.error('Error fetching now playing:', error);
+    throw error;
+  }
+};
+
+// Function to get the recently played track
+export const getRecentlyPlayed = async () => {
+  try {
+    const { access_token } = await getAccessToken();
+
+    const response = await fetch(RECENTLY_PLAYED_ENDPOINT, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        'Cache-Control': 'no-cache', // Prevents caching
+        'Pragma': 'no-cache', // For HTTP 1.0 caches
+        'Expires': '0', // Sets expiration to immediate
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch recently played: ${response.statusText}`);
+    }
+
+    return response;
+  } catch (error) {
+    console.error('Error fetching recently played:', error);
     throw error;
   }
 };
