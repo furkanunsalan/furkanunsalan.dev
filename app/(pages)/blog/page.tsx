@@ -1,17 +1,26 @@
-import Link from 'next/link';
-import { getBlogPosts } from '@/lib/getBlogPosts'; // Adjust the import to where your function is located
-import type { BlogPost } from '@/types';
+import Link from "next/link";
+import { getBlogPosts } from "@/lib/getBlogPosts";
+import type { BlogPost } from "@/types";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Blog | Furkan Ünsalan",
+  description:
+    "Read insightful blog posts covering a range of topics, from personal experiences and professional insights to tips, trends, and thought-provoking ideas. Stay informed and inspired with my latest articles.",
+};
 
 export default async function BlogPage() {
-  const posts: BlogPost[] = await getBlogPosts(); // Type the posts array
+  const posts: BlogPost[] = await getBlogPosts();
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <h1 className="text-4xl font-bold text-center mb-4">Thoughts & Ideas</h1>
       <p className="text-lg text-center mb-12 text-gray-600 dark:text-gray-400">
-        Welcome to my blog where I share insights, tutorials, and reflections on various topics in technology and beyond. Explore my latest articles and join the conversation!
+        Welcome to my blog where I share insights, tutorials, and reflections on
+        various topics in technology and beyond. Explore my latest articles and
+        join the conversation!
       </p>
-      
+
       <ul className="space-y-6">
         {posts.map((post) => (
           <li
@@ -26,10 +35,10 @@ export default async function BlogPage() {
                   </h2>
                   <div className="flex items-center space-x-4 mt-1">
                     <time className="text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(post.date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
+                      {new Date(post.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
                       })}
                     </time>
                     {post.tags && post.tags.length > 0 && (

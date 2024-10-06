@@ -1,6 +1,13 @@
 import GithubCommitHistory from "@/components/GithubCommitHistory";
 import ProjectContainer from "@/components/ProjectContainer";
 import { projects } from "@/lib/my-projects";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Projects | Furkan Ünsalan",
+  description:
+    "Explore a diverse collection of my projects, showcasing my work across various fields. From creative endeavors to technical achievements, each project reflects my skills, dedication, and passion for innovation. Discover the details behind each project and the impact they've made.",
+};
 
 export default function Projects() {
   return (

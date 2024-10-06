@@ -1,6 +1,13 @@
 import Time from "@/components/Time";
 import MainNavbar from "@/components/MainNavbar";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Furkan Ünsalan",
+  description:
+    "Welcome to the personal website of Furkan Ünsalan. Student at Haliç University who loves software development and photography. Explore my portfolio, showcasing projects, professional experiences, and personal insights. Learn more about my journey, skills, and the creative work I've done across various fields. Discover my latest work and connect with me.",
+};
 
 const routes = ["/me", "/experience", "/projects", "/photos", "/blog"];
 

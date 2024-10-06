@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server';
-import { getNowPlaying, getRecentlyPlayed } from '@/lib/spotify'; // Import the getRecentlyPlayed function
+import { NextRequest } from "next/server";
+import { getNowPlaying, getRecentlyPlayed } from "@/lib/spotify"; // Import the getRecentlyPlayed function
 
-export const runtime = 'experimental-edge';
+export const runtime = "experimental-edge";
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
         return new Response(JSON.stringify({ isPlaying: false }), {
           status: 200,
           headers: {
-            'content-type': 'application/json',
-            'cache-control': 'no-cache', // Ensure no caching
+            "content-type": "application/json",
+            "cache-control": "no-cache", // Ensure no caching
           },
         });
       }
@@ -30,17 +30,17 @@ export async function GET(req: NextRequest) {
         return new Response(JSON.stringify({ isPlaying: false }), {
           status: 200,
           headers: {
-            'content-type': 'application/json',
-            'cache-control': 'no-cache', // Ensure no caching
+            "content-type": "application/json",
+            "cache-control": "no-cache", // Ensure no caching
           },
         });
       }
 
       // Return the last played song details
       const title = lastPlayedSong.name;
-      const artist = lastPlayedSong.artists[0]?.name ?? 'Unknown Artist';
+      const artist = lastPlayedSong.artists[0]?.name ?? "Unknown Artist";
       const album = lastPlayedSong.album.name;
-      const albumImageUrl = lastPlayedSong.album.images[0]?.url ?? '';
+      const albumImageUrl = lastPlayedSong.album.images[0]?.url ?? "";
       const songUrl = lastPlayedSong.external_urls.spotify;
 
       return new Response(
@@ -56,8 +56,8 @@ export async function GET(req: NextRequest) {
         {
           status: 200,
           headers: {
-            'content-type': 'application/json',
-            'cache-control': 'no-cache', // Ensure no caching
+            "content-type": "application/json",
+            "cache-control": "no-cache", // Ensure no caching
           },
         }
       );
@@ -69,8 +69,8 @@ export async function GET(req: NextRequest) {
       return new Response(JSON.stringify({ isPlaying: false }), {
         status: 200,
         headers: {
-          'content-type': 'application/json',
-          'cache-control': 'no-cache', // Ensure no caching
+          "content-type": "application/json",
+          "cache-control": "no-cache", // Ensure no caching
         },
       });
     }
@@ -78,9 +78,9 @@ export async function GET(req: NextRequest) {
     // Return the currently playing song details
     const isPlaying = nowPlayingData.is_playing;
     const title = nowPlayingData.item.name;
-    const artist = nowPlayingData.item.artists[0]?.name ?? 'Unknown Artist'; // Get the first artist's name or fallback
+    const artist = nowPlayingData.item.artists[0]?.name ?? "Unknown Artist"; // Get the first artist's name or fallback
     const album = nowPlayingData.item.album.name;
-    const albumImageUrl = nowPlayingData.item.album.images[0]?.url ?? ''; // Fallback if no image URL
+    const albumImageUrl = nowPlayingData.item.album.images[0]?.url ?? ""; // Fallback if no image URL
     const songUrl = nowPlayingData.item.external_urls.spotify;
 
     return new Response(
@@ -95,18 +95,18 @@ export async function GET(req: NextRequest) {
       {
         status: 200,
         headers: {
-          'content-type': 'application/json',
-          'cache-control': 'no-cache', // Ensure no caching
+          "content-type": "application/json",
+          "cache-control": "no-cache", // Ensure no caching
         },
       }
     );
   } catch (err) {
-    console.error('Error in /api/spotify:', err);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error("Error in /api/spotify:", err);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: {
-        'content-type': 'application/json',
-        'cache-control': 'no-cache', // Ensure no caching
+        "content-type": "application/json",
+        "cache-control": "no-cache", // Ensure no caching
       },
     });
   }

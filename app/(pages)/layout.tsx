@@ -1,5 +1,5 @@
-import BreadcrumbNavigator from '@/components/BreadcrumpNavigator';
-import React, { ReactNode } from 'react';
+import BreadcrumbNavigator from "@/components/BreadcrumpNavigator";
+import React, { ReactNode } from "react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,8 +8,8 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <>
-        <BreadcrumbNavigator />
-        {children}
+      <BreadcrumbNavigator />
+      {children}
     </>
   );
 };

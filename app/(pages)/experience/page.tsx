@@ -1,6 +1,13 @@
 import ExperienceContainer from "@/components/ExperienceContainer";
 import { works } from "@/lib/my-work";
-import { Work } from "@/types"; // Ensure Work type is correctly imported
+import { Work } from "@/types";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Experience | Furkan Ünsalan",
+  description:
+    "Explore my journey through diverse work experiences and volunteer initiatives",
+};
 
 export default function Experience() {
   return (

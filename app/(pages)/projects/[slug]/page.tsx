@@ -18,6 +18,22 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
     } else {
       setProject(fetchedProject);
       setLoading(false);
+      document.title = `${fetchedProject.title} | Furkan Ünsalan`;
+      const metaDescription = document.querySelector(
+        'meta[name="description"]'
+      );
+      if (metaDescription) {
+        metaDescription.setAttribute(
+          "content",
+          fetchedProject.short_description || "Project details and description"
+        );
+      } else {
+        const newMetaTag = document.createElement("meta");
+        newMetaTag.name = "description";
+        newMetaTag.content =
+          fetchedProject.short_description || "Project details and description";
+        document.head.appendChild(newMetaTag);
+      }
     }
   }, [params.slug, router]);
 

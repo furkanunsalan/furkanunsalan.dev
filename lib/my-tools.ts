@@ -1,121 +1,130 @@
-import type {Tool} from "@/types"
+import type { Tool } from "@/types";
 
-export const tools: Tool[]  = [
-    {
-        id: 2,
-        category: "tech",
-        what: "Laptop",
-        brand: "Apple",
-        name: "Macbook Pro M1 Pro",
-        comment: "I have been using it since it come out. Never had a second thought yet.",
-        favorite: false,
-        link: "https://www.hepsiburada.com/apple-macbook-m1-pro-cip-16gb-512gb-ssd-macos-16-qhd-tasinabilir-bilgisayar-uzay-grisi-mk183tu-a-p-HBCV00000U6WE5?magaza=MacBilisim"
-    },
-    {
-        id: 3,
-        category: "tech",
-        what: "E-Reader",
-        brand: "Amazon",
-        name: "Kindle Paperwhite 5 SE",
-        comment: "Not as good as reading hard paper but I have been really liking it so far.",
-        favorite: true,
-        link: "https://www.hepsiburada.com/kindle-paperwhite-5-e-kitap-okuyucu-signature-edition-32-gb-reklamsiz-p-HBCV00002EJPMZ"
-    },
-    {
-        id: 12,
-        category: "tech",
-        what: "Phone",
-        brand: "Apple",
-        name: "iPhone 15 Pro (128 GB)",
-        comment: "My phone for daily usage and some photography from time to time",
-        favorite: true,
-        link: "https://www.hepsiburada.com/samsonite-guard-it-15-6-2-0-siyah-notebook-sirt-cantasi-cm5-09-006-p-HBV00000H1PT5"
-    },
-    {
-        id: 4,
-        category: "tech",
-        what: "Tablet",
-        brand: "Apple",
-        name: "iPad 10th Gen",
-        comment: "Mostly using for my school stuff and some watching here and there",
-        favorite: false,
-        link: "https://www.hepsiburada.com/apple-ipad-10-nesil-64gb-10-9-wi-fi-tablet-mpq13tu-a-mavi-p-HBCV000034AXC0"
-    },
-    {
-        id: 5,
-        category: "tech",
-        what: "Earphones",
-        brand: "Apple",
-        name: "Airpods Pro",
-        comment: "Using it daily and liking it.",
-        favorite: false,
-        link: "https://www.hepsiburada.com/apple-airpods-pro-bluetooth-kulaklik-magsafe-sarj-kutusu-mlwk3tu-a-apple-turkiye-garantili-pm-HBC00000XQEDU"
-    },
-    {
-        id: 6,
-        category: "tech",
-        what: "Watch",
-        brand: "Apple",
-        name: "Watch SE",
-        comment: "I have been using it for nearly a year and loving it. Especially for workouts.",
-        favorite: false,
-        link: "https://www.hepsiburada.com/apple-macbook-m1-pro-cip-16gb-512gb-ssd-macos-16-qhd-tasinabilir-bilgisayar-uzay-grisi-mk183tu-a-p-HBCV00000U6WE5?magaza=MacBilisim"
-    },
-    {
-        id: 7,
-        category: "desk",
-        what: "Monitor",
-        brand: "Asus",
-        name: "27'' ",
-        comment: "My main monitor. I don't remember the exact model but it's ok for my use case",
-        favorite: false,
-    },
-    {
-        id: 8,
-        category: "desk",
-        what: "Monitor",
-        brand: "Asus",
-        name: "24'' ",
-        comment: "My side monitor. I don't remember the exact model but it's ok for my use case",
-        favorite: false,
-    },
-    {
-        id: 9,
-        category: "desk",
-        what: "Monitor Light",
-        brand: "Temu",
-        name: "Monitor Screen Lamp",
-        comment: "I bought it for fun at first but I really like using it now and will recommend.",
-        favorite: false,
-        link: "https://share.temu.com/7io8rnL20pA"
-    },
-    {
-        id: 10,
-        category: "desk",
-        what: "Mouse",
-        brand: "Logitech",
-        name: "G305",
-        comment: "I'm not really a mouse guy I mostly use my trackpad but in some designing software or when I'm chilling I like this mouse.",
-        favorite: false,
-        link: "https://www.hepsiburada.com/logitech-g-g305-lightspeed-12-000-dpi-kablosuz-oyuncu-mouse-siyah-p-HBV00000EAGAE"
-    },
-    {
-        id: 1,
-        category: "other",
-        what: "Backpack",
-        brand: "Samsonite",
-        name: "Guard IT 2.0",
-        comment: "My EDC backpack for everything from school to tech.",
-        favorite: true,
-        link: "https://www.hepsiburada.com/samsonite-guard-it-15-6-2-0-siyah-notebook-sirt-cantasi-cm5-09-006-p-HBV00000H1PT5"
-    },
-    {
-        id: 11,
-        category: "other",
-        what: "Camera",
-        brand: "Canon",
-        name: "650D",
-        comment: "My main camera besides my iPhone which i like for some hobby shots.",
-        favorite: false
-    },
-]
+export const tools: Tool[] = [
+  {
+    id: 2,
+    category: "tech",
+    what: "Laptop",
+    brand: "Apple",
+    name: "Macbook Pro M1 Pro",
+    comment:
+      "I have been using it since it come out. Never had a second thought yet.",
+    favorite: false,
+    link: "https://www.hepsiburada.com/apple-macbook-m1-pro-cip-16gb-512gb-ssd-macos-16-qhd-tasinabilir-bilgisayar-uzay-grisi-mk183tu-a-p-HBCV00000U6WE5?magaza=MacBilisim",
+  },
+  {
+    id: 3,
+    category: "tech",
+    what: "E-Reader",
+    brand: "Amazon",
+    name: "Kindle Paperwhite 5 SE",
+    comment:
+      "Not as good as reading hard paper but I have been really liking it so far.",
+    favorite: true,
+    link: "https://www.hepsiburada.com/kindle-paperwhite-5-e-kitap-okuyucu-signature-edition-32-gb-reklamsiz-p-HBCV00002EJPMZ",
+  },
+  {
+    id: 12,
+    category: "tech",
+    what: "Phone",
+    brand: "Apple",
+    name: "iPhone 15 Pro (128 GB)",
+    comment: "My phone for daily usage and some photography from time to time",
+    favorite: true,
+    link: "https://www.hepsiburada.com/samsonite-guard-it-15-6-2-0-siyah-notebook-sirt-cantasi-cm5-09-006-p-HBV00000H1PT5",
+  },
+  {
+    id: 4,
+    category: "tech",
+    what: "Tablet",
+    brand: "Apple",
+    name: "iPad 10th Gen",
+    comment:
+      "Mostly using for my school stuff and some watching here and there",
+    favorite: false,
+    link: "https://www.hepsiburada.com/apple-ipad-10-nesil-64gb-10-9-wi-fi-tablet-mpq13tu-a-mavi-p-HBCV000034AXC0",
+  },
+  {
+    id: 5,
+    category: "tech",
+    what: "Earphones",
+    brand: "Apple",
+    name: "Airpods Pro",
+    comment: "Using it daily and liking it.",
+    favorite: false,
+    link: "https://www.hepsiburada.com/apple-airpods-pro-bluetooth-kulaklik-magsafe-sarj-kutusu-mlwk3tu-a-apple-turkiye-garantili-pm-HBC00000XQEDU",
+  },
+  {
+    id: 6,
+    category: "tech",
+    what: "Watch",
+    brand: "Apple",
+    name: "Watch SE",
+    comment:
+      "I have been using it for nearly a year and loving it. Especially for workouts.",
+    favorite: false,
+    link: "https://www.hepsiburada.com/apple-macbook-m1-pro-cip-16gb-512gb-ssd-macos-16-qhd-tasinabilir-bilgisayar-uzay-grisi-mk183tu-a-p-HBCV00000U6WE5?magaza=MacBilisim",
+  },
+  {
+    id: 7,
+    category: "desk",
+    what: "Monitor",
+    brand: "Asus",
+    name: "27'' ",
+    comment:
+      "My main monitor. I don't remember the exact model but it's ok for my use case",
+    favorite: false,
+  },
+  {
+    id: 8,
+    category: "desk",
+    what: "Monitor",
+    brand: "Asus",
+    name: "24'' ",
+    comment:
+      "My side monitor. I don't remember the exact model but it's ok for my use case",
+    favorite: false,
+  },
+  {
+    id: 9,
+    category: "desk",
+    what: "Monitor Light",
+    brand: "Temu",
+    name: "Monitor Screen Lamp",
+    comment:
+      "I bought it for fun at first but I really like using it now and will recommend.",
+    favorite: false,
+    link: "https://share.temu.com/7io8rnL20pA",
+  },
+  {
+    id: 10,
+    category: "desk",
+    what: "Mouse",
+    brand: "Logitech",
+    name: "G305",
+    comment:
+      "I'm not really a mouse guy I mostly use my trackpad but in some designing software or when I'm chilling I like this mouse.",
+    favorite: false,
+    link: "https://www.hepsiburada.com/logitech-g-g305-lightspeed-12-000-dpi-kablosuz-oyuncu-mouse-siyah-p-HBV00000EAGAE",
+  },
+  {
+    id: 1,
+    category: "other",
+    what: "Backpack",
+    brand: "Samsonite",
+    name: "Guard IT 2.0",
+    comment: "My EDC backpack for everything from school to tech.",
+    favorite: true,
+    link: "https://www.hepsiburada.com/samsonite-guard-it-15-6-2-0-siyah-notebook-sirt-cantasi-cm5-09-006-p-HBV00000H1PT5",
+  },
+  {
+    id: 11,
+    category: "other",
+    what: "Camera",
+    brand: "Canon",
+    name: "650D",
+    comment:
+      "My main camera besides my iPhone which i like for some hobby shots.",
+    favorite: false,
+  },
+];
