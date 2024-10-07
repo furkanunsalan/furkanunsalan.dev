@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Tool as ToolType } from "@/types";
-import Tool from "@/components/Tool";  // Import your Tool component
+import Tool from "@/components/Tool"; // Import your Tool component
 import { useMemo } from "react";
 
 export default function ToolTabs({ tools }: { tools: ToolType[] }) {
@@ -24,7 +24,7 @@ export default function ToolTabs({ tools }: { tools: ToolType[] }) {
           <TabsTrigger
             key={category}
             value={category}
-            className="capitalize mx-1 hover:bg-primary-light dark:hover:bg-primary-dark transition data-[state=active]:bg-primary-light dark:data-[state=active]:bg-primary-dark rounded-lg"
+            className="capitalize mx-1 hover:bg-hover-light dark:hover:bg-hover-dark transition data-[state=active]:bg-primary-light dark:data-[state=active]:bg-primary-dark rounded-lg"
           >
             {category}
           </TabsTrigger>

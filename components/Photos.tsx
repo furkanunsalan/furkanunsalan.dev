@@ -1,5 +1,6 @@
 import NextImage from "next/image";
 import Link from "next/link";
+// import unsplash from "@/lib/unsplash";
 
 interface PhotoProps {
   alt_description: string;
@@ -12,14 +13,33 @@ interface PhotoProps {
   description: string;
   width: number;
   height: number;
+  id: string
 }
 
-function Photo({ alt_description, links, urls, description, width, height }: PhotoProps) {
+interface Photo {
+  views: {
+    total: number
+  }
+}
+
+async function Photo({
+  alt_description,
+  links,
+  urls,
+  description,
+  width,
+  height,
+  // id,
+}: PhotoProps) {
+  // const photoStats = await unsplash.getPhotoStats(id)
+  
+
   return (
     <figure className="w-full">
       <Link
         href={links.html}
-        className="block overflow-hidden rounded-lg saturate-50 transition-transform duration-700 hover:scale-105 hover:saturate-100"
+        target="blank"
+        className="block overflow-hidden rounded-lg transition-transform duration-700 hover:scale-105"
         data-umami-event={description + " -> unsplash"}
       >
         <NextImage
@@ -42,7 +62,7 @@ interface PhotosProps {
 function Photos({ data }: PhotosProps) {
   return (
     <div className="w-2/3 mx-auto mb-4">
-      <div className="grid items-end gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid items-center gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {data.map((item) => (
           <Photo key={item.description} {...item} />
         ))}

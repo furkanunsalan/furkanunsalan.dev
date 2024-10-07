@@ -1,7 +1,8 @@
-"use client"; // Mark this file as a Client Component
+"use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -21,13 +22,18 @@ import {
 const toTitleCase = (str: string) => {
   return str
     .split("-")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 };
 
 export default function BreadcrumbNavigator() {
   const pathname = usePathname(); // Get the current pathname
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [prevPathname, setPrevPathname] = useState("");
+
+  useEffect(() => {
+    setPrevPathname(pathname);
+  }, [pathname]);
 
   // Split the pathname into segments
   const pathSegments = pathname?.split("/").filter((segment) => segment) || [];
@@ -45,7 +51,9 @@ export default function BreadcrumbNavigator() {
   // Determine the href and name of the latest breadcrumb item
   const latestBreadcrumbHref = "/" + pathSegments.join("/");
   const latestBreadcrumbName =
-    pathSegments.length > 0 ? toTitleCase(pathSegments[pathSegments.length - 1]) : "Home";
+    pathSegments.length > 0
+      ? toTitleCase(pathSegments[pathSegments.length - 1])
+      : "Home";
 
   // Get the active route from the pathSegments
   const activeRoute = `/${pathSegments.join("/")}`;
@@ -54,6 +62,11 @@ export default function BreadcrumbNavigator() {
   const filteredRoutes = mainRoutes.filter(
     (route) => route.href !== activeRoute && route.href !== "/"
   );
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0 },
+  };
 
   return (
     <div className="relative flex justify-center mt-8">
@@ -93,33 +106,43 @@ export default function BreadcrumbNavigator() {
           })}
           {/* Latest Breadcrumb Item as Dropdown Trigger */}
           {pathSegments.length > 0 && (
-            <BreadcrumbItem>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  className="text-xl cursor-pointer text-green-500 hover:text-green-300"
-                  onClick={() => setDropdownOpen(!isDropdownOpen)}
-                >
-                  {latestBreadcrumbName}
-                </DropdownMenuTrigger>
-                {isDropdownOpen && (
-                  <DropdownMenuContent className="absolute left-0 mt-2 w-48 bg-white dark:bg-zinc-800 shadow-lg rounded-md border border-zinc-200 dark:border-zinc-700">
-                    {filteredRoutes.map((route) => (
-                      <DropdownMenuItem
-                        key={route.href}
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        <a
-                          href={route.href}
-                          className="rounded-md block px-4 py-2 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-200"
-                        >
-                          {route.name}
-                        </a>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                )}
-              </DropdownMenu>
-            </BreadcrumbItem>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={latestBreadcrumbHref}
+                initial="hidden"
+                animate="visible"
+                variants={itemVariants}
+                transition={{ duration: 0.3 }}
+              >
+                <BreadcrumbItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      className="text-xl cursor-pointer text-green-500 hover:text-green-300"
+                      onClick={() => setDropdownOpen(!isDropdownOpen)}
+                    >
+                      {latestBreadcrumbName}
+                    </DropdownMenuTrigger>
+                    {isDropdownOpen && (
+                      <DropdownMenuContent className="absolute left-0 mt-2 w-48 bg-white dark:bg-zinc-800 shadow-lg rounded-md border border-zinc-200 dark:border-zinc-700">
+                        {filteredRoutes.map((route) => (
+                          <DropdownMenuItem
+                            key={route.href}
+                            onClick={() => setDropdownOpen(false)}
+                          >
+                            <a
+                              href={route.href}
+                              className="rounded-md block px-4 py-2 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-200"
+                            >
+                              {route.name}
+                            </a>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    )}
+                  </DropdownMenu>
+                </BreadcrumbItem>
+              </motion.div>
+            </AnimatePresence>
           )}
         </BreadcrumbList>
       </Breadcrumb>
