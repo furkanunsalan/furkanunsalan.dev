@@ -1,11 +1,7 @@
 ---
-title: "Connect Your Docker Apps to  a Domain"
-date: 2024-10-22
-tags:
-  - Tech
-  - Docker
-  - NGINX
-  - VPS
+title: "Connect Your Docker Apps to a Domain"
+date: "2024-10-22"
+tags: ["Tech", "Docker", "NGINX", "VPS"]
 ---
 
 ## Table of Contents
