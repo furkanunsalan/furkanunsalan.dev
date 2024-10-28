@@ -60,7 +60,7 @@ interface PhotosProps {
 
 function Photos({ data }: PhotosProps) {
   return (
-    <div className="w-2/3 mx-auto mb-4">
+    <div className="w-5/6 mx-auto mb-4">
       <div className="grid items-center gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {data.map((item) => (
           <Photo key={item.description} {...item} />

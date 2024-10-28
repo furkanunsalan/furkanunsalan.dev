@@ -21,11 +21,12 @@ const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {
             >
               <Link
                 href={route}
-                className="text-lg p-2 rounded-lg transition-colors duration-300 ease-in-out hover:bg-secondary-light dark:hover:bg-secondary-dark hover:underline"
+                className="relative inline-block text-lg p-2 rounded-lg transition-colors duration-300 ease-in-out group"
                 id="na-buttons"
                 data-umami-event={route}
               >
                 {`/${displayText}`}
+                <span className="block absolute left-0 bottom-0 w-0 h-0.5 bg-black dark:bg-white transition-all duration-300 ease-out group-hover:w-full"></span>
               </Link>
             </motion.li>
           );

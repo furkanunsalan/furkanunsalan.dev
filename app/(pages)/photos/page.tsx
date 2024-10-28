@@ -17,7 +17,7 @@ export default async function PhotosPage() {
 
   return (
     <>
-      <div className="w-5/6 md:w-1/3 text-center font-mono mx-auto mt-8">
+      <div className="w-5/6 lg:w-2/3 xl:w-1/3 text-justify font-mono mx-auto mt-32">
         This is a collection of moments and scenes I&apos;ve captured through my
         lens. Each photo reflects my journey, experiences, and the beauty I see
         in the world around me. I hope you enjoy exploring my work as much as I
@@ -25,7 +25,7 @@ export default async function PhotosPage() {
       </div>
 
       <div className="w-5/6 md:w-1/3 text-center font-mono font-thin mx-auto mt-8">
-        Photos by <a href="https://unsplash.com/@furkanunsalan" target="blank" className="underline italic ">Furkan Ünsalan</a> on <a href="https://unsplash.com" target="blank" className="underline italic">Unsplash</a>
+        Photos by <a href="https://unsplash.com/@furkanunsalan" target="blank" className="underline italic ">Furkan Ünsalan</a> @ <a href="https://unsplash.com" target="blank" className="underline italic">Unsplash</a>
       </div>
 
       <div className="max-w-2xl mx-auto mt-14 sm:mt-20 px-4">

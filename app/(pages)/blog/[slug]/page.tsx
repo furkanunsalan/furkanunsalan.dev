@@ -27,7 +27,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
   const { title, date, content, tags } = post;
 
   return (
-    <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-16">
       <header className="text-center mb-8">
         <h1 className="text-4xl sm:text-5xl font-bold text-gray-700 dark:text-gray-400 mb-2">
           {title}
@@ -55,6 +55,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
       </header>
       <div
         className="prose prose-lg mx-auto
+        prose-a:text-indigo-500
           prose-headings:mt-8 
           prose-headings:mb-4 
           prose-headings:font-bold

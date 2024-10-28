@@ -23,14 +23,22 @@ export type Project = {
 
 export type Work = {
   id: number;
-  type: string;
   organization: string;
   title: string;
   start_date: string;
   end_date?: string;
   comment: string;
-  achievements: string[];
+  achievements?: string[];
+  link?: string[]; // ["description", "url"]
 };
+
+export type Contribution = {
+  id: number;
+  project_name: string;
+  description: string;
+  link: string;
+  tags?: string[];
+}
 
 export type Certificate = {
   id: number;

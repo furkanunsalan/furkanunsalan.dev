@@ -69,14 +69,14 @@ export default function BreadcrumbNavigator() {
   };
 
   return (
-    <div className="relative flex justify-center mt-8">
+    <div className="fixed top-0 left-0 right-0 z-10 p-4 flex justify-center bg-primary-light dark:bg-primary-dark">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink
               href="/"
               className={
-                pathname === "/" ? "text-green-500 text-xl" : "text-xl"
+                pathname === "/" ? "text-purple-00 text-xl" : "text-xl"
               }
             >
               Home
@@ -93,7 +93,7 @@ export default function BreadcrumbNavigator() {
                 <BreadcrumbItem>
                   <BreadcrumbLink
                     href={href}
-                    className={isActive ? "text-green-700 text-xl" : "text-xl"}
+                    className={isActive ? "text-indigo-700 text-xl" : "text-xl"}
                   >
                     {toTitleCase(segment)} {/* Convert segment to title case */}
                   </BreadcrumbLink>
@@ -117,13 +117,13 @@ export default function BreadcrumbNavigator() {
                 <BreadcrumbItem>
                   <DropdownMenu>
                     <DropdownMenuTrigger
-                      className="text-xl cursor-pointer text-green-500 hover:text-green-300"
+                      className="text-xl cursor-pointer text-indigo-500 hover:text-indigo-300"
                       onClick={() => setDropdownOpen(!isDropdownOpen)}
                     >
                       {latestBreadcrumbName}
                     </DropdownMenuTrigger>
                     {isDropdownOpen && (
-                      <DropdownMenuContent className="absolute left-0 mt-2 w-48 bg-white dark:bg-zinc-800 shadow-lg rounded-md border border-zinc-200 dark:border-zinc-700">
+                      <DropdownMenuContent className="absolute mt-2 w-48 bg-white dark:bg-zinc-800 shadow-lg rounded-md border border-zinc-200 dark:border-zinc-700">
                         {filteredRoutes.map((route) => (
                           <DropdownMenuItem
                             key={route.href}
