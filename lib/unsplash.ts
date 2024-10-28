@@ -13,12 +13,6 @@ class Unsplash {
     return this.getData(url);
   }
 
-  // getPhotoStats(photoId: string) {
-  //   const url = this.buildUrl(`photos/${photoId}`);
-  //   console.log(url);
-  //   return this.getData(url);
-  // }
-
   getPhotos(numPhotos = 50) {
     const url = this.buildUrl("photos", `per_page=${numPhotos}&`);
     return this.getData(url);

@@ -42,7 +42,7 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
   }
 
   return (
-    <div className="container mx-auto p-6 text-center">
+    <div className="container mx-auto p-6 mt-32 text-center">
       {project ? (
         <div className="space-y-6">
           {project.image && (

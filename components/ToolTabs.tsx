@@ -17,7 +17,7 @@ export default function ToolTabs({ tools }: { tools: ToolType[] }) {
   const categories = Object.keys(toolsByCategory);
 
   return (
-    <Tabs defaultValue={categories[0]} className="md:w-1/3 mx-auto p-2">
+    <Tabs defaultValue={categories[0]} className="max-w-xl mx-auto p-2">
       {/* Tabs List */}
       <TabsList className="grid w-full grid-cols-3 bg-secondary-light dark:bg-secondary-dark rounded-lg p-1">
         {categories.map((category) => (

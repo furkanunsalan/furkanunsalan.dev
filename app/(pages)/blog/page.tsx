@@ -13,7 +13,7 @@ export default async function BlogPage() {
   const posts: BlogPost[] = await getBlogPosts();
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-16">
       <h1 className="text-4xl font-bold text-center mb-4">Thoughts & Ideas</h1>
       <p className="text-lg text-center mb-12 text-gray-600 dark:text-gray-400">
         Welcome to my blog where I share insights, tutorials, and reflections on
@@ -42,7 +42,7 @@ export default async function BlogPage() {
                       })}
                     </time>
                     {post.tags && post.tags.length > 0 && (
-                      <div className="flex flex-wrap space-x-2">
+                      <div className="flex flex-wrap gap-x-2 gap-y-1">
                         {post.tags.map((tag, index) => (
                           <span
                             key={index}
