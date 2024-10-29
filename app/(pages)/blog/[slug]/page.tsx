@@ -17,6 +17,13 @@ export async function generateStaticParams() {
   }));
 }
 
+function calculateReadingTime(content: string) {
+  const wordsPerMinute = 200; // Average reading speed
+  const words = content.split(/\s+/).length;
+  const minutes = Math.ceil(words / wordsPerMinute);
+  return `${minutes} min read`;
+}
+
 export default async function BlogPost({ params }: BlogPostProps) {
   const post: BlogPostData | null = await getBlogPostBySlug(params.slug);
 
@@ -25,6 +32,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
   }
 
   const { title, date, content, tags } = post;
+  const readingTime = calculateReadingTime(content);
 
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-16">
@@ -39,6 +47,18 @@ export default async function BlogPost({ params }: BlogPostProps) {
             day: "numeric",
           })}
         </time>
+        <div className="text-sm text-gray-500">
+          <time>
+            {new Date(date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </time>
+          <span className="mx-2">•</span>
+          <span>{readingTime}</span>
+        </div>
+
         {tags && tags.length > 0 && (
           <div className="mt-4 text-center">
             <ul className="mt-2 flex flex-wrap justify-center space-x-2">
