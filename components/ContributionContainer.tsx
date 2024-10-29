@@ -12,7 +12,7 @@ export default function ContributionContainer({ contribution }: { contribution: 
       className="mb-6 p-2 border-secondary-dark border-l-4 pl-2 rounded-lg"
     >
       <div key={contribution.id} className="pb-2">
-        <h3 className="text-lg font-semibold text-black dark:text-white">{contribution.project_name}</h3>
+        <a href={contribution.link} target="blank" className="text-lg font-semibold text-black dark:text-white">{contribution.project_name}</a>
         <p className="mt-1 text-gray-700 dark:text-gray-300">{contribution.description}</p>
 
         {contribution.tags && contribution.tags.length > 0 && (
