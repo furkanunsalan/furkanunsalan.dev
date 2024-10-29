@@ -18,7 +18,7 @@ tags: ["Tech", "Docker", "NGINX", "VPS"]
 
 ## Introduction
 
-This has been something I really struggled when I first try to setup a config for accessing my docker containers using my domain and at the time I couldn't find a proper document that I can understand so I told myself why not write it yourself so here it is. For my fellow Turkish friends I also wrote a [Turkish version] of this article. 
+This has been something I really struggled when I first try to setup a config for accessing my docker containers using my domain and at the time I couldn't find a proper document that I can understand so I told myself why not write it yourself so here it is.
 
 ## Update Your System
 
