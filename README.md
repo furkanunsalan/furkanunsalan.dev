@@ -66,6 +66,11 @@ export default App;
 ## Spotify API Integration
 For more detailed information on how to integrate with the Spotify API, check out this guide:
 [Spotify API with Next.js](https://leerob.io/blog/spotify-api-nextjs)
+
+## Repo Activity
+
+![Alt](https://repobeats.axiom.co/api/embed/94a2829520bc7e0ee83043b228c0db765d31cf5b.svg "Repobeats analytics image")
+
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 ## Contact
