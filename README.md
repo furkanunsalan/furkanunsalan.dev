@@ -1,70 +1,53 @@
-# Personal Website
-Welcome to my personal website repository. This project includes various components and functionalities for my personal site, including an integration with the Spotify API to display the currently playing track.
+# furkanunsalan.dev
+Welcome to the public repository of my personal website. This project includes various components and functionalities for my personal site, including an integration with the Spotify API to display the currently playing track, Unsplash integration for fetching images and more.
+
+## Overview
+- `/` — Home page.
+- `/me` — You can find information about me in this page.
+- `/experience` — My latest volunteering and work experiences.
+- `/open-source` — List of all the contributşons I do to open source projects.
+- `/projects` — Projects display page for my side projects.
+- `/photos` — My favourite photos fetched from Unsplash.
+- `/blog` — Where I talk about the stuff I like, mostly tech.
+- `/api` — API routes.
+
+## Tech Stack
+
+- [Next.js](https://nextjs.org)
+- [Tailwind CSS](https://tailwindcss.com)
+- [shadcn/ui](https://ui.shadcn.com)
+- [Vercel](https://vercel.com)
+
 ## Getting Started
+
 ### Prerequisites
+
 - Node.js (version 16.x or later)
 - npm or yarn
-### Installation
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/your-username/your-repository.git
-   cd your-repository
-   ```
-2. **Install Dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-### Environment Variables
-Create a `.env.local` file in the root of your project and add the following environment variables:
-```dotenv
-UNSPLASH_ACCESS_KEY=
-SPOTIFY_CLIENT_ID=
-SPOTIFY_CLIENT_SECRET=
-SPOTIFY_REDIRECT_URI=
-SPOTIFY_REFRESH_TOKEN=
+
+### Running on Local
+
+```bash
+$ git clone https://github.com/furkanunsalan/furkanunsalan.dev.git
+$ cd furkanunsalan.dev
+$ npm install
+$ npm run dev
 ```
-Replace the placeholders with your actual credentials.
+
+Navigate to `http://localhost:3000` in your browser to see the developement server.
+
+
+### Environment Variables
+
+Create a `.env.local` file in the root of your project and add the following environment variables:
 - `UNSPLASH_ACCESS_KEY`: Your Unsplash API access key.
 - `SPOTIFY_CLIENT_ID`: Your Spotify Client ID.
 - `SPOTIFY_CLIENT_SECRET`: Your Spotify Client Secret.
 - `SPOTIFY_REDIRECT_URI`: Your Spotify Redirect URI.
 - `SPOTIFY_REFRESH_TOKEN`: Your Spotify Refresh Token.
-### Development
-To start the development server:
-```bash
-npm run dev
-# or
-yarn dev
-```
-Navigate to `http://localhost:3000` to see the website in your browser.
-### Deployment
-Deploy the project to Vercel for production by running:
-```bash
-vercel
-```
-Follow the prompts to complete the deployment.
-## Components
-### NowPlaying Component
-The `NowPlaying` component fetches and displays the currently playing track from Spotify. It uses the Spotify API to get the current track information and animates visual bars when a track is playing.
-File Location: `app/api/now-playing/route.ts`
-Usage:
-```jsx
-import NowPlaying from './components/NowPlaying';
 
-function App() {
-  return (
-    <div>
-      <NowPlaying />
-    </div>
-  );
-}
-
-export default App;
-```
 ## Spotify API Integration
-For more detailed information on how to integrate with the Spotify API, check out this guide:
+For more detailed information on how to integrate with the Spotify API, check out this awesome guide:
 [Spotify API with Next.js](https://leerob.io/blog/spotify-api-nextjs)
 
 ## Repo Activity
