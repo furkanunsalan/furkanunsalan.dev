@@ -34,7 +34,7 @@ $ npm install
 $ npm run dev
 ```
 
-Navigate to `http://localhost:3000` in your browser to see the developement server.
+Navigate to `http://localhost:3000` in your browser to see the development server.
 
 
 ### Environment Variables
