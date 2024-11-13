@@ -9,6 +9,10 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Furkan Ünsalan",
   description: "My portfolio website",
+  openGraph: {
+    images: ["../public/photos/preview/image.png"],
+    title: "Home"
+  }
 };
 
 export default function RootLayout({

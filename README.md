@@ -1,3 +1,5 @@
+![screenshot](public/photos/preview/image.png)
+
 # Personal Website
 Welcome to my personal website repository. This project includes various components and functionalities for my personal site, including an integration with the Spotify API to display the currently playing track.
 ## Getting Started
