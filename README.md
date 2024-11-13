@@ -1,3 +1,5 @@
+![screenshot](public/photos/preview/image.png)
+
 # furkanunsalan.dev
 Welcome to the public repository of my personal website. This project includes various components and functionalities for my personal site, including an integration with the Spotify API to display the currently playing track, Unsplash integration for fetching images and more.
 
