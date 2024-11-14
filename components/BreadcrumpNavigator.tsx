@@ -120,7 +120,7 @@ export default function BreadcrumbNavigator() {
                       className="text-xl cursor-pointer text-indigo-500 hover:text-indigo-300"
                       onClick={() => setDropdownOpen(!isDropdownOpen)}
                     >
-                      {latestBreadcrumbName}
+                      {latestBreadcrumbName + " ▼"}
                     </DropdownMenuTrigger>
                     {isDropdownOpen && (
                       <DropdownMenuContent className="absolute mt-2 w-48 bg-white dark:bg-zinc-800 shadow-lg rounded-md border border-zinc-200 dark:border-zinc-700">
