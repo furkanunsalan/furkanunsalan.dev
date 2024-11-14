@@ -8,17 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Furkan Ünsalan",
-  description: "Software Developer | Photography Enthusiast | @Istanbul",
-  openGraph: {
-    title: "Furkan Ünsalan",
-    description: "Software Developer | Photography Enthusiast | @Istanbul",
-    images: [
-      {
-        url: "https://furkanunsalan.dev/opengraph-image.png", // Updated OG image path
-        alt: "Furkan Ünsalan", // Optional alt description
-      },
-    ],
-  },
+  description: "Software Developer | Photography Enthusiast | @Istanbul"
 };
 
 export default function RootLayout({
