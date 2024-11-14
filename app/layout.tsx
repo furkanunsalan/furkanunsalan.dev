@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     description: "Software Developer | Photography Enthusiast | @Istanbul",
     images: [
       {
-        url: "./opengraph-image.png", // Updated OG image path
+        url: "https://furkanunsalan.dev/opengraph-image.png", // Updated OG image path
         alt: "Furkan Ünsalan", // Optional alt description
       },
     ],
