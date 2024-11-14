@@ -8,7 +8,17 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Furkan Ünsalan",
-  description: "My portfolio website",
+  description: "Software Developer | Photography Enthusiast | @Istanbul",
+  openGraph: {
+    title: "Furkan Ünsalan",
+    description: "Software Developer | Photography Enthusiast | @Istanbul",
+    images: [
+      {
+        url: "./opengraph-image.png", // Updated OG image path
+        alt: "Furkan Ünsalan", // Optional alt description
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -24,12 +34,8 @@ export default function RootLayout({
           src="https://cloud.umami.is/script.js"
           data-website-id="227d51b5-5f5f-42aa-a9eb-a38128095d7b"
         />
-        <meta property="og:image" content="<generated>" />
-        <meta property="og:image:type" content="<generated>" />
-        <meta property="og:image:width" content="<generated>" />
-        <meta property="og:image:height" content="<generated>" />
       </head>
-      <body className={`${inter.className}`}>
+      <body className={inter.className}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
