@@ -8,7 +8,12 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Furkan Ünsalan",
-  description: "Software Developer | Photography Enthusiast | @Istanbul"
+  description: "Software Developer | Photography Enthusiast | @Istanbul",
+  robots: {
+    index: true,
+    follow: true
+  },
+  keywords: ['Furkan Ünsalan', 'Furkan Unsalan', 'furkanunsalan dev', 'furkanunsalan.dev'],
 };
 
 export default function RootLayout({

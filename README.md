@@ -57,6 +57,6 @@ For more detailed information on how to integrate with the Spotify API, check ou
 ![Alt](https://repobeats.axiom.co/api/embed/94a2829520bc7e0ee83043b228c0db765d31cf5b.svg "Repobeats analytics image")
 
 ## License
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under the GNU License. See the [LICENSE](LICENSE) file for details.
 ## Contact
 If you have any questions, feel free to reach out to me at `me@furkanunsalan.dev`.

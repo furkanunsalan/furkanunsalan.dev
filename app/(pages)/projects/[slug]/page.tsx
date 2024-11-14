@@ -1,39 +1,84 @@
 "use client";
 
 import { find_by_slug } from "@/lib/project-finder";
-import { Project } from "@/types";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Loading from "@/components/Loading";
+import Markdown from "markdown-to-jsx";
+import type { Project } from "@/types";
 
 export default function ProjectPage({ params }: { params: { slug: string } }) {
   const router = useRouter();
-  const [project, setProject] = useState<Project | undefined>(undefined);
+  const [project, setProject] = useState<Project | null>(null);
+  const [readmeContent, setReadmeContent] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchedProject = find_by_slug(params.slug);
     if (!fetchedProject) {
+      console.warn("Project not found with slug:", params.slug);
       router.replace("/not-found");
-    } else {
-      setProject(fetchedProject);
-      setLoading(false);
-      document.title = `${fetchedProject.title} | Furkan Ünsalan`;
-      const metaDescription = document.querySelector(
-        'meta[name="description"]'
-      );
-      if (metaDescription) {
-        metaDescription.setAttribute(
-          "content",
-          fetchedProject.short_description || "Project details and description"
-        );
-      } else {
-        const newMetaTag = document.createElement("meta");
-        newMetaTag.name = "description";
-        newMetaTag.content =
-          fetchedProject.short_description || "Project details and description";
-        document.head.appendChild(newMetaTag);
+      return;
+    }
+
+    setProject(fetchedProject);
+
+    // Fetch README from GitHub
+    const fetchReadme = async () => {
+      const { owner, repo, branch } = fetchedProject;
+      const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/README.md`;
+      console.log("Fetching README from:", url);
+    
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          let markdown = await response.text();
+    
+          // Replace image paths in the markdown
+          markdown = markdown.replace(
+            /!\[([^\]]*)\]\(([^)]+)\)/g,  // Regex to match markdown image syntax
+            (match, altText, imageUrl) => {
+              // If the image URL is a relative path, append it to the base URL
+              if (!/^https?:\/\//.test(imageUrl)) {
+                // Replace the relative path with the GitHub base URL and append the relative image path
+                const baseUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}`;
+                const updatedImageUrl = `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+                return `![${altText}](${updatedImageUrl})`;
+              }
+              return match;  // If it's already a full URL, leave it as is
+            }
+          );
+    
+          console.log("README content fetched successfully.");
+          setReadmeContent(markdown);
+        } else {
+          console.warn("Failed to fetch README content, status:", response.status);
+          setReadmeContent("README not found for this project.");
+        }
+      } catch (error) {
+        console.error("Error fetching README:", error);
+        setReadmeContent("Error loading README content.");
+      } finally {
+        setLoading(false);
       }
+    };
+    
+
+    fetchReadme();
+
+    // Set document title and meta description
+    document.title = `${fetchedProject.repo} | Furkan Ünsalan`;
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        "content",
+        `Details and description of ${fetchedProject.repo}`
+      );
+    } else {
+      const newMetaTag = document.createElement("meta");
+      newMetaTag.name = "description";
+      newMetaTag.content = `Details and description of ${fetchedProject.repo}`;
+      document.head.appendChild(newMetaTag);
     }
   }, [params.slug, router]);
 
@@ -41,53 +86,54 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
     return <Loading />;
   }
 
+  // Markdown options
+  const markdownOptions = {
+    overrides: {
+      img: {
+        props: {
+          className: "rounded-lg",  // Adds rounded corners to images
+        },
+      },
+      a: {
+        props: {
+          className: "text-indigo-500 hover:underline",
+          target: "_blank",
+          rel: "noopener noreferrer",
+        },
+      },
+      h1: { props: { className: "text-3xl font-bold mt-6 mb-4" } },
+      h2: { props: { className: "text-2xl font-semibold mt-4 mb-3" } },
+      h3: { props: { className: "text-xl font-semibold mt-3 mb-2" } },
+      p: { props: { className: "mb-4" } },
+    },
+  };
+
   return (
     <div className="container mx-auto p-6 mt-32 text-center">
       {project ? (
         <div className="space-y-6">
-          {project.image && (
-            <img
-              src={project.image}
-              alt={project.title}
-              className="w-full h-auto rounded-lg shadow-lg mt-4"
-            />
-          )}
-          <h1 className="text-3xl font-bold">{project.title}</h1>
+          <h1 className="text-3xl font-bold">{project.repo}</h1>
           <p className="text-sm text-zinc-900 dark:text-zinc-400">
-            Last updated: {project.update}
+            Last updated:{" "}
+            {new Date(project.update).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
           </p>
-          <p className="text-lg w-full lg:w-1/2 xl:w-1/3 mx-auto text-left">
-            {project.short_description}
-          </p>
-          <div
-            className="mt-4 w-full lg:w-1/2 xl:w-1/3 mx-auto text-left"
-            dangerouslySetInnerHTML={{ __html: project.description }}
-          />
-
+          <div className="prose dark:prose-invert mt-4 w-full lg:w-2/3 xl:w-1/2 mx-auto text-left">
+            <Markdown options={markdownOptions}>{readmeContent}</Markdown>
+          </div>
           <div className="flex flex-col items-center sm:flex-row sm:justify-center gap-4 lg:flex-col xl:flex-row mt-6">
-            {project.link && (
-              <a
-                href={project.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block text-white px-6 py-3 hover:bg-hover-dark bg-secondary-dark rounded-lg transition"
-                data-umami-event={project.slug + " Website"}
-              >
-                Visit the Site
-              </a>
-            )}
-
-            {project.github && (
-              <a
-                href={project.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block text-white px-6 py-3 hover:bg-hover-dark bg-secondary-dark rounded-lg transition"
-                data-umami-event={project.slug + " Github"}
-              >
-                View on GitHub
-              </a>
-            )}
+            <a
+              href={`https://github.com/${project.owner}/${project.repo}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-white px-6 py-3 hover:bg-hover-dark bg-secondary-dark rounded-lg transition"
+              data-umami-event={`${project.repo} Github`}
+            >
+              View on GitHub
+            </a>
           </div>
         </div>
       ) : (

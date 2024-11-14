@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 export default function ProjectContainer({ project }: { project: Project }) {
-  const { title, short_description, update, slug } = project;
+  const {title, short_description, update, repo, slug } = project;
   const router = useRouter();
 
   const handleNavigation = () => {
@@ -17,7 +17,7 @@ export default function ProjectContainer({ project }: { project: Project }) {
     <motion.div
       className="bg-secondary-light dark:bg-secondary-dark hover:dark:bg-hover-dark hover:bg-hover-light w-5/6 md:w-1/3 p-4 mt-4 rounded-lg flex justify-between items-start hover:cursor-pointer"
       onClick={handleNavigation}
-      data-umami-event={slug}
+      data-umami-event={repo}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
@@ -27,7 +27,13 @@ export default function ProjectContainer({ project }: { project: Project }) {
         <p className="text-black dark:text-zinc-400">{short_description}</p>
       </div>
       <div className="text-right dark:text-zinc-400">
-        <p>{update}</p>
+        <p>
+          {new Date(update).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+        </p>
       </div>
     </motion.div>
   );

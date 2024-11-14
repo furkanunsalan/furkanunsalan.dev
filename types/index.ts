@@ -9,17 +9,28 @@ export type Tool = {
   link?: string;
 };
 
+// export type Project = {
+//   id: number;
+//   slug: string;
+//   image?: string;
+//   title: string;
+//   short_description: string;
+//   description: string;
+//   link?: string;
+//   github?: string;
+//   update: string;
+// };
+
 export type Project = {
   id: number;
   slug: string;
-  image?: string;
   title: string;
-  short_description: string;
-  description: string;
-  link?: string;
-  github?: string;
+  repo: string;
+  owner: string;
+  branch: string;
   update: string;
-};
+  short_description: string;
+}
 
 export type Work = {
   id: number;
