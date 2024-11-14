@@ -27,7 +27,13 @@ export default function ProjectContainer({ project }: { project: Project }) {
         <p className="text-black dark:text-zinc-400">{short_description}</p>
       </div>
       <div className="text-right dark:text-zinc-400">
-        <p>{update}</p>
+        <p>
+          {new Date(update).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+        </p>
       </div>
     </motion.div>
   );

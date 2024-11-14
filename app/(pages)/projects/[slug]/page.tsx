@@ -54,7 +54,12 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
           )}
           <h1 className="text-3xl font-bold">{project.title}</h1>
           <p className="text-sm text-zinc-900 dark:text-zinc-400">
-            Last updated: {project.update}
+            Last updated:{" "}
+            {new Date(project.update).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
           </p>
           <p className="text-lg w-full lg:w-1/2 xl:w-1/3 mx-auto text-left">
             {project.short_description}

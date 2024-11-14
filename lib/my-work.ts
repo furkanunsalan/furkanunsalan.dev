@@ -3,6 +3,13 @@ import { Certificate } from "@/types";
 
 export const works: Work[] = [
   {
+    id: 4,
+    organization: "Developer MultiGroup",
+    title: "Pioneer B Member",
+    start_date: "Oct 2024",
+    comment: "",
+  },
+  {
     id: 3,
     organization: "Open Source",
     title: "Contributor",

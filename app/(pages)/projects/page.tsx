@@ -14,9 +14,15 @@ export default function Projects() {
     <>
       <div className="flex flex-col items-center justify-center h-screen">
         <GithubCommitHistory />
-        {projects.map((project) => (
-          <ProjectContainer key={project.id} project={project} />
-        ))}
+        {projects
+          .sort((a, b) => {
+            const dateA = new Date(a.update).getTime();
+            const dateB = new Date(b.update).getTime();
+            return dateB - dateA; // Reverse the order to put the newest on top
+          })
+          .map((project) => (
+            <ProjectContainer key={project.id} project={project} />
+          ))}
       </div>
     </>
   );
