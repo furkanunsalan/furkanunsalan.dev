@@ -9,28 +9,24 @@ export type Tool = {
   link?: string;
 };
 
-// export type Project = {
-//   id: number;
-//   slug: string;
-//   image?: string;
-//   title: string;
-//   short_description: string;
-//   description: string;
-//   link?: string;
-//   github?: string;
-//   update: string;
-// };
-
 export type Project = {
   id: number;
   slug: string;
   title: string;
-  repo: string;
-  owner: string;
-  branch: string;
-  update: string;
   short_description: string;
-}
+  update: string;
+} & (
+  | {
+      private: false;
+      repo: string;
+      owner: string;
+      branch: string;
+    }
+  | {
+      private: true;
+      long_description: string;
+    }
+);
 
 export type Work = {
   id: number;
@@ -66,12 +62,12 @@ export type BlogPost = {
   slug: string;
   title: string;
   date: string;
-  tags: string[]; // Tags as an array of strings
+  tags: string[];
 };
 
 export type BlogPostData = {
   title: string;
   date: string;
   content: string;
-  tags: string[]; // Explicitly type tags as an array of strings
+  tags: string[];
 };

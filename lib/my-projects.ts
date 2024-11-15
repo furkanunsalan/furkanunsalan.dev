@@ -9,7 +9,8 @@ export const projects: Project[] = [
     owner: "furkanunsalan",
     branch: "prod",
     update: "2024/10/06",
-    short_description: "A personal project for tracking and visualizing travel destinations using an interactive map, with features for bookmarking and rating places. ",
+    short_description: "A personal project for tracking and visualizing travel destinations using an interactive map, with features for bookmarking and rating places.",
+    private: false,
   },
   {
     id: 2,
@@ -19,7 +20,8 @@ export const projects: Project[] = [
     owner: "Descite-Co",
     branch: "v2",
     update: "2024/11/12",
-    short_description: "Yatırım Bot is a Python-based project designed to automate the sharing of financial updates and trading signals on X. "
+    short_description: "Yatırım Bot is a Python-based project designed to automate the sharing of financial updates and trading signals on X.",
+    private: false,
   },
   {
     id: 3,
@@ -29,6 +31,7 @@ export const projects: Project[] = [
     owner: "furkanunsalan",
     branch: "main",
     update: "2024/11/15",
-    short_description: "My personal website built using Next.js, Tailwind CSS, shadcn/ui, Unsplash and deployed on Vercel. "
+    short_description: "My personal website built using Next.js, Tailwind CSS, shadcn/ui, Unsplash and deployed on Vercel.",
+    private: false,
   }
-]
+];

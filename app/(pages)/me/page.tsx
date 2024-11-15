@@ -32,7 +32,7 @@ export default function Me() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          Student @ Haliç who loves software development and photography.
+          Software Developer, Photography Enthusiast and Student from Istanbul
         </motion.p>
 
         <SocialNavigator />
@@ -76,10 +76,7 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.4 }}
             >
-              <strong className="mr-2">🎧 Listening:</strong>
-              <div className="text-center mt-2">
-                <Spotify />
-              </div>
+              <strong>🍿 Watching:</strong> Silo Season 2
             </motion.li>
             <motion.li
               className="mb-2"
@@ -87,7 +84,10 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.6 }}
             >
-              <strong>🍿 Watching:</strong> Nothing Currently
+              <strong className="mr-2">🎧 Listening:</strong>
+              <div className="text-center mt-2">
+                <Spotify />
+              </div>
             </motion.li>
           </ul>
         </motion.div>

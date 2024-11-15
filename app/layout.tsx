@@ -14,6 +14,7 @@ export const metadata: Metadata = {
     follow: true
   },
   keywords: ['Furkan Ünsalan', 'Furkan Unsalan', 'furkanunsalan dev', 'furkanunsalan.dev'],
+  metadataBase: new URL("https://furkanunsalan.dev"),
 };
 
 export default function RootLayout({

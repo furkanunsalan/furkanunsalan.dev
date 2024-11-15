@@ -13,7 +13,9 @@ export default function Projects() {
   return (
     <>
       <div className="flex flex-col items-center justify-center h-screen">
-        <GithubCommitHistory />
+        <div className="mt-32 mb-12">
+          <GithubCommitHistory />
+        </div>
         {projects
           .sort((a, b) => {
             const dateA = new Date(a.update).getTime();
