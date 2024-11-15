@@ -5,7 +5,7 @@ export default function SocialNavigator() {
         href="https://github.com/furkanunsalan"
         target="_blank"
         rel="noopener noreferrer"
-        className="hover:underline"
+        className="hover:underline hover:text-indigo-500"
         data-umami-event="Github"
       >
         Github
@@ -15,7 +15,7 @@ export default function SocialNavigator() {
         href="https://linkedin.com/in/furkanunsalan"
         target="_blank"
         rel="noopener noreferrer"
-        className="hover:underline"
+        className="hover:underline hover:text-indigo-500"
         data-umami-event="Linkedin"
       >
         Linkedin
@@ -23,7 +23,7 @@ export default function SocialNavigator() {
       <span>/</span>
       <a
         href="mailto:hi@furkanunsalan.dev"
-        className="hover:underline"
+        className="hover:underline hover:text-indigo-500"
         data-umami-event="Mail"
       >
         Mail
@@ -33,7 +33,7 @@ export default function SocialNavigator() {
         href="https://read.cv/furkanunsalan"
         target="_blank"
         rel="noopener noreferrer"
-        className="hover:underline"
+        className="hover:underline hover:text-indigo-500"
         data-umami-event="CV"
       >
         CV
