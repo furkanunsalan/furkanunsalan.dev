@@ -13,7 +13,7 @@ export default function Projects() {
   return (
     <>
       <div className="flex flex-col items-center justify-center h-screen">
-        <div className="mt-24 mb-12">
+        <div className="mt-32 mb-12">
           <GithubCommitHistory />
         </div>
         {projects
