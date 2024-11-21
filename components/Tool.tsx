@@ -17,7 +17,7 @@ export default function Tool({ tool }: { tool: ToolType }) {
         <header>
           <h6 className="flex flex-row font-mono text-sm uppercase tracking-wider opacity-50 dark:opacity-40">
             {what.toUpperCase()}
-            {favorite && <FaHeart className="ml-2 my-auto" />}
+            {favorite && <FaHeart className="ml-2 my-auto text-red-900" />}
           </h6>
           <h3 className="mt-1 font-semibold">
             <span className="">{brand}</span> <span className="">{name}</span>
