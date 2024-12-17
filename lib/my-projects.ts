@@ -33,5 +33,16 @@ export const projects: Project[] = [
     update: "2024/11/15",
     short_description: "My personal website built using Next.js, Tailwind CSS, shadcn/ui, Unsplash and deployed on Vercel.",
     private: false,
-  }
+  },
+  {
+    id: 4,
+    slug: "cekilis-arkadasi",
+    title: "DMG Çekiliş Arkadaşın",
+    repo: "cekilis-arkadasi",
+    owner: "Developer-MultiGroup",
+    branch: "main",
+    update: "2024/12/17",
+    short_description: "A web application for managing and organizing team giveaways, promoting engagement and fun within teams!",
+    private: false,
+  },
 ];
