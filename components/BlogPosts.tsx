@@ -1,9 +1,7 @@
-// components/SearchInput.tsx
 "use client";
-
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { FaChevronRight } from "react-icons/fa"; // Import the ChevronRight icon
+import { FaChevronRight } from "react-icons/fa";
 import type { BlogPost } from "@/types";
 
 type SearchInputProps = {
@@ -12,22 +10,48 @@ type SearchInputProps = {
 
 export default function BlogPosts({ posts }: SearchInputProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTag, setSelectedTag] = useState<string>("");
 
-  // Filter posts based on search query
-  const filteredPosts = posts.filter((post) =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Extract unique tags from all posts
+  const uniqueTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    posts.forEach(post => {
+      post.tags?.forEach(tag => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [posts]);
+
+  // Filter posts based on search query and selected tag
+  const filteredPosts = posts.filter((post) => {
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTag = !selectedTag || post.tags?.includes(selectedTag);
+    return matchesSearch && matchesTag;
+  });
 
   return (
     <div>
-      {/* Search bar */}
-      <input
-        type="text"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="Search posts..."
-        className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-secondary-dark dark:text-gray-200 mb-8"
-      />
+      {/* Search bar and tag selector container */}
+      <div className="flex gap-4 mb-8">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search posts..."
+          className="flex-1 p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-secondary-dark dark:text-gray-200"
+        />
+        <select
+          value={selectedTag}
+          onChange={(e) => setSelectedTag(e.target.value)}
+          className="w-1/3 p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-secondary-dark dark:text-gray-200 appearance-none bg-white dark:bg-secondary-dark cursor-pointer"
+        >
+          <option value="">All Tags</option>
+          {uniqueTags.map((tag) => (
+            <option key={tag} value={tag}>
+              {tag}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Posts list */}
       <ul className="space-y-6">
@@ -65,7 +89,6 @@ export default function BlogPosts({ posts }: SearchInputProps) {
                       )}
                     </div>
                   </div>
-                  {/* Add the ">" icon */}
                   <FaChevronRight className="text-gray-500 dark:text-gray-400 ml-2 h-5 w-5" />
                 </div>
               </Link>

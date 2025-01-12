@@ -5,7 +5,7 @@ export const works: Work[] = [
   {
     id: 4,
     organization: "Developer MultiGroup",
-    title: "Pioneer B Member",
+    title: "Pioneer A Member",
     start_date: "Oct 2024",
     comment: "",
   },
