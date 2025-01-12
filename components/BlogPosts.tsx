@@ -42,7 +42,7 @@ export default function BlogPosts({ posts }: SearchInputProps) {
         <select
           value={selectedTag}
           onChange={(e) => setSelectedTag(e.target.value)}
-          className="w-1/3 p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-secondary-dark dark:text-gray-200 appearance-none bg-white dark:bg-secondary-dark cursor-pointer"
+          className="w-1/3 p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:text-gray-200 appearance-none bg-white dark:bg-secondary-dark cursor-pointer"
         >
           <option value="">All Tags</option>
           {uniqueTags.map((tag) => (
