@@ -32,7 +32,7 @@ export default function Tool({ tool }: { tool: ToolType }) {
           <Link
             href={link}
             target="_blank"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-secondary-light dark:bg-hover-dark rounded-lg hover:bg-hover-light hover:dark:bg-secondary-dark transition"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-secondary-light dark:bg-dark-third rounded-lg hover:bg-hover-light hover:dark:bg-dark-secondary transition"
             data-umami-event={name + " -> Web"}
           >
             <FaShoppingCart size={16} />

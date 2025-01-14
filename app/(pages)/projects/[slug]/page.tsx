@@ -154,7 +154,7 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
             href={`https://github.com/${project.owner}/${project.repo}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block text-white px-6 py-3 hover:bg-hover-dark bg-secondary-dark rounded-lg transition"
+            className="inline-block text-white px-6 py-3 hover:bg-dark-third bg-dark-secondary rounded-lg transition"
             data-umami-event={`${project.repo} Github`}
           >
             View on GitHub

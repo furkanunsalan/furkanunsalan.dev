@@ -15,10 +15,10 @@ const config: Config = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       colors: {
-        'primary-dark': '#1f1f1f', // custom
-        'secondary-dark': '#27272A', // zinc-800
-        'hover-dark': '#3F3F46',  //zinc-700
-        'hover-dark-secondary': '#5252B', //zinc-600
+        'dark-primary': '#1f1f1f', // custom
+        'dark-secondary': '#27272A', // zinc-800
+        'dark-third': '#3F3F46',  //zinc-700
+        'dark-fourth': '#5252B', //zinc-600
         'primary-light': '#f5f5f4', 
         'secondary-light': '#d4d4d8', 
         'hover-light':'#e4e4e7', 
