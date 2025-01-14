@@ -12,7 +12,7 @@ interface BlogPostProps {
 }
 
 export async function generateStaticParams() {
-  const files = fs.readdirSync(path.join(process.cwd(), "app/(pages)/blog"));
+  const files = fs.readdirSync(path.join(process.cwd(), "app/(pages)/writing"));
   return files.map((filename) => ({
     slug: filename.replace(".md", ""),
   }));
@@ -79,7 +79,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
             <ul className="mt-2 flex flex-wrap justify-center space-x-2">
               {tags.map((tag: string, index: number) => (
                 <li key={index}>
-                  <span className="bg-secondary-light dark:bg-secondary-dark text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium">
+                  <span className="bg-secondary-light dark:bg-secondary-dark border dark:border-hover-dark text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium">
                     {tag}
                   </span>
                 </li>
@@ -91,7 +91,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
 
       {/* Render Markdown to JSX with custom image rendering */}
       <div className="prose prose-lg mx-auto
-        prose-a:text-indigo-500
+        prose-a:text-accent-primary
         prose-headings:mt-8 
         prose-headings:mb-4 
         prose-headings:font-bold

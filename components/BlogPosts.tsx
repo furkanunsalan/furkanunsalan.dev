@@ -37,12 +37,12 @@ export default function BlogPosts({ posts }: SearchInputProps) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search posts..."
-          className="flex-1 p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-secondary-dark dark:text-gray-200"
+          className="flex-1 p-3 rounded-lg border border-gray-300 dark:bg-secondary-dark dark:border-hover-dark dark:text-gray-200"
         />
         <select
           value={selectedTag}
           onChange={(e) => setSelectedTag(e.target.value)}
-          className="w-1/3 p-3 rounded-lg border border-gray-300 dark:border-gray-700 dark:text-gray-200 appearance-none bg-white dark:bg-secondary-dark cursor-pointer"
+          className="w-1/3 p-3 rounded-lg border border-gray-300 dark:bg-secondary-dark dark:border-hover-dark dark:text-gray-200 appearance-none bg-white cursor-pointer"
         >
           <option value="">All Tags</option>
           {uniqueTags.map((tag) => (
@@ -59,9 +59,9 @@ export default function BlogPosts({ posts }: SearchInputProps) {
           filteredPosts.map((post) => (
             <li
               key={post.slug}
-              className="bg-secondary-light dark:bg-secondary-dark hover:dark:bg-hover-dark hover:bg-hover-light hover:cursor-pointer p-4 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300"
+              className="bg-secondary-light dark:bg-secondary-dark hover:dark:bg-hover-dark hover:bg-hover-light hover:cursor-pointer p-4 rounded-lg border border-gray-200 dark:border-hover-dark transition-all duration-300"
             >
-              <Link href={`/blog/${post.slug}`} className="block group">
+              <Link href={`/writing/${post.slug}`} className="block group">
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
@@ -80,7 +80,7 @@ export default function BlogPosts({ posts }: SearchInputProps) {
                           {post.tags.map((tag, index) => (
                             <span
                               key={index}
-                              className="bg-primary-light dark:bg-primary-dark text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium"
+                              className="bg-primary-light border dark:border-hover-dark dark:bg-secondary-dark text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium"
                             >
                               {tag}
                             </span>

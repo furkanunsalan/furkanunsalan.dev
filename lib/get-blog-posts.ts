@@ -11,7 +11,7 @@ import path from "path";
 export async function getBlogPostBySlug(slug: string) {
   const filePath = path.join(
     process.cwd(),
-    "app/(pages)/blog/blog-posts",
+    "app/(pages)/writing/posts",
     `${slug}.md`
   );
 
@@ -41,7 +41,7 @@ export async function getBlogPostBySlug(slug: string) {
 }
 
 export async function getBlogPosts() {
-  const blogDir = path.join(process.cwd(), "app/(pages)/blog/blog-posts");
+  const blogDir = path.join(process.cwd(), "app/(pages)/writing/posts");
   const files = fs.readdirSync(blogDir);
 
   const posts = files.map((filename) => {

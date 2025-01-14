@@ -122,7 +122,7 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
       },
       a: {
         props: {
-          className: "text-indigo-500 hover:underline",
+          className: "text-accent-primary hover:underline",
           target: "_blank",
           rel: "noopener noreferrer",
         },

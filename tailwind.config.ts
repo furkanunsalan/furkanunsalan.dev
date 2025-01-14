@@ -15,13 +15,14 @@ const config: Config = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       colors: {
-        'primary-dark': '#1f1f1f', // primary background and some hovers on /me
-        'secondary-dark': '#3F3F46', // dark theme accent color - tailwind zinc-700
-        'hover-dark': '#52525B', // dark theme main hover color - tailwind zin 600
-        'primary-light': '#f5f5f4', // primary background and some hovers on /me
-        'secondary-light': '#d4d4d8', // light theme accent color tailwind zinc-300
-        'hover-light':'#e4e4e7' // light theme main hover color - tailwind zinc-200
-        // Add one accent text color for what section of products, update date on project page etc.
+        'primary-dark': '#1f1f1f', // custom
+        'secondary-dark': '#27272A', // zinc-800
+        'hover-dark': '#3F3F46',  //zinc-700
+        'hover-dark-secondary': '#5252B', //zinc-600
+        'primary-light': '#f5f5f4', 
+        'secondary-light': '#d4d4d8', 
+        'hover-light':'#e4e4e7', 
+        'accent-primary': '#6366F1' // indigo-500
       },
     },
   },

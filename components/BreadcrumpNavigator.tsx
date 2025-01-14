@@ -45,7 +45,7 @@ export default function BreadcrumbNavigator() {
     { name: "Experience", href: "/experience" },
     { name: "Projects", href: "/projects" },
     { name: "Photos", href: "/photos" },
-    { name: "Blog", href: "/blog" },
+    { name: "Writing", href: "/writing" },
   ];
 
   // Determine the href and name of the latest breadcrumb item
@@ -117,7 +117,7 @@ export default function BreadcrumbNavigator() {
                 <BreadcrumbItem>
                   <DropdownMenu>
                     <DropdownMenuTrigger
-                      className="text-xl cursor-pointer text-indigo-500 hover:text-indigo-300"
+                      className="text-xl cursor-pointer text-accent-primary hover:text-indigo-300"
                       onClick={() => setDropdownOpen(!isDropdownOpen)}
                     >
                       {latestBreadcrumbName + " ▾"}

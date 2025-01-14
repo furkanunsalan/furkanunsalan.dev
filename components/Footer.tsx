@@ -11,12 +11,12 @@ const Footer: React.FC = () => {
             <span className="block text-secondary-dark dark:text-secondary-light">
               Furkan Ünsalan
             </span>
-            <span className="block text-sm text-secondary-dark">
+            <span className="block text-sm text-hover-dark">
               <a
                 href="https://www.websitecarbon.com/website/furkanunsalan-dev/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:underline"
+                className="hover:underline hover:text-accent-primary"
               >
                 This visit generated 0.07g of CO₂.
               </a>

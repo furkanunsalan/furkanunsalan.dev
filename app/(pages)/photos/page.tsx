@@ -33,7 +33,6 @@ export default async function PhotosPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-12 w-2/3 md:w-full mx-auto">
           <StatsCard title="Total Views" value={stats.views.total} />
           <StatsCard title="Total Downloads" value={stats.downloads.total} />
-          
         </div>
 
         {/* Photos Section */}

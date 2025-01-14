@@ -19,12 +19,12 @@ export default function ToolTabs({ tools }: { tools: ToolType[] }) {
   return (
     <Tabs defaultValue={categories[0]} className="max-w-xl mx-auto p-2">
       {/* Tabs List */}
-      <TabsList className="grid w-full grid-cols-3 bg-secondary-light dark:bg-secondary-dark rounded-lg p-1">
+      <TabsList className="grid w-full grid-cols-3 bg-secondary-light dark:bg-hover-dark rounded-lg p-1">
         {categories.map((category) => (
           <TabsTrigger
             key={category}
             value={category}
-            className="capitalize mx-1 hover:bg-hover-light dark:hover:bg-hover-dark transition data-[state=active]:bg-primary-light dark:data-[state=active]:bg-primary-dark rounded-lg"
+            className="capitalize mx-1 hover:bg-hover-light dark:hover:bg-secondary-dark transition data-[state=active]:bg-primary-light dark:data-[state=active]:bg-primary-dark rounded-lg"
           >
             {category}
           </TabsTrigger>

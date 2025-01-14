@@ -2,7 +2,7 @@
 
 import MainNavbar from "@/components/MainNavbar";
 
-const routes = ["/me", "/work", "/projects", "/photos", "/blog"];
+const routes = ["/me", "/work", "/projects", "/photos", "/writing"];
 
 export default function NotFound() {
   return (

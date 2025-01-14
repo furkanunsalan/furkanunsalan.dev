@@ -1,7 +1,7 @@
 ---
 title: "Connect Your Docker Apps to a Domain"
 date: "2024-10-22"
-tags: ["Tech", "Self Hosting"]
+tags: ["Tech", "Self Hosting", "English"]
 ---
 
 ## Introduction
