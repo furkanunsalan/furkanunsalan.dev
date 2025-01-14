@@ -1,6 +1,5 @@
 import NextImage from "next/image";
 import Link from "next/link";
-import { FaFileDownload } from "react-icons/fa";
 
 interface PhotoProps {
   alt_description: string;
@@ -42,14 +41,6 @@ function Photo({
           quality={100}
         />
       </Link>
-      <a
-        href={links.download}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute bottom-2 right-2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-md text-sm transition-opacity duration-300 opacity-0 group-hover:opacity-100"
-      >
-        <FaFileDownload className="h-5 w-5" />
-      </a>
     </figure>
   );
 }

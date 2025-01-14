@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Spotify from "@/components/NowPlaying";
 import SocialNavigator from "@/components/SocialNavigator";
 import ToolTabs from "@/components/ToolTabs";
-import { tools } from "@/lib/my-tools";
+import { tools } from "@/data/tools";
 
 export default function Me() {
   return (

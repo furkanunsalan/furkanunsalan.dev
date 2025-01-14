@@ -1,20 +1,8 @@
 ---
 title: "Connect Your Docker Apps to a Domain"
 date: "2024-10-22"
-tags: ["Tech", "Docker", "NGINX", "VPS"]
+tags: ["Tech", "Self Hosting"]
 ---
-
-## Table of Contents
-
-1. [Introduction](#introduction)
-2. [Update Your System](#update-your-system)
-3. [NGINX Setup](#nginx-setup)
-4. [Set DNS Records](#set-dns-records)
-5. [SSL Certification](#ssl-certification)
-6. [Additional Commands](#additional-commands)
-   - [List the symlinks (enabled NGINX instances)](#list-the-symlinks-enabled-nginx-instances-created-for-your-applications)
-   - [List the available sites for NGINX](#list-the-available-sites-for-nginx)
-7. [Side Notes](#side-notes)
 
 ## Introduction
 

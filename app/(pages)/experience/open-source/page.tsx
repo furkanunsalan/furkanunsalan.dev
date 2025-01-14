@@ -1,5 +1,5 @@
 import ContributionContainer from "@/components/ContributionContainer";
-import { contributions } from "@/lib/contributions";
+import { contributions } from "@/data/contributions";
 import { Contribution } from "@/types";
 import { Metadata } from "next";
 

@@ -1,6 +1,6 @@
 import GithubCommitHistory from "@/components/GithubCommitHistory";
 import ProjectContainer from "@/components/ProjectContainer";
-import { projects } from "@/lib/my-projects";
+import { projects } from "@/data/projects";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

@@ -1,7 +1,6 @@
-import type { Work } from "@/types";
-import { Certificate } from "@/types";
+import type { Experience } from "@/types";
 
-export const works: Work[] = [
+export const works: Experience[] = [
   {
     id: 4,
     organization: "Developer MultiGroup",
@@ -15,7 +14,7 @@ export const works: Work[] = [
     title: "Contributor",
     start_date: "Sep 2024",
     comment: "I started contributing to open-source projects with local translations, but now I'm taking part in various projects, including web apps and other translations.",
-    link: ["Check out all my contributions.", "/open-source"]
+    link: ["Check out all my contributions.", "/experience/open-source"]
   },
   {
     id: 2,

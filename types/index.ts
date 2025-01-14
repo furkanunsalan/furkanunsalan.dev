@@ -28,7 +28,7 @@ export type Project = {
     }
 );
 
-export type Work = {
+export type Experience = {
   id: number;
   organization: string;
   title: string;
@@ -46,17 +46,6 @@ export type Contribution = {
   link: string;
   tags?: string[];
 }
-
-export type Certificate = {
-  id: number;
-  name: string;
-  issue_date: string;
-  comment: string;
-  issuing_company: string;
-  topics: string[];
-  link: string;
-  image_link: string;
-};
 
 export type BlogPost = {
   slug: string;

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { notFound } from "next/navigation";
-import { getBlogPostBySlug } from "@/lib/getBlogPosts";
+import { getBlogPostBySlug } from "@/lib/get-blog-posts";
 import type { BlogPostData } from "@/types";
 import Markdown from 'markdown-to-jsx';  // Import the markdown-to-jsx library
 

@@ -1,5 +1,5 @@
 import ExperienceContainer from "@/components/ExperienceContainer";
-import { works } from "@/lib/my-work";
+import { works } from "@/data/experiences";
 import { Work } from "@/types";
 import { Metadata } from "next";
 

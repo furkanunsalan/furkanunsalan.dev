@@ -1,4 +1,4 @@
-import { getBlogPosts } from "@/lib/getBlogPosts";
+import { getBlogPosts } from "@/lib/get-blog-posts";
 import type { BlogPost } from "@/types";
 import { Metadata } from "next";
 import BlogPosts from "@/components/BlogPosts";
