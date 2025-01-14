@@ -1,9 +1,9 @@
 "use client";
 
-import type { Work } from "@/types";
+import type { Experience } from "@/types";
 import { motion } from "framer-motion";
 
-export default function ExperienceContainer({ work }: { work: Work }) {
+export default function ExperienceContainer({ work }: { work: Experience }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
