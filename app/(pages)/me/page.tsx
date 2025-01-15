@@ -7,6 +7,13 @@ import ToolTabs from "@/components/ToolTabs";
 import { tools } from "@/data/tools";
 
 export default function Me() {
+  const routes = [
+    { name: "Github", url: "https://github.com/furkanunsalan" },
+    { name: "Linkedin", url: "https://linkedin.com/in/furkanunsalan" },
+    { name: "Mail", url: "mailto:hi@furkanunsalan.dev" },
+    { name: "CV", url: "/files/furkan-unsalan-resume.pdf" },
+  ];
+  
   return (
     <>
       <motion.div
@@ -35,7 +42,7 @@ export default function Me() {
           Software Developer, Photography Enthusiast and Student from Istanbul
         </motion.p>
 
-        <SocialNavigator />
+        <SocialNavigator routes={routes}/>
 
         <motion.div
           className="w-full max-w-xl text-left mb-4 mx-auto"

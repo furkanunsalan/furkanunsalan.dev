@@ -60,3 +60,10 @@ export type BlogPostData = {
   content: string;
   tags: string[];
 };
+
+export type Route = {
+  name: string;
+  url: string;
+}
+
+export type Routes = Route[];

@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
             <span className="block text-dark-secondary dark:text-light-secondary">
               Furkan Ünsalan
             </span>
-            <span className="block text-sm text-light-third dark:text-dark-third">
+            <span className="block text-sm text-light-fourth dark:text-dark-third">
               <a
                 href="https://www.websitecarbon.com/website/furkanunsalan-dev/"
                 target="_blank"

@@ -1,43 +1,22 @@
-export default function SocialNavigator() {
+import { Routes } from "@/types";
+
+export default function SocialNavigator({ routes }: { routes: Routes }) {
   return (
-    <div className="flex space-x-4 mb-8">
-      <a
-        href="https://github.com/furkanunsalan"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="hover:underline hover:text-accent-primary"
-        data-umami-event="Github"
-      >
-        Github
-      </a>
-      <span>/</span>
-      <a
-        href="https://linkedin.com/in/furkanunsalan"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="hover:underline hover:text-accent-primary"
-        data-umami-event="Linkedin"
-      >
-        Linkedin
-      </a>
-      <span>/</span>
-      <a
-        href="mailto:hi@furkanunsalan.dev"
-        className="hover:underline hover:text-accent-primary"
-        data-umami-event="Mail"
-      >
-        Mail
-      </a>
-      <span>/</span>
-      <a
-        href="/files/furkan-unsalan-resume.pdf"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="hover:underline hover:text-accent-primary"
-        data-umami-event="CV"
-      >
-        CV
-      </a>
+    <div className="flex justify-center space-x-4 mb-8">
+      {routes.map((route, index) => (
+        <>
+          <a
+            href={route.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline hover:text-accent-primary"
+            data-umami-event={route.name}
+          >
+            {route.name}
+          </a>
+          {index < routes.length - 1 && <span>/</span>}
+        </>
+      ))}
     </div>
   );
 }

@@ -3,18 +3,33 @@
 import type { Contribution } from "@/types";
 import { motion } from "framer-motion";
 
-export default function ContributionContainer({ contribution }: { contribution: Contribution }) {
+export default function ContributionContainer({
+  contribution,
+}: {
+  contribution: Contribution;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="mb-6 p-2 border-light-third dark:border-dark-third border-l-4 pl-2 rounded-lg"
+      className="mb-6 p-2 border-l-4 border-light-third dark:border-dark-third pl-2 rounded-lg group"
+
     >
       <div key={contribution.id} className="pb-2">
-        <a href={contribution.link} target="blank" className="text-lg font-semibold text-black dark:text-white">{contribution.project_name}</a>
-        <p className="mt-1 text-gray-700 dark:text-gray-300">{contribution.description}</p>
-
+        <p className="text-lg font-semibold text-black dark:text-white">
+          {contribution.project_name}
+        </p>
+        <p className="my-1 text-gray-700 dark:text-gray-300">
+          {contribution.description}
+        </p>
+        <a
+          href={contribution.link}
+          target="blank"
+          className="text-sm text-black/80 dark:text-white/60 group-hover:text-accent-primary"
+        >
+          {contribution.link}
+        </a>
         {contribution.tags && contribution.tags.length > 0 && (
           <div className="mt-4 text-center">
             <ul className="mt-2 flex flex-wrap justify-left space-x-2">

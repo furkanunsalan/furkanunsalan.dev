@@ -19,6 +19,11 @@ html.light body {
   background-color: #e4e4e7; /* White background for light mode */
 }
 
+::selection {
+  background-color: #6366F1; /* accent-primary */
+  color: #FFF; /* Optional: Change the text color for better contrast */
+}
+
 /* Custom utility class using Tailwind layer */
 @layer utilities {
   .text-balance {
