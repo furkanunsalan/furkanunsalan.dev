@@ -16,7 +16,7 @@ body {
 /* Light theme styles applied when 'light' class is present on the html element */
 html.light body {
   color: rgb(0, 0, 0); /* Black text for light mode */
-  background-color: #f5f5f4; /* White background for light mode */
+  background-color: #e4e4e7; /* White background for light mode */
 }
 
 /* Custom utility class using Tailwind layer */

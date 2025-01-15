@@ -8,7 +8,7 @@ export default function Tool({ tool }: { tool: ToolType }) {
 
   return (
     <motion.article
-      className="flex justify-between items-start border-b border-b-zinc-200 py-4 sm:py-8 dark:border-b-zinc-800"
+      className="flex justify-between items-start border-b border-b-light-secondary py-4 sm:py-8 dark:border-b-zinc-800"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: "easeIn" }}
@@ -32,7 +32,7 @@ export default function Tool({ tool }: { tool: ToolType }) {
           <Link
             href={link}
             target="_blank"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-secondary-light dark:bg-dark-third rounded-lg hover:bg-hover-light hover:dark:bg-dark-secondary transition"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-light-secondary dark:bg-dark-third rounded-lg hover:bg-light-third hover:dark:bg-dark-secondary transition"
             data-umami-event={name + " -> Web"}
           >
             <FaShoppingCart size={16} />

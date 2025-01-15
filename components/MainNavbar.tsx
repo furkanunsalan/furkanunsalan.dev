@@ -15,18 +15,18 @@ const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {
           return (
             <motion.li
               key={index}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <Link
                 href={route}
-                className="relative inline-block text-lg p-2 rounded-lg transition-colors duration-300 ease-in-out group hover:opacity-80"
+                className="relative inline-block text-lg p-2 rounded-lg transition-colors duration-300 ease-in-out group"
                 id="na-buttons"
                 data-umami-event={route}
               >
                 {`/${displayText}`}
-                <span className="block absolute left-0 bottom-0 w-0 h-0.5 bg-black dark:bg-white transition-all duration-300 ease-out group-hover:w-full opacity-80"></span>
+                <span className="block absolute left-0 bottom-0 w-0 h-0.5 bg-black dark:bg-white transition-all duration-300 ease-out group-hover:w-full"></span>
               </Link>
             </motion.li>
           );

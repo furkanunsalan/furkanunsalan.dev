@@ -15,7 +15,7 @@ export default function ProjectContainer({ project }: { project: Project }) {
 
   return (
     <motion.div
-      className="border dark:border-dark-third bg-secondary-light dark:bg-dark-secondary hover:dark:bg-dark-third hover:bg-hover-light w-5/6 xl:w-1/3 p-4 mt-4 rounded-lg flex justify-between items-start hover:cursor-pointer"
+      className="border border-light-third dark:border-dark-third bg-light-secondary dark:bg-dark-secondary hover:dark:bg-dark-third hover:bg-light-third w-5/6 xl:w-1/3 p-4 mt-4 rounded-lg flex justify-between items-start hover:cursor-pointer"
       onClick={handleNavigation}
       data-umami-event={slug}
       initial={{ opacity: 0 }}

@@ -37,12 +37,12 @@ export default function BlogPosts({ posts }: SearchInputProps) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search posts..."
-          className="flex-1 p-3 rounded-lg border border-gray-300 dark:bg-dark-secondary dark:border-dark-third dark:text-gray-200"
+          className="flex-1 p-3 rounded-lg border border-light-third bg-light-secondary dark:bg-dark-secondary dark:border-dark-third dark:text-gray-200"
         />
         <select
           value={selectedTag}
           onChange={(e) => setSelectedTag(e.target.value)}
-          className="w-1/3 p-3 rounded-lg border border-gray-300 dark:bg-dark-secondary dark:border-dark-third dark:text-gray-200 appearance-none bg-white cursor-pointer"
+          className="w-1/3 p-3 rounded-lg border border-light-third dark:bg-dark-secondary dark:border-dark-third dark:text-gray-200 appearance-none bg-light-secondary cursor-pointer"
         >
           <option value="">All Tags</option>
           {uniqueTags.map((tag) => (
@@ -59,7 +59,7 @@ export default function BlogPosts({ posts }: SearchInputProps) {
           filteredPosts.map((post) => (
             <li
               key={post.slug}
-              className="bg-secondary-light dark:bg-dark-secondary hover:dark:bg-dark-third hover:bg-hover-light hover:cursor-pointer p-4 rounded-lg border border-gray-200 dark:border-dark-third transition-all duration-300"
+              className="bg-light-secondary dark:bg-dark-secondary hover:dark:bg-dark-third hover:bg-light-third hover:cursor-pointer p-4 rounded-lg border border-light-third dark:border-dark-third transition-all duration-300"
             >
               <Link href={`/writing/${post.slug}`} className="block group">
                 <div className="flex justify-between items-center">
@@ -68,7 +68,7 @@ export default function BlogPosts({ posts }: SearchInputProps) {
                       {post.title}
                     </h2>
                     <div className="flex items-center space-x-4 mt-1">
-                      <time className="text-sm text-gray-500 dark:text-gray-400">
+                      <time className="text-sm text-black dark:text-gray-400">
                         {new Date(post.date).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "long",
@@ -80,7 +80,7 @@ export default function BlogPosts({ posts }: SearchInputProps) {
                           {post.tags.map((tag, index) => (
                             <span
                               key={index}
-                              className="bg-primary-light border dark:border-dark-third dark:bg-dark-secondary text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium"
+                              className="bg-light-secondary border border-light-third dark:border-dark-third dark:bg-dark-secondary text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium"
                             >
                               {tag}
                             </span>

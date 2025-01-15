@@ -27,7 +27,7 @@ const Time: React.FC<{ location: string; shortName: string }> = (props) => {
 
   return (
     <div>
-      {time} @{props.shortName}
+      {time} @ {props.shortName}
     </div>
   );
 };

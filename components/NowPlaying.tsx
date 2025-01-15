@@ -69,15 +69,15 @@ function AnimatedBars() {
     <div className="flex items-end space-x-1 overflow-hidden">
       <span
         id="bar1"
-        className="w-2 h-8 bg-gray-300 dark:bg-gray-500 rounded-sm opacity-75"
+        className="w-2 h-8 bg-light-third dark:bg-dark-third rounded-sm opacity-75"
       />
       <span
         id="bar2"
-        className="w-2 h-6 bg-gray-300 dark:bg-gray-500 rounded-sm"
+        className="w-2 h-6 bg-light-third dark:bg-dark-third rounded-sm"
       />
       <span
         id="bar3"
-        className="w-2 h-10 bg-gray-300 dark:bg-gray-500 rounded-sm opacity-80"
+        className="w-2 h-10 bg-light-third dark:bg-dark-third rounded-sm opacity-80"
       />
     </div>
   );

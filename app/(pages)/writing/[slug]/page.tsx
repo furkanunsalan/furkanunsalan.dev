@@ -79,7 +79,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
             <ul className="mt-2 flex flex-wrap justify-center space-x-2">
               {tags.map((tag: string, index: number) => (
                 <li key={index}>
-                  <span className="bg-secondary-light dark:bg-dark-secondary border dark:border-dark-third text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium">
+                  <span className="bg-light-secondary dark:bg-dark-secondary border border-light-third dark:border-dark-third text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium">
                     {tag}
                   </span>
                 </li>

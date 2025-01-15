@@ -69,7 +69,7 @@ export default function BreadcrumbNavigator() {
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-10 p-4 flex justify-center bg-primary-light dark:bg-dark-primary">
+    <div className="fixed top-0 left-0 right-0 z-10 p-4 flex justify-center bg-light-primary dark:bg-dark-primary">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

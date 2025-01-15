@@ -8,10 +8,10 @@ const Footer: React.FC = () => {
         <div className="flex items-center space-x-2">
           {/* Name and carbon emission text */}
           <div>
-            <span className="block text-dark-secondary dark:text-secondary-light">
+            <span className="block text-dark-secondary dark:text-light-secondary">
               Furkan Ünsalan
             </span>
-            <span className="block text-sm text-dark-third">
+            <span className="block text-sm text-light-third dark:text-dark-third">
               <a
                 href="https://www.websitecarbon.com/website/furkanunsalan-dev/"
                 target="_blank"
