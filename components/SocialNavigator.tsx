@@ -30,7 +30,7 @@ export default function SocialNavigator() {
       </a>
       <span>/</span>
       <a
-        href="https://read.cv/furkanunsalan"
+        href="/files/furkan-unsalan-resume.pdf"
         target="_blank"
         rel="noopener noreferrer"
         className="hover:underline hover:text-accent-primary"

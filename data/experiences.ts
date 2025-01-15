@@ -6,7 +6,7 @@ export const works: Experience[] = [
     organization: "Developer MultiGroup",
     title: "Pioneer A Member",
     start_date: "Oct 2024",
-    comment: "",
+    comment: "I am actively involved in developing web projects that benefit both our team and the broader community. As a Strider, I also attend events to expand my professional network and secure sponsors and speakers, thereby providing valuable support to our community initiatives.",
   },
   {
     id: 3,
@@ -21,8 +21,9 @@ export const works: Experience[] = [
     organization: "Google Developer Groups on Campus Haliç",
     title: "Vice President",
     start_date: "Aug 2024",
-    comment: "I help organize workshops, networking events and take part in project teams as a guide and help others. I work with industry professionals to bring valuable insights to our members and promote collaboration among students passionate about technology.",
+    comment: "As the Vice President of our community, I have organized events, workshops, and meetups aimed at bringing together developers and technology enthusiasts. Collaborating with our social media team, I contributed to creating engaging content to promote our initiatives and highlight our activities. In addition, I have taken on a managerial role, guiding our project team to develop impactful projects for competitions while also actively contributing to both community and team related projects. Furthermore, I have delivered workshops to help students on campus explore new topics and deepen their engagement with technology, creating a helpful and collaborative learning environment.",
     achievements: ["Team Leading", "Event Managament"],
+    link: ["Check out what we do!", "https://gdg-on-campus-halic.vercel.app"]
   },
   {
     id: 1,

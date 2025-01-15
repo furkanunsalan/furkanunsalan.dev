@@ -25,12 +25,12 @@ export default async function PhotosPage() {
       </div>
 
       <div className="w-5/6 md:w-1/3 text-center font-mono font-thin mx-auto mt-8">
-        Photos by <a href="https://unsplash.com/@furkanunsalan" target="blank" className="underline italic ">Furkan Ünsalan</a> @ <a href="https://unsplash.com" target="blank" className="underline italic">Unsplash</a>
+        Photos by <a href="https://unsplash.com/@furkanunsalan" target="blank" className="underline italic hover:text-accent-primary">Furkan Ünsalan</a> @ <a href="https://unsplash.com" target="blank" className="underline italic hover:text-accent-primary">Unsplash</a>
       </div>
 
       <div className="max-w-2xl mx-auto mt-14 sm:mt-20 px-4">
         {/* Statistics Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-12 w-2/3 md:w-full mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-12 w-5/6 md:w-full mx-auto">
           <StatsCard title="Total Views" value={stats.views.total} />
           <StatsCard title="Total Downloads" value={stats.downloads.total} />
         </div>
