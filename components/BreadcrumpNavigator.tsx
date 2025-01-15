@@ -26,6 +26,9 @@ const toTitleCase = (str: string) => {
     .join(" ");
 };
 
+// Helper function to letterize a segment
+const letterizeSegment = (segment: string) => segment.charAt(0).toUpperCase();
+
 export default function BreadcrumbNavigator() {
   const pathname = usePathname(); // Get the current pathname
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -38,14 +41,14 @@ export default function BreadcrumbNavigator() {
   // Split the pathname into segments
   const pathSegments = pathname?.split("/").filter((segment) => segment) || [];
 
-  // Define your main routes
+  // Define your main routes with aliases
   const mainRoutes = [
-    { name: "Home", href: "/" },
-    { name: "Me", href: "/me" },
-    { name: "Experience", href: "/experience" },
-    { name: "Projects", href: "/projects" },
-    { name: "Photos", href: "/photos" },
-    { name: "Writing", href: "/writing" },
+    { name: "Home", href: "/", alias: "H" },
+    { name: "Me", href: "/me", alias: "M" },
+    { name: "Experience", href: "/experience", alias: "E" },
+    { name: "Projects", href: "/projects", alias: "P" },
+    { name: "Photos", href: "/photos", alias: "Ph" },
+    { name: "Writing", href: "/writing", alias: "W" },
   ];
 
   // Determine the href and name of the latest breadcrumb item
@@ -79,7 +82,7 @@ export default function BreadcrumbNavigator() {
                 pathname === "/" ? "text-purple-00 text-xl" : "text-xl"
               }
             >
-              Home
+              {pathSegments.length >= 2 ? "H" : "Home"}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator>
@@ -88,6 +91,11 @@ export default function BreadcrumbNavigator() {
           {pathSegments.slice(0, -1).map((segment, index) => {
             const href = "/" + pathSegments.slice(0, index + 1).join("/");
             const isActive = pathname === href; // Check if the current segment is the active route
+            const displayName =
+              pathSegments.length >= 2
+                ? letterizeSegment(segment)
+                : toTitleCase(segment);
+
             return (
               <React.Fragment key={href}>
                 <BreadcrumbItem>
@@ -95,7 +103,7 @@ export default function BreadcrumbNavigator() {
                     href={href}
                     className={isActive ? "text-indigo-700 text-xl" : "text-xl"}
                   >
-                    {toTitleCase(segment)} {/* Convert segment to title case */}
+                    {displayName} {/* Letterize or use full title case */}
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator>
