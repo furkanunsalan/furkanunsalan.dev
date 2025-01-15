@@ -20,7 +20,7 @@ export default function ExperienceContainer({ work }: { work: Experience }) {
           {work.organization}
         </p>
         <p className="mt-2 mb-4 font-light">{work.comment}</p>
-        {work.link && <a href={work.link[1]} target="blank" className="underline font-extralight hover:text-accent-primary">{work.link[0]}</a>}
+        {work.link && <a href={work.link[1]} className="underline font-extralight hover:text-accent-primary">{work.link[0]}</a>}
       </div>
     </motion.div>
   );
