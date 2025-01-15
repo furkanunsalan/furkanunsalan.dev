@@ -10,7 +10,7 @@ export default function ExperienceContainer({ work }: { work: Experience }) {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <div key={work.id} className="mb-8 border-b border-dark-secondary pb-4">
+      <div key={work.id} className="mb-8 border-b border-light-secondary dark:border-dark-secondary pb-4">
         {/* <p className="text-sm opacity-60">{work.type}</p> */}
         <p className="text-sm opacity-60 mt-1">
           {work.start_date} - {work.end_date || "Current"}
