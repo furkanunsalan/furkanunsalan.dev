@@ -6,24 +6,27 @@ export const works: Experience[] = [
     organization: "Developer MultiGroup",
     title: "Pioneer A Member",
     start_date: "Oct 2024",
-    comment: "I am actively involved in developing web projects that benefit both our team and the broader community. As a Strider, I also attend events to expand my professional network and secure sponsors and speakers, thereby providing valuable support to our community initiatives.",
+    comment:
+      "I am actively involved in developing web projects that benefit both our team and the broader community. As a Strider, I also attend events to expand my professional network and secure sponsors and speakers, thereby providing valuable support to our community initiatives.",
   },
   {
     id: 3,
     organization: "Open Source",
     title: "Contributor",
     start_date: "Sep 2024",
-    comment: "I started contributing to open-source projects with local translations, but now I'm taking part in various projects, including web apps and other translations.",
-    link: ["Check out all my contributions.", "/experience/open-source"]
+    comment:
+      "I started contributing to open-source projects with local translations, but now I'm taking part in various projects, including web apps and other translations.",
+    link: ["Check out all my contributions.", "/experience/open-source"],
   },
   {
     id: 2,
     organization: "Google Developer Groups on Campus Haliç",
     title: "Vice President",
     start_date: "Aug 2024",
-    comment: "As the Vice President of our community, I have organized events, workshops, and meetups aimed at bringing together developers and technology enthusiasts. Collaborating with our social media team, I contributed to creating engaging content to promote our initiatives and highlight our activities. In addition, I have taken on a managerial role, guiding our project team to develop impactful projects for competitions while also actively contributing to both community and team related projects. Furthermore, I have delivered workshops to help students on campus explore new topics and deepen their engagement with technology, creating a helpful and collaborative learning environment.",
+    comment:
+      "As the Vice President of our community, I have organized events, workshops, and meetups attended by 100+ members aimed at bringing together developers and technology enthusiasts. Collaborating with our social media team, I contributed to creating engaging content to promote our initiatives and highlight our activities. In addition, I have taken on a managerial role, guiding our project team to develop impactful projects for competitions like Teknofest and Tübitak while also actively contributing to both community and team related projects. Furthermore, I have delivered workshops to help students on campus explore new topics and deepen their engagement with technology, creating a helpful and collaborative learning environment.",
     achievements: ["Team Leading", "Event Managament"],
-    link: ["Check out what we do!", "https://gdg-on-campus-halic.vercel.app"]
+    link: ["Check out what we do!", "https://gdg-on-campus-halic.vercel.app"],
   },
   {
     id: 1,

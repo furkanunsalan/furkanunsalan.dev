@@ -11,9 +11,9 @@ export default function Me() {
     { name: "Github", url: "https://github.com/furkanunsalan" },
     { name: "Linkedin", url: "https://linkedin.com/in/furkanunsalan" },
     { name: "Mail", url: "mailto:hi@furkanunsalan.dev" },
-    { name: "CV", url: "/files/furkan-unsalan-resume.pdf" },
+    { name: "CV", url: "/resume.pdf" },
   ];
-  
+
   return (
     <>
       <motion.div
@@ -34,15 +34,18 @@ export default function Me() {
           </span>
         </motion.h1>
         <motion.p
-          className="text-lg mb-4"
+          className="text-lg mb-4 max-w-xl text-justify"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          Software Developer, Photography Enthusiast and Student from Istanbul
+          Dedicated software engineering student with a focus on frontend
+          development. Enthusiastic about contributing to open-source projects
+          and continually exploring new technologies. Excited to take on
+          innovative challenges and grow within the tech industry.
         </motion.p>
 
-        <SocialNavigator routes={routes}/>
+        <SocialNavigator routes={routes} />
 
         <motion.div
           className="w-full max-w-xl text-left mb-4 mx-auto"
@@ -75,7 +78,7 @@ export default function Me() {
               transition={{ duration: 0.5, delay: 1.2 }}
             >
               <strong>📐 Working On:</strong>{" "}
-              <a href="https://github.com/buildog-dev/buildog">Buildog</a>
+              <a className="underline hover:text-accent-primary" href="https://github.com/buildog-dev/buildog">Buildog</a>
             </motion.li>
             <motion.li
               className="mb-2"
@@ -83,7 +86,7 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.4 }}
             >
-              <strong>🍿 Watching:</strong> Silo Season 2
+              <strong>🍿 Last Watched:</strong> Silo Season 2
             </motion.li>
             <motion.li
               className="mb-2"
