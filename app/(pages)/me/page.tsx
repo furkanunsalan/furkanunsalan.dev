@@ -1,18 +1,51 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import Spotify from "@/components/NowPlaying";
 import SocialNavigator from "@/components/SocialNavigator";
 import ToolTabs from "@/components/ToolTabs";
 import { tools } from "@/data/tools";
+import { getCurrentlyReadingBooks, setAuthToken } from "@/lib/literalClient";
+import LiteralLogin from "@/components/LiteralLogin";
 
 export default function Me() {
+  const [books, setBooks] = useState<any[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authError, setAuthError] = useState('');
   const routes = [
     { name: "Github", url: "https://github.com/furkanunsalan" },
     { name: "Linkedin", url: "https://linkedin.com/in/furkanunsalan" },
     { name: "Mail", url: "mailto:hi@furkanunsalan.dev" },
     { name: "CV", url: "/resume.pdf" },
   ];
+
+  useEffect(() => {
+    // Check for token and set it if exists
+    const token = localStorage.getItem('literalToken');
+    if (token) {
+      setAuthToken(token);
+      setIsAuthenticated(true);
+    }
+
+    const fetchBooks = async () => {
+      try {
+        const booksData = await getCurrentlyReadingBooks();
+        setBooks(booksData);
+      } catch (error) {
+        console.error("Failed to fetch books:", error);
+        // If we get an auth error, clear the token
+        if ((error as any)?.response?.status === 401) {
+          localStorage.removeItem('literalToken');
+          setIsAuthenticated(false);
+        }
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchBooks();
+    }
+  }, [isAuthenticated]);
 
   return (
     <>
@@ -67,14 +100,6 @@ export default function Me() {
               className="mb-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 1 }}
-            >
-              <strong>📖 Reading:</strong> Atomic Habits - James Clear
-            </motion.li>
-            <motion.li
-              className="mb-2"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.2 }}
             >
               <strong>📐 Working On:</strong>{" "}
@@ -92,6 +117,15 @@ export default function Me() {
               className="mb-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 1 }}
+            >
+              <strong>📖 Reading:</strong> Atomic Habits - James Clear
+            </motion.li>
+            {/* 
+            <motion.li
+              className="mb-2"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.6 }}
             >
               <strong className="mr-2">🎧 Listening:</strong>
@@ -99,9 +133,47 @@ export default function Me() {
                 <Spotify />
               </div>
             </motion.li>
+            */}
           </ul>
         </motion.div>
+
+        {/* Books Section */}
+        <motion.div
+          className="w-full max-w-4xl mx-auto mt-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 2 }}
+        >
+          <p className="text-xl font-semibold mb-4 text-center">Currently Reading</p>
+          {!isAuthenticated ? (
+            <LiteralLogin 
+              onAuthSuccess={() => setIsAuthenticated(true)}
+              onAuthError={(error) => setAuthError(error)}
+            />
+          ) : books.length === 0 ? (
+            <p className="text-center">No books found.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {books.map((book) => (
+                <div
+                  key={book.id}
+                  className="bg-white p-4 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-200"
+                >
+                  <img
+                    src={book.cover}
+                    alt={book.title}
+                    className="w-full h-72 object-cover rounded-md mb-4"
+                  />
+                  <h3 className="font-semibold text-lg text-center">{book.title}</h3>
+                  <p className="text-center text-sm text-gray-600">{book.author}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {authError && <p className="text-red-500 text-center mt-2">{authError}</p>}
+        </motion.div>
       </motion.div>
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
