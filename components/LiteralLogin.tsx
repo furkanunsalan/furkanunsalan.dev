@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { login, setAuthToken } from '@/lib/literalClient';
+import { setAuthToken } from '@/lib/literalClient';
 
 type Props = {
   onAuthSuccess: () => void;
@@ -13,36 +13,30 @@ export default function LiteralLogin({ onAuthSuccess, onAuthError }: Props) {
     const autoLogin = async () => {
       try {
         setIsLoading(true);
-        const email = process.env.NEXT_PUBLIC_LITERAL_EMAIL;
-        const password = decodeURIComponent(process.env.NEXT_PUBLIC_LITERAL_PASSWORD || '');
         
-        console.log('Environment variables:', {
-          email: email ? 'exists' : 'missing',
-          password: password ? 'exists' : 'missing',
+        const response = await fetch('/api/auth/literal', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
-        
-        if (!email || !password) {
-          throw new Error('Missing credentials in environment variables');
+
+        if (!response.ok) {
+          throw new Error('Authentication failed');
         }
 
-        console.log('Attempting login...');
-        const response = await login(email, password);
-        console.log('Login response:', {
-          hasToken: !!response?.login?.token,
-          email: response?.login?.email
-        });
+        const data = await response.json();
+        
+        if (!data.token) {
+          throw new Error('No token received');
+        }
 
-        localStorage.setItem('literalToken', response.login.token);
-        setAuthToken(response.login.token);
-        console.log('Auth token set successfully');
+        localStorage.setItem('literalToken', data.token);
+        setAuthToken(data.token);
         onAuthSuccess();
       } catch (err) {
-        console.error('Detailed login error:', {
-          message: err instanceof Error ? err.message : 'Unknown error',
-          response: (err as any)?.response,
-          stack: err instanceof Error ? err.stack : undefined
-        });
-        onAuthError('');
+        console.error('Login error:', err);
+        onAuthError(err instanceof Error ? err.message : 'Authentication failed');
       } finally {
         setIsLoading(false);
       }
@@ -51,5 +45,5 @@ export default function LiteralLogin({ onAuthSuccess, onAuthError }: Props) {
     autoLogin();
   }, [onAuthSuccess, onAuthError]);
 
-  return null
-} 
+  return null;
+}

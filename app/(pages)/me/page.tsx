@@ -12,7 +12,9 @@ import LiteralLogin from "@/components/LiteralLogin";
 export default function Me() {
   const [books, setBooks] = useState<any[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState('');
+  
   const routes = [
     { name: "Github", url: "https://github.com/furkanunsalan" },
     { name: "Linkedin", url: "https://linkedin.com/in/furkanunsalan" },
@@ -20,30 +22,49 @@ export default function Me() {
     { name: "CV", url: "/resume.pdf" },
   ];
 
+  const fetchBooks = async () => {
+    try {
+      const booksData = await getCurrentlyReadingBooks();
+      setBooks(booksData);
+      setAuthError('');
+    } catch (error) {
+      console.error("Failed to fetch books:", error);
+      if ((error as any)?.response?.status === 401) {
+        localStorage.removeItem('literalToken');
+        setIsAuthenticated(false);
+        setAuthError('Authentication failed. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('literalToken');
     if (token) {
       setAuthToken(token);
       setIsAuthenticated(true);
+    } else {
+      setIsLoading(false);
     }
+  }, []);
 
-    const fetchBooks = async () => {
-      try {
-        const booksData = await getCurrentlyReadingBooks();
-        setBooks(booksData);
-      } catch (error) {
-        console.error("Failed to fetch books:", error);
-        if ((error as any)?.response?.status === 401) {
-          localStorage.removeItem('literalToken');
-          setIsAuthenticated(false);
-        }
-      }
-    };
-
+  useEffect(() => {
     if (isAuthenticated) {
       fetchBooks();
     }
   }, [isAuthenticated]);
+
+  const handleAuthSuccess = () => {
+    setIsAuthenticated(true);
+    setAuthError('');
+  };
+
+  const handleAuthError = (error: string) => {
+    setIsAuthenticated(false);
+    setAuthError(error);
+    setBooks([]);
+  };
 
   return (
     <>
@@ -98,7 +119,7 @@ export default function Me() {
               className="mb-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 1 }}
+              transition={{ duration: 0.5, delay: 1.2 }}
             >
               <strong>📐 Working On:</strong>{" "}
               <a className="underline hover:text-accent-primary" href="https://github.com/buildog-dev/buildog">Buildog</a>
@@ -107,7 +128,7 @@ export default function Me() {
               className="mb-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 1.2 }}
+              transition={{ duration: 0.5, delay: 1.4 }}
             >
               <strong>🍿 Last Watched:</strong> Silo Season 2
             </motion.li>
@@ -115,24 +136,26 @@ export default function Me() {
               className="mb-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 1.4 }}
+              transition={{ duration: 0.5, delay: 1 }}
             >
-              <strong>📖 Reading:</strong>
+              <strong>📖 Reading:</strong> Atomic Habits - James Clear
             </motion.li>
           </ul>
         </motion.div>
 
         {/* Books Section */}
         <motion.div
-          className="w-full max-w-xl mx-auto" // Changed width classes to match other sections
+          className="w-full max-w-xl mx-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 2 }}
         >
-          {!isAuthenticated ? (
+          {isLoading ? (
+            <p className="text-center">Loading...</p>
+          ) : !isAuthenticated ? (
             <LiteralLogin 
-              onAuthSuccess={() => setIsAuthenticated(true)}
-              onAuthError={(error) => setAuthError(error)}
+              onAuthSuccess={handleAuthSuccess}
+              onAuthError={handleAuthError}
             />
           ) : books.length === 0 ? (
             <p className="text-center">No books found.</p>
@@ -141,13 +164,16 @@ export default function Me() {
               {books.map((book) => (
                 <div
                   key={book.id}
-                  className="p-4"
+                  className="p-4 relative"
                 >
-                  <img
-                    src={book.cover}
-                    alt={book.title}
-                    className="w-full h-auto max-h-72 object-cover rounded-md mb-4" // Added max-h-72 and changed h-72 to h-auto
-                  />
+                  <div className="relative">
+                    <img
+                      src={book.cover}
+                      alt={book.title}
+                      className="w-full h-auto max-h-72 object-cover rounded-md mb-2"
+                    />
+                  </div>
+                  
                 </div>
               ))}
             </div>
