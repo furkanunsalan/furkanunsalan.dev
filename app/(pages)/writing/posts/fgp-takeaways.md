@@ -1,10 +1,7 @@
 ---
-title: My takeaways from Ali Abdaal's Feel Good Productivity
-date: 2025-02-05
-tags:
-  - Self-Improvement
-  - Books
-  - English
+title: "My takeaways from Ali Abdaal's Feel Good Productivity"
+date: "2025-02-05"
+tags: ["Self Improvement", "Books", "English"]
 ---
 I've recently read Ali Abdaal's New York Times Best Seller 'Feel Good productivity' and I've taken very nice lessons for myself while reading it. Here are the most impactful highlights I noted down, I hope you can take something for yourself from my notes.
 
