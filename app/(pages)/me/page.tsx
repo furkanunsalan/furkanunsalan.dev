@@ -119,7 +119,7 @@ export default function Me() {
               className="mb-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 1.2 }}
+              transition={{ duration: 0.5, delay: 1 }}
             >
               <strong>📐 Working On:</strong>{" "}
               <a className="underline hover:text-accent-primary" href="https://github.com/buildog-dev/buildog">Buildog</a>
@@ -128,7 +128,7 @@ export default function Me() {
               className="mb-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 1.4 }}
+              transition={{ duration: 0.5, delay: 1.2 }}
             >
               <strong>🍿 Last Watched:</strong> Silo Season 2
             </motion.li>
@@ -136,9 +136,9 @@ export default function Me() {
               className="mb-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 1 }}
+              transition={{ duration: 0.5, delay: 1.4 }}
             >
-              <strong>📖 Reading:</strong> Atomic Habits - James Clear
+              <strong>📖 Reading:</strong>
             </motion.li>
           </ul>
         </motion.div>
