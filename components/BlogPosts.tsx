@@ -23,7 +23,7 @@ export default function BlogPosts({ posts }: SearchInputProps) {
 
   // Filter posts based on search query and selected tag
   const filteredPosts = posts.filter((post) => {
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = post.title?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTag = !selectedTag || post.tags?.includes(selectedTag);
     return matchesSearch && matchesTag;
   });
