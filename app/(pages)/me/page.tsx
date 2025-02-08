@@ -138,13 +138,13 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.4 }}
             >
-              <strong>📖 Reading:</strong>
+              <strong>📖 Reading:</strong> Dune
             </motion.li>
           </ul>
         </motion.div>
 
         {/* Books Section */}
-        <motion.div
+        {/* <motion.div
           className="w-full max-w-xl mx-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -179,7 +179,7 @@ export default function Me() {
             </div>
           )}
           {authError && <p className="text-red-500 text-center mt-2">{authError}</p>}
-        </motion.div>
+        </motion.div> */}
       </motion.div>
 
       <motion.div
