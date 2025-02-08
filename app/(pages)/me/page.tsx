@@ -21,7 +21,6 @@ export default function Me() {
   ];
 
   useEffect(() => {
-    // Check for token and set it if exists
     const token = localStorage.getItem('literalToken');
     if (token) {
       setAuthToken(token);
@@ -34,7 +33,6 @@ export default function Me() {
         setBooks(booksData);
       } catch (error) {
         console.error("Failed to fetch books:", error);
-        // If we get an auth error, clear the token
         if ((error as any)?.response?.status === 401) {
           localStorage.removeItem('literalToken');
           setIsAuthenticated(false);
@@ -119,32 +117,18 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1 }}
             >
-              <strong>📖 Reading:</strong> Atomic Habits - James Clear
+              <strong>📖 Reading:</strong>
             </motion.li>
-            {/* 
-            <motion.li
-              className="mb-2"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 1.6 }}
-            >
-              <strong className="mr-2">🎧 Listening:</strong>
-              <div className="text-center mt-2">
-                <Spotify />
-              </div>
-            </motion.li>
-            */}
           </ul>
         </motion.div>
 
         {/* Books Section */}
         <motion.div
-          className="w-full max-w-4xl mx-auto mt-8"
+          className="w-full max-w-xl mx-auto" // Changed width classes to match other sections
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 2 }}
         >
-          <p className="text-xl font-semibold mb-4 text-center">Currently Reading</p>
           {!isAuthenticated ? (
             <LiteralLogin 
               onAuthSuccess={() => setIsAuthenticated(true)}
@@ -153,19 +137,17 @@ export default function Me() {
           ) : books.length === 0 ? (
             <p className="text-center">No books found.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {books.map((book) => (
                 <div
                   key={book.id}
-                  className="bg-white p-4 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-200"
+                  className="p-4"
                 >
                   <img
                     src={book.cover}
                     alt={book.title}
-                    className="w-full h-72 object-cover rounded-md mb-4"
+                    className="w-full h-auto max-h-72 object-cover rounded-md mb-4" // Added max-h-72 and changed h-72 to h-auto
                   />
-                  <h3 className="font-semibold text-lg text-center">{book.title}</h3>
-                  <p className="text-center text-sm text-gray-600">{book.author}</p>
                 </div>
               ))}
             </div>
@@ -177,7 +159,7 @@ export default function Me() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeIn", delay: 1.8 }} // Adjust delay to ensure it appears last
+        transition={{ duration: 0.6, ease: "easeIn", delay: 1.8 }}
       >
         <ToolTabs tools={tools} />
       </motion.div>
