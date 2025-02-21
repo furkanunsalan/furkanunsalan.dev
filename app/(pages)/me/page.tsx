@@ -138,7 +138,7 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.4 }}
             >
-              <strong>📖 Reading:</strong> Dune
+              <strong>📖 Reading:</strong> Dune, How to Not Die Alone, The War of Art
             </motion.li>
           </ul>
         </motion.div>

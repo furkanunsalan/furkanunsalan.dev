@@ -10,7 +10,7 @@ body {
 /* Default dark theme styles (black background) */
 body {
   color: rgb(255, 255, 255); /* White text for dark mode */
-  background-color: rgb(31, 31, 31); /* Black background for dark mode */
+  background-color: rgb(17,16,16); /* Black background for dark mode */
 }
 
 /* Light theme styles applied when 'light' class is present on the html element */
