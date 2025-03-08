@@ -45,4 +45,15 @@ export const projects: Project[] = [
     short_description: "A web application for managing and organizing team giveaways, promoting engagement and fun within teams!",
     private: false,
   },
+  {
+    id: 5,
+    slug: "genai-bootcamp-site",
+    title: "DMG GenAI Bootcamp Website",
+    repo: "genai-fundamentals-website",
+    owner: "Developer-MultiGroup",
+    branch: "main",
+    update: "2025/03/08",
+    short_description: "A web application for managing and organizing team giveaways, promoting engagement and fun within teams!",
+    private: false,
+  },
 ];
