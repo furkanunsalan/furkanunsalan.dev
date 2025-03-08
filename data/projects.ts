@@ -8,7 +8,7 @@ export const projects: Project[] = [
     repo: "TravelMap",
     owner: "furkanunsalan",
     branch: "prod",
-    update: "2025/23/02",
+    update: "2025/02/23",
     short_description: "A personal project for tracking and visualizing travel destinations using an interactive map, with features for bookmarking and rating places.",
     private: false,
   },
