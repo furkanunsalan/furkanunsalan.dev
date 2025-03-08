@@ -15,6 +15,16 @@ export const metadata: Metadata = {
   },
   keywords: ['Furkan Ünsalan', 'Furkan Unsalan', 'furkanunsalan dev', 'furkanunsalan.dev'],
   metadataBase: new URL("https://furkanunsalan.dev"),
+  alternates: {
+    types: {
+      'application/rss+xml': [
+        {
+          url: '/rss.xml',
+          title: 'Furkan Ünsalan\'s Blog RSS Feed'
+        },
+      ],
+    },
+  },
 };
 
 export default function RootLayout({

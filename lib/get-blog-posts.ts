@@ -1,3 +1,4 @@
+// Updated lib/get-blog-posts.ts
 import matter from "gray-matter";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
@@ -14,14 +15,11 @@ export async function getBlogPostBySlug(slug: string) {
     "app/(pages)/writing/posts",
     `${slug}.md`
   );
-
   if (!fs.existsSync(filePath)) {
     return null;
   }
-
   const fileContent = fs.readFileSync(filePath, "utf-8");
   const { data, content } = matter(fileContent);
-
   const processedContent = await unified()
     .use(remarkParse)
     .use(remarkRehype, { allowDangerousHtml: true })
@@ -29,13 +27,12 @@ export async function getBlogPostBySlug(slug: string) {
     .use(rehypeSanitize)
     .use(rehypeStringify)
     .process(content);
-
   const contentHtml = processedContent.toString();
-
   return {
     title: data.title,
     date: data.date,
-    tags: data.tags || [], // Add tags here
+    description: data.description || "", // Add description here
+    tags: data.tags || [],
     content: contentHtml,
   };
 }
@@ -43,19 +40,17 @@ export async function getBlogPostBySlug(slug: string) {
 export async function getBlogPosts() {
   const blogDir = path.join(process.cwd(), "app/(pages)/writing/posts");
   const files = fs.readdirSync(blogDir);
-
   const posts = files.map((filename) => {
     const filePath = path.join(blogDir, filename);
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const { data } = matter(fileContent);
-
     return {
       slug: filename.replace(".md", ""),
       title: data.title,
       date: data.date,
-      tags: data.tags || [], // Add tags here
+      description: data.description || "", // Add description here
+      tags: data.tags || [],
     };
   });
-
   return posts;
 }
