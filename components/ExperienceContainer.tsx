@@ -101,14 +101,30 @@ export default function ExperienceContainer({ work }: { work: Experience }) {
             className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
             onClick={closeLightbox}
           >
-            <div className="relative max-w-4xl w-full h-full flex items-center justify-center">
-              <div className="relative w-full h-auto max-h-[80vh] rounded-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-center">
+              <div 
+                className="rounded-lg overflow-hidden" 
+                onClick={(e) => e.stopPropagation()}
+                style={{ 
+                  display: 'inline-block',
+                  position: 'relative',
+                  maxWidth: '90vw', 
+                  maxHeight: '80vh'
+                }}
+              >
                 <Image
                   src={`/photos/experiences/${slugify(work.organization.replace(/\s+/g, ''))}${slugify(work.title.replace(/\s+/g, ''))}/`+ selectedImage}
                   alt={`${work.organization} - ${work.title} expanded view`}
-                  className="object-contain max-h-[80vh] mx-auto rounded-lg"
                   width={1200}
                   height={800}
+                  className="rounded-lg"
+                  style={{
+                    maxWidth: '90vw',
+                    maxHeight: '80vh',
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain'
+                  }}
                 />
               </div>
             </div>

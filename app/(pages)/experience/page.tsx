@@ -4,7 +4,7 @@ import { Experience } from "@/types";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Open Source | Furkan Ünsalan",
+  title: "Experience | Furkan Ünsalan",
   description:
     "Explore my journey through diverse work experiences and volunteer initiatives",
 };
