@@ -6,6 +6,7 @@ import { useState, MouseEvent } from "react";
 import { motion } from "framer-motion";
 import Masonry from 'react-masonry-css';
 import { format } from 'date-fns'; // Import date-fns for date formatting
+import './Photos.css';
 
 interface PhotoProps {
   id: string;
@@ -88,8 +89,8 @@ function Photos({ data }: PhotosProps) {
     <div className="w-5/6 mb-6 mx-auto pr-3">
       <Masonry
         breakpointCols={breakpointColumnsObj}
-        className="my-masonry-grid"
-        columnClassName="my-masonry-grid_column"
+        className="masonry-grid"
+        columnClassName="masonry-grid_column"
       >
         {data.map((item) => (
           <Photo key={item.id} {...item} />
