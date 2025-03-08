@@ -25,7 +25,7 @@ export default async function PhotosPage() {
       </div>
 
       <div className="w-5/6 md:w-1/3 text-center font-mono font-thin mx-auto mt-8">
-        Photos by <a href="https://unsplash.com/@furkanunsalan" target="blank" className="underline italic hover:text-accent-primary">Furkan Ünsalan</a> @ <a href="https://unsplash.com" target="blank" className="underline italic hover:text-accent-primary">Unsplash</a>
+        Photos by <a href="https://unsplash.com/@furkanunsalan" target="blank" className="underline italic hover:text-accent-primary transition-all duration-300">Furkan Ünsalan</a> @ <a href="https://unsplash.com" target="blank" className="underline italic hover:text-accent-primary transition-all duration-300">Unsplash</a>
       </div>
 
       <div className="max-w-2xl mx-auto mt-14 sm:mt-20 px-4">

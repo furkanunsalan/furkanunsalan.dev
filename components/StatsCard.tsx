@@ -7,7 +7,7 @@ interface StatsCardProps {
 
 const StatsCard: React.FC<StatsCardProps> = ({ title, value }) => {
   return (
-    <div className="bg-light-secondary dark:bg-dark-secondary rounded-lg shadow-lg p-4 border border-light-third dark:border-dark-third">
+    <div className="select-none bg-light-secondary dark:bg-dark-secondary rounded-lg shadow-lg p-4 border border-light-third hover:border-accent-primary dark:border-dark-third hover:dark:border-accent-primary transition-all duration-300">
       <h3 className="font-mono text-sm uppercase tracking-wider text-dark-fourth dark:text-zinc-400">
         {title}
       </h3>
