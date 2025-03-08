@@ -16,7 +16,7 @@ const Footer: React.FC = () => {
                 href="https://www.websitecarbon.com/website/furkanunsalan-dev/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:underline hover:text-accent-primary"
+                className="hover:underline hover:text-accent-primary transition-all duration-200"
               >
                 This visit generated 0.07g of CO₂.
               </a>

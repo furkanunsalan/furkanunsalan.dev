@@ -68,7 +68,7 @@ export default function BlogPosts({ posts }: SearchInputProps) {
           filteredPosts.map((post) => (
             <li
               key={post.slug}
-              className="bg-light-secondary dark:bg-dark-secondary hover:dark:bg-dark-third hover:bg-light-third hover:cursor-pointer p-4 rounded-lg border border-light-third dark:border-dark-third transition-all duration-300"
+              className="bg-light-secondary dark:bg-dark-secondary hover:border-accent-primary dark:hover:border-accent-primary hover:cursor-pointer p-4 rounded-lg border border-light-third dark:border-dark-third transition-all duration-300"
             >
               <Link href={`/writing/${post.slug}`} className="block group">
                 <div className="flex justify-between items-center">

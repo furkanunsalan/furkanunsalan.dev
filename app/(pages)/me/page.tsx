@@ -81,7 +81,7 @@ export default function Me() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           Hi! I&apos;m{" "}
-          <span className="bg-red-500 dark:bg-red-600 text-white p-1 rounded-md">
+          <span className="text-black dark:text-white p-1 rounded-md">
             Furkan
           </span>
         </motion.h1>

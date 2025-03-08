@@ -71,7 +71,7 @@ export default function ExperienceContainer({ work }: { work: Experience }) {
           {work.organization}
         </p>
         <p className="mt-2 mb-4 font-light">{work.comment}</p>
-        {work.link && <a href={work.link[1]} className="underline font-extralight hover:text-accent-primary">{work.link[0]}</a>}
+        {work.link && <a href={work.link[1]} className="underline font-extralight hover:text-accent-primary transition-all duration-200">{work.link[0]}</a>}
         
         {/* Image Grid */}
         {images.length > 0 && (
@@ -80,7 +80,7 @@ export default function ExperienceContainer({ work }: { work: Experience }) {
               {images.map((img, index) => (
                 <div 
                   key={index} 
-                  className="relative h-32 overflow-hidden rounded cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
+                  className="relative h-32 overflow-hidden rounded cursor-pointer transition-all duration-300 border border-transparent hover:scale-105 hover:border-2 hover:border-accent-primary hover:dark:border-accent-primary hover:shadow-md"
                   onClick={() => openLightbox(img)}
                 >
                   <Image
