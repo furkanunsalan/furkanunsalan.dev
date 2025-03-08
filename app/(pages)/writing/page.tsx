@@ -19,7 +19,7 @@ export default async function WritingPage() {
         Welcome to my writing space where I share insights, guides, and
         reflections on various topics in technology and beyond. Explore my
         latest posts and join the conversation! Also check-out these posts
-        in my <a href="https://medium.com/@furkanunsalan" className="underline hover:text-accent-primary transition-all duration-200">Medium</a> page.
+        in my <a href="https://medium.com/@furkanunsalan" className="underline hover:text-accent-primary transition-all duration-200">Medium</a> page and <a href="/rss.xml" className="underline hover:text-accent-primary transition-all duration-200">RSS Feed</a>.
       </p>
       <BlogPosts posts={posts} />
     </div>
