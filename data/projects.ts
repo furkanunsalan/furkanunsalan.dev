@@ -56,15 +56,4 @@ export const projects: Project[] = [
     short_description: "Generative AI Fundamentals with Gemini Bootcamp Page! If you want to learn more about AI, let us welcome you to our site.",
     private: false,
   },
-  {
-    id: 6,
-    slug: "android-blast-off-website",
-    title: "DMG Android Blast Off Website",
-    repo: "android-blast-off-website",
-    owner: "Developer-MultiGroup",
-    branch: "main",
-    update: "2025/04/11",
-    short_description: "A website designed for Jetpack-Compose Bootcamp organized by Developer MultiGroup. Featuring detailed components from dynamically updated resources to custom session managers.",
-    private: false,
-  },
 ];
