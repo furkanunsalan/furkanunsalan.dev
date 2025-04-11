@@ -75,13 +75,13 @@ export default function Me() {
         transition={{ duration: 0.5 }}
       >
         <motion.h1
-          className="text-3xl font-bold mb-4"
+          className="text-3xl font-bold mb-4 select-none"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           Hi! I&apos;m{" "}
-          <span className="text-black dark:text-white p-1 rounded-md">
+          <span className="text-black dark:text-white p-1 rounded-md hover:cursor-default underline hover:text-accent-primary hover:dark:text-accent-primary transition-all duration-300">
             Furkan
           </span>
         </motion.h1>
@@ -105,7 +105,7 @@ export default function Me() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.6 }}
         >
-          <p className="text-xl font-semibold mb-2 text-center">Currently:</p>
+          <p className="text-xl font-semibold text-left underline mb-4">Currently</p>
           <ul className="list-none p-0">
             <motion.li
               className="mb-2"
@@ -122,7 +122,8 @@ export default function Me() {
               transition={{ duration: 0.5, delay: 1 }}
             >
               <strong>📐 Working On:</strong>{" "}
-              <a className="underline hover:text-accent-primary" href="https://github.com/buildog-dev/buildog">Buildog</a>
+              {/* <a className="underline hover:text-accent-primary" href="https://github.com/buildog-dev/buildog">Buildog</a> */}
+              Developer MultiGroup
             </motion.li>
             <motion.li
               className="mb-2"
@@ -130,7 +131,7 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.2 }}
             >
-              <strong>🍿 Last Watched:</strong> Silo Season 2
+              <strong>🍿 Last Watched:</strong> Suits LA
             </motion.li>
             <motion.li
               className="mb-2"
