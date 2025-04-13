@@ -7,7 +7,7 @@ export const works: Experience[] = [
     title: "Pioneer Member",
     start_date: "Oct 2024",
     comment:
-      "I am actively involved in developing web projects that benefit both our team and the broader community. As a Strider, I also attend events to expand my professional network and secure sponsors and speakers, thereby providing valuable support to our community initiatives.",
+      "I am actively involved in developing web projects used by 500+ people that benefit both our team and the broader community. As a Strider, I also attend events to expand my professional network and secure sponsors and speakers, thereby providing valuable support to our community initiatives.",
   },
   {
     id: 3,
