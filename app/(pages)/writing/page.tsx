@@ -2,6 +2,8 @@ import { getBlogPosts } from "@/lib/get-blog-posts";
 import type { BlogPost } from "@/types";
 import { Metadata } from "next";
 import BlogPosts from "@/components/BlogPosts";
+import { BlogPostFields } from "@/types/contentful";
+import { getContentfulPosts } from "@/lib/contentful";
 
 export const metadata: Metadata = {
   title: "Writing | Furkan Ünsalan",
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WritingPage() {
-  const posts: BlogPost[] = await getBlogPosts();
+  const posts: BlogPostFields[] = await getContentfulPosts()
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-16">

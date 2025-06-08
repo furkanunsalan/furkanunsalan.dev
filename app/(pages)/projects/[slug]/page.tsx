@@ -27,7 +27,6 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
       const fetchReadme = async () => {
         const { owner, repo, branch } = fetchedProject;
         const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/README.md`;
-        console.log("Fetching README from:", url);
 
         try {
           const response = await fetch(url);
@@ -49,7 +48,6 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
               }
             );
 
-            console.log("README content fetched successfully.");
             setReadmeContent(markdown);
           } else {
             console.warn(

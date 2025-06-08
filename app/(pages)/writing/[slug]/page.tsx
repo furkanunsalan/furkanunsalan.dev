@@ -1,9 +1,8 @@
-import fs from "fs";
-import path from "path";
 import { notFound } from "next/navigation";
-import { getBlogPostBySlug } from "@/lib/get-blog-posts";
-import type { BlogPostData } from "@/types";
-import Markdown from 'markdown-to-jsx';  // Import the markdown-to-jsx library
+import { getContentfulPostBySlug } from "@/lib/contentful";
+import { BlogPostFields } from "@/types/contentful";
+import { documentToReactComponents } from '@contentful/rich-text-react-renderer';
+import { Document, Text } from '@contentful/rich-text-types';
 
 interface BlogPostProps {
   params: {
@@ -11,43 +10,56 @@ interface BlogPostProps {
   };
 }
 
-export async function generateStaticParams() {
-  const files = fs.readdirSync(path.join(process.cwd(), "app/(pages)/writing"));
-  return files.map((filename) => ({
-    slug: filename.replace(".md", ""),
-  }));
-}
-
-function calculateReadingTime(content: string) {
-  const wordsPerMinute = 200; // Average reading speed
-  const words = content.split(/\s+/).length;
+function calculateReadingTime(document: Document): string {
+  const wordsPerMinute = 200;
+  // Extract text content from rich text document
+  const textContent = document.content
+    .map(node => {
+      if (node.nodeType === 'paragraph') {
+        return node.content
+          .map(content => {
+            if ('value' in content) {
+              return (content as Text).value;
+            }
+            return '';
+          })
+          .join(' ');
+      }
+      return '';
+    })
+    .join(' ');
+  
+  const words = textContent.split(/\s+/).length;
   const minutes = Math.ceil(words / wordsPerMinute);
   return `${minutes} min read`;
 }
 
-export default async function BlogPost({ params }: BlogPostProps) {
-  const post: BlogPostData | null = await getBlogPostBySlug(params.slug);
+export async function generateStaticParams() {
+  // This will be handled by Contentful's ISR
+  return [];
+}
 
-  if (!post) {
+export default async function BlogPost({ params }: BlogPostProps) {
+  const post = await getContentfulPostBySlug(params.slug);
+
+  if (!post?.fields) {
     notFound();
   }
 
-  const { title, date, content, tags } = post;
-  const readingTime = calculateReadingTime(content);
+  const fields = post.fields as BlogPostFields;
+  const { title, date, tags = [], body } = fields;
 
-  // Custom renderers for markdown-to-jsx
-  const options = {
-    overrides: {
-      img: {
-        component: (props: any) => (
-          <span className="block text-center"> {/* Using <span> instead of <figure> */}
-            <img src={props.src} alt={props.alt} className="rounded-lg mx-auto" />
-            {props.alt && <span className="mt-2 block text-sm text-gray-700 dark:text-gray-400">{props.alt}</span>}
-          </span>
-        ),
-      },
-    },
-  };
+  if (!title || !date || !body) {
+    notFound();
+  }
+
+  const formattedDate = new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  const readingTime = calculateReadingTime(body as unknown as Document);
 
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-16">
@@ -55,26 +67,13 @@ export default async function BlogPost({ params }: BlogPostProps) {
         <h1 className="text-4xl sm:text-5xl font-bold text-gray-700 dark:text-gray-400 mb-2">
           {title}
         </h1>
-        <time className="text-sm text-gray-500">
-          {new Date(date).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </time>
         <div className="text-sm text-gray-500">
-          <time>
-            {new Date(date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </time>
+          <time>{formattedDate}</time>
           <span className="mx-2">•</span>
           <span>{readingTime}</span>
         </div>
 
-        {tags && tags.length > 0 && (
+        {tags.length > 0 && (
           <div className="mt-4 text-center">
             <ul className="mt-2 flex flex-wrap justify-center space-x-2">
               {tags.map((tag: string, index: number) => (
@@ -89,7 +88,6 @@ export default async function BlogPost({ params }: BlogPostProps) {
         )}
       </header>
 
-      {/* Render Markdown to JSX with custom image rendering */}
       <div className="prose prose-lg mx-auto
         prose-a:text-accent-primary
         prose-headings:mt-8 
@@ -108,9 +106,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
         prose-strong:font-mono 
         prose-strong:font-thin
         prose-strong:underline">
-
-        {/* Here we use the Markdown component to render the content as JSX */}
-        <Markdown options={options}>{content}</Markdown>
+        {documentToReactComponents(body as unknown as Document)}
       </div>
     </article>
   );
