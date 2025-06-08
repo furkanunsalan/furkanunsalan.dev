@@ -49,6 +49,7 @@ export default function BreadcrumbNavigator() {
     { name: "Projects", href: "/projects", alias: "P" },
     { name: "Photos", href: "/photos", alias: "Ph" },
     { name: "Writing", href: "/writing", alias: "W" },
+    { name: "Bookmarks", href: "/bookmarks", alias: "B" },
   ];
 
   // Determine the href and name of the latest breadcrumb item

@@ -7,6 +7,7 @@ import SocialNavigator from "@/components/SocialNavigator";
 import ToolTabs from "@/components/ToolTabs";
 import { tools } from "@/data/tools";
 import { personalInfo } from "@/data/constants";
+import RaindropBookmarks from '@/components/RaindropBookmarks';
 
 export default function Me() {
   const routes = [
