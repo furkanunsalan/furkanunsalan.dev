@@ -11,12 +11,12 @@ const collections = [
   {
     id: "54606666",
     title: "Good Posts Archive",
-    description: "An archive for the posts that I&apos;ve bookmarked and read along the way.",
+    description: "An archive for the posts that I've bookmarked and read along the way.",
   },
   {
     id: "54690874",
     title: "Videos",
-    description: "The videos I&apos;ve watched and found useful without any categorizations",
+    description: "The videos I've watched and found useful without any categorizations",
   },
 ];
 
