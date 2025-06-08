@@ -1,17 +1,12 @@
 // app/rss.xml/route.ts
-import { getBlogPosts } from "@/lib/get-blog-posts";
-import { BlogPost } from "@/types";
+import { getContentfulPosts } from "@/lib/contentful";
+import { BlogPostFields } from "@/types/contentful";
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
-import { unified } from "unified";
-import remarkParse from "remark-parse";
-import remarkRehype from "remark-rehype";
-import rehypeStringify from "rehype-stringify";
+import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
+import { Document } from '@contentful/rich-text-types';
 
 export async function GET() {
-  const posts = await getBlogPosts();
+  const posts = await getContentfulPosts();
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://furkanunsalan.dev';
   
   // Sort posts by date (newest first)
@@ -19,42 +14,18 @@ export async function GET() {
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
-  // Get post content for RSS
-  async function getPostContent(slug: string) {
-    const filePath = path.join(
-      process.cwd(),
-      "app/(pages)/writing/posts",
-      `${slug}.md`
-    );
-    
-    if (!fs.existsSync(filePath)) {
-      return "";
-    }
-    
-    const fileContent = fs.readFileSync(filePath, "utf-8");
-    const { content } = matter(fileContent);
-    
-    // Process markdown to HTML
-    const processedContent = await unified()
-      .use(remarkParse)
-      .use(remarkRehype)
-      .use(rehypeStringify)
-      .process(content);
-    
-    return processedContent.toString();
-  }
-
-  // Fetch content for all posts
-  const postsWithContent = await Promise.all(
-    sortedPosts.map(async (post) => {
-      const content = await getPostContent(post.slug);
-      return { ...post, content };
-    })
-  );
+  // Convert rich text to HTML
+  const postsWithContent = sortedPosts.map(post => {
+    const content = documentToHtmlString(post.body as unknown as Document);
+    return {
+      ...post,
+      content
+    };
+  });
 
   const currentDate = new Date().toUTCString();
   
-  // Generate RSS XML based on the example format
+  // Generate RSS XML
   const rssXml = `<?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
     <channel>
@@ -73,7 +44,7 @@ export async function GET() {
             <guid>${post.slug}</guid>
             <pubDate>${new Date(post.date).toUTCString()}</pubDate>
             <content:encoded><![CDATA[${post.content}]]></content:encoded>
-            ${post.tags.map((tag: string) => `<category>${tag}</category>`).join('')}
+            ${post.tags?.map((tag: string) => `<category>${tag}</category>`).join('') || ''}
         </item>`).join('')}
     </channel>
 </rss>`;
