@@ -11,12 +11,12 @@ const collections = [
   {
     id: "54606666",
     title: "Good Posts Archive",
-    description: "An archive for the posts that I've bookmarked and read along the way.",
+    description: "An archive for the posts that I&apos;ve bookmarked and read along the way.",
   },
   {
     id: "54690874",
     title: "Videos",
-    description: "The videos I've watched and found useful without any categorizations",
+    description: "The videos I&apos;ve watched and found useful without any categorizations",
   },
 ];
 
@@ -29,7 +29,7 @@ export default function BookmarksPage() {
             Bookmarks
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
-            A curated collection of interesting articles, tools, and resources I've found across the web.
+            A curated collection of interesting articles, tools, and resources I&apos;ve found across the web.
           </p>
         </div>
         <RaindropBookmarks collections={collections} />
