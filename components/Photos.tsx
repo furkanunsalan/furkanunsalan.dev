@@ -5,12 +5,10 @@ import Link from "next/link";
 import { useState, MouseEvent } from "react";
 import { motion } from "framer-motion";
 import Masonry from 'react-masonry-css';
-import { format } from 'date-fns'; // Import date-fns for date formatting
 import './Photos.css';
 
 interface PhotoProps {
   id: string;
-  created_at: string;
   alt_description: string;
   slug: string;
   links: {
@@ -21,10 +19,7 @@ interface PhotoProps {
   };
 }
 
-function Photo({ alt_description, links, urls, created_at, slug }: PhotoProps) {
-
-  console.log(alt_description);
-  
+function Photo({ alt_description, links, urls, slug }: PhotoProps) {
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
@@ -41,11 +36,9 @@ function Photo({ alt_description, links, urls, created_at, slug }: PhotoProps) {
     setTilt({ rotateX: 0, rotateY: 0 });
   };
 
-  const formattedDate = format(new Date(created_at), 'MMM dd, yyyy');
-
   return (
     <motion.figure
-      className="relative w-full p-6 rounded-xl shadow-lg transition-transform duration-500"
+      className="relative w-full rounded-xl shadow-lg transition-transform duration-500 mb-6"
       style={{ perspective: "1000px" }}
       animate={{ rotateX: tilt.rotateX, rotateY: tilt.rotateY }}
       transition={{ type: "spring", stiffness: 100, damping: 10 }}
@@ -65,9 +58,6 @@ function Photo({ alt_description, links, urls, created_at, slug }: PhotoProps) {
             />
           </div>
         </Link>
-        <div className="absolute bottom-2 select-none left-4 text-yellow-500 bg-black bg-opacity-50 p-1 rounded">
-          {formattedDate}
-        </div>
       </div>
     </motion.figure>
   );
@@ -91,6 +81,7 @@ function Photos({ data }: PhotosProps) {
         breakpointCols={breakpointColumnsObj}
         className="masonry-grid"
         columnClassName="masonry-grid_column"
+        style={{ gap: '12px' }}
       >
         {data.map((item) => (
           <Photo key={item.id} {...item} />

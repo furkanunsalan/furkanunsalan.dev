@@ -13,19 +13,33 @@ export const revalidate = 3600; // 60*60*24
 
 export default async function PhotosPage() {
   const photos = await unsplash.getPhotos();
-  const stats = await unsplash.getStats();  
+  const stats = await unsplash.getStats();
 
   return (
     <>
-      <div className="w-5/6 lg:w-2/3 xl:w-1/3 text-justify font-mono mx-auto mt-32">
+      <div className="w-5/6 md:w-1/3 text-center font-mono font-thin mx-auto mt-32">
+        Photos by{" "}
+        <a
+          href="https://unsplash.com/@furkanunsalan"
+          target="blank"
+          className="underline italic hover:text-accent-primary transition-all duration-300"
+        >
+          Furkan Ünsalan
+        </a>{" "}
+        @{" "}
+        <a
+          href="https://unsplash.com"
+          target="blank"
+          className="underline italic hover:text-accent-primary transition-all duration-300"
+        >
+          Unsplash
+        </a>
+      </div>
+      <div className="w-5/6 lg:w-2/3 xl:w-1/3 text-justify font-mono mx-auto mt-8">
         This is a collection of moments and scenes I&apos;ve captured through my
         lens. Each photo reflects my journey, experiences, and the beauty I see
         in the world around me. I hope you enjoy exploring my work as much as I
         enjoyed taking these photos.
-      </div>
-
-      <div className="w-5/6 md:w-1/3 text-center font-mono font-thin mx-auto mt-8">
-        Photos by <a href="https://unsplash.com/@furkanunsalan" target="blank" className="underline italic hover:text-accent-primary transition-all duration-300">Furkan Ünsalan</a> @ <a href="https://unsplash.com" target="blank" className="underline italic hover:text-accent-primary transition-all duration-300">Unsplash</a>
       </div>
 
       <div className="max-w-2xl mx-auto mt-14 sm:mt-20 px-4">

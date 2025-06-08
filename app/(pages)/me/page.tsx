@@ -6,65 +6,15 @@ import Spotify from "@/components/NowPlaying";
 import SocialNavigator from "@/components/SocialNavigator";
 import ToolTabs from "@/components/ToolTabs";
 import { tools } from "@/data/tools";
-import { getCurrentlyReadingBooks, setAuthToken } from "@/lib/literalClient";
-import LiteralLogin from "@/components/LiteralLogin";
+import { personalInfo } from "@/data/constants";
 
 export default function Me() {
-  const [books, setBooks] = useState<any[]>([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [authError, setAuthError] = useState('');
-  
   const routes = [
     { name: "Github", url: "https://github.com/furkanunsalan" },
     { name: "Linkedin", url: "https://linkedin.com/in/furkanunsalan" },
     { name: "Mail", url: "mailto:hi@furkanunsalan.dev" },
     { name: "CV", url: "/resume.pdf" },
   ];
-
-  const fetchBooks = async () => {
-    try {
-      const booksData = await getCurrentlyReadingBooks();
-      setBooks(booksData);
-      setAuthError('');
-    } catch (error) {
-      console.error("Failed to fetch books:", error);
-      if ((error as any)?.response?.status === 401) {
-        localStorage.removeItem('literalToken');
-        setIsAuthenticated(false);
-        setAuthError('Authentication failed. Please try again.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const token = localStorage.getItem('literalToken');
-    if (token) {
-      setAuthToken(token);
-      setIsAuthenticated(true);
-    } else {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchBooks();
-    }
-  }, [isAuthenticated]);
-
-  const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
-    setAuthError('');
-  };
-
-  const handleAuthError = (error: string) => {
-    setIsAuthenticated(false);
-    setAuthError(error);
-    setBooks([]);
-  };
 
   return (
     <>
@@ -113,7 +63,7 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.8 }}
             >
-              <strong>📍 Living In:</strong> Istanbul
+              <strong>📍 Living In:</strong> {personalInfo.location}
             </motion.li>
             <motion.li
               className="mb-2"
@@ -123,7 +73,7 @@ export default function Me() {
             >
               <strong>📐 Working On:</strong>{" "}
               {/* <a className="underline hover:text-accent-primary" href="https://github.com/buildog-dev/buildog">Buildog</a> */}
-              Developer MultiGroup
+              {personalInfo.workingOn}
             </motion.li>
             <motion.li
               className="mb-2"
@@ -131,7 +81,13 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.2 }}
             >
-              <strong>🍿 Last Watched:</strong> Suits LA
+              <strong>🍿 Last Watched:</strong>{" "}
+              {personalInfo.lastWatched.map((item, index) => (
+                <span key={item}>
+                  {item}
+                  {index < personalInfo.lastWatched.length - 1 ? ", " : ""}
+                </span>
+              ))}
             </motion.li>
             <motion.li
               className="mb-2"
@@ -139,48 +95,16 @@ export default function Me() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.4 }}
             >
-              <strong>📖 Reading:</strong> Dune Messiah, The Almanack of Naval Ravikant
+              <strong>📖 Reading:</strong>{" "}
+              {personalInfo.reading.map((item, index) => (
+                <span key={item}>
+                  {item}
+                  {index < personalInfo.reading.length - 1 ? ", " : ""}
+                </span>
+              ))}
             </motion.li>
           </ul>
         </motion.div>
-
-        {/* Books Section */}
-        {/* <motion.div
-          className="w-full max-w-xl mx-auto"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 2 }}
-        >
-          {isLoading ? (
-            <p className="text-center">Loading...</p>
-          ) : !isAuthenticated ? (
-            <LiteralLogin 
-              onAuthSuccess={handleAuthSuccess}
-              onAuthError={handleAuthError}
-            />
-          ) : books.length === 0 ? (
-            <p className="text-center">No books found.</p>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {books.map((book) => (
-                <div
-                  key={book.id}
-                  className="p-4 relative"
-                >
-                  <div className="relative">
-                    <img
-                      src={book.cover}
-                      alt={book.title}
-                      className="w-full h-auto max-h-72 object-cover rounded-md mb-2"
-                    />
-                  </div>
-                  
-                </div>
-              ))}
-            </div>
-          )}
-          {authError && <p className="text-red-500 text-center mt-2">{authError}</p>}
-        </motion.div> */}
       </motion.div>
 
       <motion.div
