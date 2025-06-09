@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: 'class', // Enables dark mode by toggling 'dark' class on the root element
+  darkMode: "class", // Enables dark mode by toggling 'dark' class on the root element
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -16,22 +16,22 @@ const config: Config = {
       },
       colors: {
         // DARK
-        'dark-primary': '#111010', // custom
-        'dark-secondary': '#27272A', // zinc-800
-        'dark-third': '#3F3F46',  // zinc-700
-        'dark-fourth': '#5252B', // zinc-600
+        "dark-primary": "#111010", // custom
+        "dark-secondary": "#27272A", // zinc-800
+        "dark-third": "#3F3F46", // zinc-700
+        "dark-fourth": "#5252B", // zinc-600
         // LIGHT
-        'light-primary': '#e4e4e7', // zinc-200
-        'light-secondary': '#d4d4d4', // zinc-300
-        'light-third':'#bbbdc1', // custom; a darker shade of zinc-300, but much lighter than zinc-400
-        'light-fourth': '71717a', // zinc-500
+        "light-primary": "#e4e4e7", // zinc-200
+        "light-secondary": "#d4d4d4", // zinc-300
+        "light-third": "#bbbdc1", // custom; a darker shade of zinc-300, but much lighter than zinc-400
+        "light-fourth": "71717a", // zinc-500
         // ACCENT
-        'accent-primary': '#6366F1' // indigo-500 // change also line 23 in global.css
+        "accent-primary": "#6366F1", // indigo-500 // change also line 23 in global.css
       },
     },
   },
   plugins: [
-    require('@tailwindcss/typography'),
+    require("@tailwindcss/typography"),
     // ... other plugins
   ],
 };

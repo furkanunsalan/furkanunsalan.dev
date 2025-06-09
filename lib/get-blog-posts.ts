@@ -13,7 +13,7 @@ export async function getBlogPostBySlug(slug: string) {
   const filePath = path.join(
     process.cwd(),
     "app/(pages)/writing/posts",
-    `${slug}.md`
+    `${slug}.md`,
   );
   if (!fs.existsSync(filePath)) {
     return null;

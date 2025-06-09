@@ -11,16 +11,21 @@ export const metadata: Metadata = {
   description: "Software Developer | Photography Enthusiast | @Istanbul",
   robots: {
     index: true,
-    follow: true
+    follow: true,
   },
-  keywords: ['Furkan Ünsalan', 'Furkan Unsalan', 'furkanunsalan dev', 'furkanunsalan.dev'],
+  keywords: [
+    "Furkan Ünsalan",
+    "Furkan Unsalan",
+    "furkanunsalan dev",
+    "furkanunsalan.dev",
+  ],
   metadataBase: new URL("https://furkanunsalan.dev"),
   alternates: {
     types: {
-      'application/rss+xml': [
+      "application/rss+xml": [
         {
-          url: '/rss.xml',
-          title: 'Furkan Ünsalan\'s Blog RSS Feed'
+          url: "/rss.xml",
+          title: "Furkan Ünsalan's Blog RSS Feed",
         },
       ],
     },

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WritingPage() {
-  const posts: BlogPostFields[] = await getContentfulPosts()
+  const posts: BlogPostFields[] = await getContentfulPosts();
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 mt-16">
@@ -20,8 +20,21 @@ export default async function WritingPage() {
       <p className="text-lg text-justify mb-8 text-gray-600 dark:text-gray-400">
         Welcome to my writing space where I share insights, guides, and
         reflections on various topics in technology and beyond. Explore my
-        latest posts and join the conversation! Also check-out these posts
-        in my <a href="https://medium.com/@furkanunsalan" className="underline hover:text-accent-primary transition-all duration-200">Medium</a> page and <a href="/rss.xml" className="underline hover:text-accent-primary transition-all duration-200">RSS Feed</a>.
+        latest posts and join the conversation! Also check-out these posts in my{" "}
+        <a
+          href="https://medium.com/@furkanunsalan"
+          className="underline hover:text-accent-primary transition-all duration-200"
+        >
+          Medium
+        </a>{" "}
+        page and{" "}
+        <a
+          href="/rss.xml"
+          className="underline hover:text-accent-primary transition-all duration-200"
+        >
+          RSS Feed
+        </a>
+        .
       </p>
       <BlogPosts posts={posts} />
     </div>

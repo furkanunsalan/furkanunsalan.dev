@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { getContentfulPostBySlug } from "@/lib/contentful";
 import { BlogPostFields } from "@/types/contentful";
-import { documentToReactComponents } from '@contentful/rich-text-react-renderer';
-import { Document, Text } from '@contentful/rich-text-types';
+import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
+import { Document, Text } from "@contentful/rich-text-types";
 
 interface BlogPostProps {
   params: {
@@ -14,21 +14,21 @@ function calculateReadingTime(document: Document): string {
   const wordsPerMinute = 200;
   // Extract text content from rich text document
   const textContent = document.content
-    .map(node => {
-      if (node.nodeType === 'paragraph') {
+    .map((node) => {
+      if (node.nodeType === "paragraph") {
         return node.content
-          .map(content => {
-            if ('value' in content) {
+          .map((content) => {
+            if ("value" in content) {
               return (content as Text).value;
             }
-            return '';
+            return "";
           })
-          .join(' ');
+          .join(" ");
       }
-      return '';
+      return "";
     })
-    .join(' ');
-  
+    .join(" ");
+
   const words = textContent.split(/\s+/).length;
   const minutes = Math.ceil(words / wordsPerMinute);
   return `${minutes} min read`;
@@ -88,7 +88,8 @@ export default async function BlogPost({ params }: BlogPostProps) {
         )}
       </header>
 
-      <div className="prose prose-lg mx-auto
+      <div
+        className="prose prose-lg mx-auto
         prose-a:text-accent-primary
         prose-headings:mt-8 
         prose-headings:mb-4 
@@ -105,7 +106,8 @@ export default async function BlogPost({ params }: BlogPostProps) {
         prose-strong:text-current 
         prose-strong:font-mono 
         prose-strong:font-thin
-        prose-strong:underline">
+        prose-strong:underline"
+      >
         {documentToReactComponents(body as unknown as Document)}
       </div>
     </article>

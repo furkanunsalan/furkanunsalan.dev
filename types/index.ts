@@ -45,7 +45,7 @@ export type Contribution = {
   description: string;
   link: string;
   tags?: string[];
-}
+};
 
 export type BlogPost = {
   slug: string;
@@ -64,6 +64,6 @@ export type BlogPostData = {
 export type Route = {
   name: string;
   url: string;
-}
+};
 
 export type Routes = Route[];

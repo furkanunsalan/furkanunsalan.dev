@@ -9,7 +9,8 @@ export const projects: Project[] = [
     owner: "furkanunsalan",
     branch: "prod",
     update: "2025/02/23",
-    short_description: "A personal project for tracking and visualizing travel destinations using an interactive map, with features for bookmarking and rating places.",
+    short_description:
+      "A personal project for tracking and visualizing travel destinations using an interactive map, with features for bookmarking and rating places.",
     private: false,
   },
   {
@@ -20,7 +21,8 @@ export const projects: Project[] = [
     owner: "Descite-Co",
     branch: "v2",
     update: "2024/11/12",
-    short_description: "Yatırım Bot is a Python-based project designed to automate the sharing of financial updates and trading signals on X.",
+    short_description:
+      "Yatırım Bot is a Python-based project designed to automate the sharing of financial updates and trading signals on X.",
     private: false,
   },
   {
@@ -31,7 +33,8 @@ export const projects: Project[] = [
     owner: "furkanunsalan",
     branch: "main",
     update: "2024/11/15",
-    short_description: "My personal website built using Next.js, Tailwind CSS, shadcn/ui, Unsplash and deployed on Vercel.",
+    short_description:
+      "My personal website built using Next.js, Tailwind CSS, shadcn/ui, Unsplash and deployed on Vercel.",
     private: false,
   },
   {
@@ -42,7 +45,8 @@ export const projects: Project[] = [
     owner: "Developer-MultiGroup",
     branch: "main",
     update: "2024/12/17",
-    short_description: "A web application for managing and organizing team giveaways, promoting engagement and fun within teams!",
+    short_description:
+      "A web application for managing and organizing team giveaways, promoting engagement and fun within teams!",
     private: false,
   },
   {
@@ -53,7 +57,8 @@ export const projects: Project[] = [
     owner: "Developer-MultiGroup",
     branch: "main",
     update: "2025/03/08",
-    short_description: "Generative AI Fundamentals with Gemini Bootcamp Page! If you want to learn more about AI, let us welcome you to our site.",
+    short_description:
+      "Generative AI Fundamentals with Gemini Bootcamp Page! If you want to learn more about AI, let us welcome you to our site.",
     private: false,
   },
   {
@@ -64,7 +69,8 @@ export const projects: Project[] = [
     owner: "Developer-MultiGroup",
     branch: "main",
     update: "2025/05/13",
-    short_description: "If you want to become an Android developer with Jetpack Compose, start strong with the latest curriculum and innovations!",
+    short_description:
+      "If you want to become an Android developer with Jetpack Compose, start strong with the latest curriculum and innovations!",
     private: false,
   },
   {
@@ -75,7 +81,8 @@ export const projects: Project[] = [
     owner: "Developer-MultiGroup",
     branch: "main",
     update: "2025/06/07",
-    short_description: "Official event page of Developer MultiGroup where you can discover and attend insightful events every month!",
+    short_description:
+      "Official event page of Developer MultiGroup where you can discover and attend insightful events every month!",
     private: false,
   },
 ];

@@ -6,7 +6,8 @@ export const works: Experience[] = [
     organization: "Developer MultiGroup",
     title: "Associate Member",
     start_date: "May 2025",
-    comment: "As an Associate Member, I actively participate in organizing large-scale events that bring together 300+ attendees and industry speakers. I contribute to team coordination by facilitating task distribution, fostering collaboration, and maintaining team motivation. A notable achievement includes my involvement in the Mobile Developer Conference 25, where I played a key role in various aspects of the event, from speaker coordination to venue and schedule management, successfully hosting 200+ members and 30+ speakers.",
+    comment:
+      "As an Associate Member, I actively participate in organizing large-scale events that bring together 300+ attendees and industry speakers. I contribute to team coordination by facilitating task distribution, fostering collaboration, and maintaining team motivation. A notable achievement includes my involvement in the Mobile Developer Conference 25, where I played a key role in various aspects of the event, from speaker coordination to venue and schedule management, successfully hosting 200+ members and 30+ speakers.",
     link: ["Check out our events!", "https://etkinlik.devmultigroup.com"],
   },
   {

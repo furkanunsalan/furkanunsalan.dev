@@ -11,17 +11,17 @@ export const getContentfulPosts = async (): Promise<BlogPostFields[]> => {
     content_type: "blog",
   });
 
-  return res.items.map(item => item.fields);
+  return res.items.map((item) => item.fields);
 };
 
 export const getContentfulPostBySlug = async (
-  slug: string
+  slug: string,
 ): Promise<Entry<BlogPostSkeleton> | null> => {
   const res = await client.getEntries<BlogPostSkeleton>({
     content_type: "blog",
     // 👇 safely assert it as any
     "fields.slug": slug,
-    locale: 'en-US',
+    locale: "en-US",
   } as any); // acceptable in this specific case
 
   return res.items[0] ?? null;

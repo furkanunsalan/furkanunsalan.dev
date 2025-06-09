@@ -26,7 +26,7 @@ cd /etc/nginx/sites-available/
 sudo nano /etc/nginx/sites-available/my-app
 ```
 
-Later, add the following  to your config file with the correct information
+Later, add the following to your config file with the correct information
 
 ```bash
 server {
@@ -67,10 +67,10 @@ Here is how you can do it:
 1. Go to your domain provider
 2. Open your domain settings and find DNS Records
 3. Create a new "A" record with the following configs:
-	- Name (Subdomain): the name you used in the creation process. (e.g. my-app)
-	- Value: Public IP Address of your server (where you run your application)
+   - Name (Subdomain): the name you used in the creation process. (e.g. my-app)
+   - Value: Public IP Address of your server (where you run your application)
 
-You can check if the DNS Records have been changed using [this tool](https://dnschecker.org/). It should show the IP  Address of your server when you input your subdomain (my-app.yourdomain.com) if you have done everything correctly.
+You can check if the DNS Records have been changed using [this tool](https://dnschecker.org/). It should show the IP Address of your server when you input your subdomain (my-app.yourdomain.com) if you have done everything correctly.
 
 ## SSL Certification
 
@@ -86,13 +86,14 @@ sudo certbot --nginx -d my-app.your-domain.com
 ```bash
 ls -l /etc/nginx/sites-enabled/
 ```
+
 ### Example output:
 
 ```bash
 /etc/nginx/sites-enabled/my-app -> /etc/nginx/sites-available/my-app
 ```
 
-#### List the available sites for NGINX: 
+#### List the available sites for NGINX:
 
 ```bash
 ls /etc/nginx/sites-available/
@@ -100,7 +101,7 @@ ls /etc/nginx/sites-available/
 
 ## Side Notes:
 
-1. In case you fuck-up in the process ( like I did :D ) [here](https://gist.github.com/xameeramir/a5cb675fb6a6a64098365e89a239541d) you can find the default enabled site config file for NGINX. Located under 
+1. In case you fuck-up in the process ( like I did :D ) [here](https://gist.github.com/xameeramir/a5cb675fb6a6a64098365e89a239541d) you can find the default enabled site config file for NGINX. Located under
 
 ```bash
 /etc/nginx/sites-enabled/default

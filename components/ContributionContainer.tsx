@@ -14,7 +14,6 @@ export default function ContributionContainer({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
       className="mb-6 p-2 border-l-4 border-light-third dark:border-dark-third pl-2 rounded-lg group"
-
     >
       <div key={contribution.id} className="pb-2">
         <p className="text-lg font-semibold text-black dark:text-white">

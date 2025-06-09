@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
             "content-type": "application/json",
             "cache-control": "no-cache", // Ensure no caching
           },
-        }
+        },
       );
     }
 
@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
           "content-type": "application/json",
           "cache-control": "no-cache", // Ensure no caching
         },
-      }
+      },
     );
   } catch (err) {
     console.error("Error in /api/spotify:", err);

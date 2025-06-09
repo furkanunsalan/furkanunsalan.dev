@@ -1,5 +1,5 @@
-import { EntrySkeletonType } from 'contentful';
-import { Document } from '@contentful/rich-text-types';
+import { EntrySkeletonType } from "contentful";
+import { Document } from "@contentful/rich-text-types";
 
 export interface BlogPostFields {
   title: string;
@@ -9,4 +9,4 @@ export interface BlogPostFields {
   body: Document;
 }
 
-export type BlogPostSkeleton = EntrySkeletonType<BlogPostFields, 'blog'>;
+export type BlogPostSkeleton = EntrySkeletonType<BlogPostFields, "blog">;

@@ -24,7 +24,7 @@ export default function BlogPosts({ posts }: SearchInputProps) {
   // Sort posts by date (example: oldest first)
   const sortedPosts = useMemo(() => {
     return [...posts].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
   }, [posts]);
 

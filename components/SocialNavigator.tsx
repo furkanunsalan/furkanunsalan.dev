@@ -12,7 +12,9 @@ export default function SocialNavigator({ routes }: { routes: Routes }) {
             rel="noopener noreferrer"
             data-umami-event={route.name}
           >
-            <span className="hover:underline hover:text-accent-primary transition-all duration-200">{route.name}</span>
+            <span className="hover:underline hover:text-accent-primary transition-all duration-200">
+              {route.name}
+            </span>
           </Link>
           {index < routes.length - 1 && <span>/</span>}
         </>

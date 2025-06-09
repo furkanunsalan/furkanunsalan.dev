@@ -1,4 +1,4 @@
-import { headers } from 'next/headers';
+import { headers } from "next/headers";
 
 export type RaindropBookmark = {
   _id: string;
@@ -21,7 +21,7 @@ export async function getRaindropBookmarks(collectionId: string) {
   const token = process.env.RAINDROP_TOKEN;
 
   if (!token) {
-    throw new Error('Raindrop token is not configured');
+    throw new Error("Raindrop token is not configured");
   }
 
   const response = await fetch(
@@ -29,14 +29,14 @@ export async function getRaindropBookmarks(collectionId: string) {
     {
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       next: { revalidate: 3600 }, // Cache for 1 hour
-    }
+    },
   );
 
   if (!response.ok) {
-    throw new Error('Failed to fetch bookmarks from Raindrop');
+    throw new Error("Failed to fetch bookmarks from Raindrop");
   }
 
   const data = await response.json();
@@ -47,21 +47,21 @@ export async function getRaindropCollections() {
   const token = process.env.RAINDROP_TOKEN;
 
   if (!token) {
-    throw new Error('Raindrop token is not configured');
+    throw new Error("Raindrop token is not configured");
   }
 
-  const response = await fetch('https://api.raindrop.io/rest/v1/collections', {
+  const response = await fetch("https://api.raindrop.io/rest/v1/collections", {
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     next: { revalidate: 3600 }, // Cache for 1 hour
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch collections from Raindrop');
+    throw new Error("Failed to fetch collections from Raindrop");
   }
 
   const data = await response.json();
   return data.items as RaindropCollection[];
-} 
+}

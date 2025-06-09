@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
 import NextImage from "next/image";
 import Link from "next/link";
 import { useState, MouseEvent } from "react";
 import { motion } from "framer-motion";
-import Masonry from 'react-masonry-css';
-import './Photos.css';
+import Masonry from "react-masonry-css";
+import "./Photos.css";
 
 interface PhotoProps {
   id: string;
@@ -25,7 +25,7 @@ function Photo({ alt_description, links, urls, slug }: PhotoProps) {
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     const { clientX, clientY, currentTarget } = e;
     const { width, height, left, top } = currentTarget.getBoundingClientRect();
-    
+
     const x = ((clientX - left) / width - 0.5) * 12;
     const y = ((clientY - top) / height - 0.5) * -12;
 
@@ -71,7 +71,7 @@ const breakpointColumnsObj = {
   default: 4,
   1100: 3,
   700: 2,
-  500: 1
+  500: 1,
 };
 
 function Photos({ data }: PhotosProps) {
@@ -81,7 +81,7 @@ function Photos({ data }: PhotosProps) {
         breakpointCols={breakpointColumnsObj}
         className="masonry-grid"
         columnClassName="masonry-grid_column"
-        style={{ gap: '12px' }}
+        style={{ gap: "12px" }}
       >
         {data.map((item) => (
           <Photo key={item.id} {...item} />

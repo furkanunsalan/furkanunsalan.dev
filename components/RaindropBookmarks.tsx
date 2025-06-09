@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import type { RaindropBookmark } from '@/lib/raindrop';
-import { ExternalLink } from 'lucide-react';
-import Image from 'next/image';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useEffect, useState } from "react";
+import type { RaindropBookmark } from "@/lib/raindrop";
+import { ExternalLink } from "lucide-react";
+import Image from "next/image";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Collection {
   id: string;
@@ -16,9 +16,13 @@ interface RaindropBookmarksProps {
   collections: Collection[];
 }
 
-export default function RaindropBookmarks({ collections }: RaindropBookmarksProps) {
+export default function RaindropBookmarks({
+  collections,
+}: RaindropBookmarksProps) {
   const [activeCollection, setActiveCollection] = useState(collections[0].id);
-  const [bookmarks, setBookmarks] = useState<Record<string, RaindropBookmark[]>>({});
+  const [bookmarks, setBookmarks] = useState<
+    Record<string, RaindropBookmark[]>
+  >({});
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<Record<string, string | null>>({});
 
@@ -26,23 +30,26 @@ export default function RaindropBookmarks({ collections }: RaindropBookmarksProp
     const fetchBookmarks = async (collectionId: string) => {
       if (bookmarks[collectionId]) return; // Don't fetch if we already have the data
 
-      setIsLoading(prev => ({ ...prev, [collectionId]: true }));
-      setError(prev => ({ ...prev, [collectionId]: null }));
+      setIsLoading((prev) => ({ ...prev, [collectionId]: true }));
+      setError((prev) => ({ ...prev, [collectionId]: null }));
 
       try {
-        const response = await fetch(`/api/raindrop?collectionId=${collectionId}`);
+        const response = await fetch(
+          `/api/raindrop?collectionId=${collectionId}`,
+        );
         if (!response.ok) {
-          throw new Error('Failed to fetch bookmarks');
+          throw new Error("Failed to fetch bookmarks");
         }
         const data = await response.json();
-        setBookmarks(prev => ({ ...prev, [collectionId]: data }));
+        setBookmarks((prev) => ({ ...prev, [collectionId]: data }));
       } catch (err) {
-        setError(prev => ({
+        setError((prev) => ({
           ...prev,
-          [collectionId]: err instanceof Error ? err.message : 'Failed to load bookmarks'
+          [collectionId]:
+            err instanceof Error ? err.message : "Failed to load bookmarks",
         }));
       } finally {
-        setIsLoading(prev => ({ ...prev, [collectionId]: false }));
+        setIsLoading((prev) => ({ ...prev, [collectionId]: false }));
       }
     };
 
@@ -54,7 +61,10 @@ export default function RaindropBookmarks({ collections }: RaindropBookmarksProp
       return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 bg-light-secondary dark:bg-dark-secondary rounded-lg animate-pulse" />
+            <div
+              key={i}
+              className="h-32 bg-light-secondary dark:bg-dark-secondary rounded-lg animate-pulse"
+            />
           ))}
         </div>
       );
@@ -133,10 +143,10 @@ export default function RaindropBookmarks({ collections }: RaindropBookmarksProp
                       </div>
                     )}
                     <time className="block text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(bookmark.created).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
+                      {new Date(bookmark.created).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
                       })}
                     </time>
                   </div>
@@ -184,4 +194,4 @@ export default function RaindropBookmarks({ collections }: RaindropBookmarksProp
       </Tabs>
     </div>
   );
-} 
+}

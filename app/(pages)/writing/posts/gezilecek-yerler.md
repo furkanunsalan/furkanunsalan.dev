@@ -5,6 +5,7 @@ tags:
   - Türkçe
   - Travel
 ---
+
 # Gezilecek Yerler
 
 Bu listede, hem kafa dinleyebileceğiniz hem de arkadaşlarla keyifli vakit geçirebileceğiniz en sevdiğim mekanları bir araya getirdim. Kahvecilerden burgercilere (favorim), tatlıcılardan sokak lezzetlerine kadar dolu dolu bir öneri listesi sizi bekliyor.
@@ -33,9 +34,9 @@ Sohbet, çalışma, kafa dinleme ve keyifli zamanlar için ideal yerler.
 
 Gidilmesi planlanan, akılda duran lezzet durakları.
 
-- Tas Ramen Sushi Bar    
+- Tas Ramen Sushi Bar
 - Paitan - Ramen - Kadıköy / Yeldeğirmeni
-- Kaps Mantı - Kadıköy    
+- Kaps Mantı - Kadıköy
 - Galata Şaraphanesi - Pizza + Şarap
 - Levny Kitchen - Balat
 - The Chicken Club - Caferağa

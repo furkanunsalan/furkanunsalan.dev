@@ -73,7 +73,7 @@ export const getRecentlyPlayed = async () => {
 
     if (!response.ok) {
       throw new Error(
-        `Failed to fetch recently played: ${response.statusText}`
+        `Failed to fetch recently played: ${response.statusText}`,
       );
     }
 

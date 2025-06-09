@@ -10,7 +10,7 @@ body {
 /* Default dark theme styles (black background) */
 body {
   color: rgb(255, 255, 255); /* White text for dark mode */
-  background-color: rgb(17,16,16); /* Black background for dark mode */
+  background-color: rgb(17, 16, 16); /* Black background for dark mode */
 }
 
 /* Light theme styles applied when 'light' class is present on the html element */
@@ -20,8 +20,8 @@ html.light body {
 }
 
 ::selection {
-  background-color: #6366F1; /* accent-primary */
-  color: #FFF; /* Optional: Change the text color for better contrast */
+  background-color: #6366f1; /* accent-primary */
+  color: #fff; /* Optional: Change the text color for better contrast */
 }
 
 /* Custom utility class using Tailwind layer */

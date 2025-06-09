@@ -64,7 +64,7 @@ export default function BreadcrumbNavigator() {
 
   // Filter out the active route from the mainRoutes
   const filteredRoutes = mainRoutes.filter(
-    (route) => route.href !== activeRoute && route.href !== "/"
+    (route) => route.href !== activeRoute && route.href !== "/",
   );
 
   const itemVariants = {

@@ -45,14 +45,14 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
                   return `![${altText}](${updatedImageUrl})`;
                 }
                 return match;
-              }
+              },
             );
 
             setReadmeContent(markdown);
           } else {
             console.warn(
               "Failed to fetch README content, status:",
-              response.status
+              response.status,
             );
             setReadmeContent("README not found for this project.");
           }
@@ -72,7 +72,7 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
     if (metaDescription) {
       metaDescription.setAttribute(
         "content",
-        `Details and description of ${fetchedProject.title}`
+        `Details and description of ${fetchedProject.title}`,
       );
     } else {
       const newMetaTag = document.createElement("meta");

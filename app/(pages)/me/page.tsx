@@ -7,7 +7,7 @@ import SocialNavigator from "@/components/SocialNavigator";
 import ToolTabs from "@/components/ToolTabs";
 import { tools } from "@/data/tools";
 import { personalInfo } from "@/data/constants";
-import RaindropBookmarks from '@/components/RaindropBookmarks';
+import RaindropBookmarks from "@/components/RaindropBookmarks";
 
 export default function Me() {
   const routes = [
@@ -56,7 +56,9 @@ export default function Me() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.6 }}
         >
-          <p className="text-xl font-semibold text-left underline mb-4">Currently</p>
+          <p className="text-xl font-semibold text-left underline mb-4">
+            Currently
+          </p>
           <ul className="list-none p-0">
             <motion.li
               className="mb-2"

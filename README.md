@@ -1,9 +1,11 @@
 ![screenshot](public/photos/preview/image.png)
 
 # furkanunsalan.dev
+
 Welcome to the public repository of my personal website. This project includes various components and functionalities for my personal site, including an integration with the Spotify API to display the currently playing track, Unsplash integration for fetching images and more.
 
 ## Overview
+
 - `/` — Home page.
 - `/me` — You can find information about me in this page.
 - `/experience` — My latest volunteering and work experiences.
@@ -38,10 +40,10 @@ $ npm run dev
 
 Navigate to `http://localhost:3000` in your browser to see the development server.
 
-
 ### Environment Variables
 
 Create a `.env.local` file in the root of your project and add the following environment variables:
+
 - `UNSPLASH_ACCESS_KEY`: Your Unsplash API access key.
 - `SPOTIFY_CLIENT_ID`: Your Spotify Client ID.
 - `SPOTIFY_CLIENT_SECRET`: Your Spotify Client Secret.
@@ -49,6 +51,7 @@ Create a `.env.local` file in the root of your project and add the following env
 - `SPOTIFY_REFRESH_TOKEN`: Your Spotify Refresh Token.
 
 ## Spotify API Integration
+
 For more detailed information on how to integrate with the Spotify API, check out this awesome guide:
 [Spotify API with Next.js](https://leerob.io/blog/spotify-api-nextjs)
 
@@ -57,6 +60,9 @@ For more detailed information on how to integrate with the Spotify API, check ou
 ![Alt](https://repobeats.axiom.co/api/embed/94a2829520bc7e0ee83043b228c0db765d31cf5b.svg "Repobeats analytics image")
 
 ## License
+
 This project is licensed under the GNU License. See the [LICENSE](LICENSE) file for details.
+
 ## Contact
+
 If you have any questions, feel free to reach out to me at `me@furkanunsalan.dev`.

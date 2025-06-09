@@ -29,7 +29,7 @@ function AnimatedBars() {
         duration: 1.0,
         repeat: Infinity,
         easing: ["ease-in-out"],
-      }
+      },
     );
     animate(
       "#bar2",
@@ -45,7 +45,7 @@ function AnimatedBars() {
         duration: 1.5,
         repeat: Infinity,
         easing: ["ease-in-out"],
-      }
+      },
     );
     animate(
       "#bar3",
@@ -61,7 +61,7 @@ function AnimatedBars() {
         duration: 1.5,
         repeat: Infinity,
         easing: ["ease-in-out"],
-      }
+      },
     );
   }, []);
 
@@ -100,9 +100,7 @@ export default function Spotify() {
 
   return (
     <div className="flex flex-row-reverse items-center sm:flex-row mb-8 mt-4 space-x-0 sm:space-x-2 w-full">
-      {data?.isPlaying && (
-        <AnimatedBars />
-      )}
+      {data?.isPlaying && <AnimatedBars />}
       <div className="inline-flex flex-col sm:flex-row w-full max-w-full truncate">
         {data?.songUrl && data.isPlaying ? (
           <a
