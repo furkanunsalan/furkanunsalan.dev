@@ -9,7 +9,8 @@
     "lint": "next lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,md,mdx,css,yaml,yml}\"",
     "check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,mdx,css,yaml,yml}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "vitest"
   },
   "dependencies": {
     "@contentful/rich-text-html-renderer": "^17.0.0",
@@ -33,7 +34,7 @@
     "lucide-react": "^0.428.0",
     "markdown-to-jsx": "^7.6.2",
     "motion": "^10.18.0",
-    "next": "14.2.5",
+    "next": "^14.2.30",
     "next-themes": "^0.3.0",
     "react": "^18",
     "react-dom": "^18",
@@ -52,14 +53,20 @@
     "unified": "^11.0.5"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@vitejs/plugin-react": "^4.6.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
+    "jsdom": "^26.1.0",
     "postcss": "^8",
     "prettier": "^3.5.3",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   }
 }
