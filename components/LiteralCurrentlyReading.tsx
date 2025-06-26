@@ -22,4 +22,4 @@ export default function LiteralCurrentlyReading({ books }: { books: any[] }) {
       </div>
     </div>
   );
-} 
+}

@@ -2,7 +2,11 @@
 import { useState } from "react";
 import { literalLogin } from "@/lib/literal";
 
-export default function LiteralLoginForm({ onToken }: { onToken: (token: string) => void }) {
+export default function LiteralLoginForm({
+  onToken,
+}: {
+  onToken: (token: string) => void;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -23,12 +27,15 @@ export default function LiteralLoginForm({ onToken }: { onToken: (token: string)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-xs mx-auto">
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-2 max-w-xs mx-auto"
+    >
       <input
         type="email"
         placeholder="Email"
         value={email}
-        onChange={e => setEmail(e.target.value)}
+        onChange={(e) => setEmail(e.target.value)}
         required
         className="input"
       />
@@ -36,7 +43,7 @@ export default function LiteralLoginForm({ onToken }: { onToken: (token: string)
         type="password"
         placeholder="Password"
         value={password}
-        onChange={e => setPassword(e.target.value)}
+        onChange={(e) => setPassword(e.target.value)}
         required
         className="input"
       />
@@ -46,4 +53,4 @@ export default function LiteralLoginForm({ onToken }: { onToken: (token: string)
       {error && <div className="text-red-500">{error}</div>}
     </form>
   );
-} 
+}

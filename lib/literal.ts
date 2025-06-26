@@ -30,10 +30,14 @@ export async function fetchCurrentlyReading(token: string) {
     throw new Error(json.errors[0]?.message || "GraphQL error");
   }
   if (!json.data || !json.data.myReadingStates) {
-    throw new Error("No data returned from Literal Club API. Check your token.");
+    throw new Error(
+      "No data returned from Literal Club API. Check your token.",
+    );
   }
 
-  return json.data.myReadingStates.filter((s: any) => s.status === "IS_READING");
+  return json.data.myReadingStates.filter(
+    (s: any) => s.status === "IS_READING",
+  );
 }
 
 export async function literalLogin(email: string, password: string) {
@@ -58,4 +62,4 @@ export async function literalLogin(email: string, password: string) {
   const { data, errors } = await res.json();
   if (errors) throw new Error(errors[0].message);
   return data.login.token;
-} 
+}
