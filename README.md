@@ -49,6 +49,8 @@ Create a `.env.local` file in the root of your project and add the following env
 - `SPOTIFY_CLIENT_SECRET`: Your Spotify Client Secret.
 - `SPOTIFY_REDIRECT_URI`: Your Spotify Redirect URI.
 - `SPOTIFY_REFRESH_TOKEN`: Your Spotify Refresh Token.
+- `LITERAL_EMAIL`: Your Literal Club email address.
+- `LITERAL_PASSWORD`: Your Literal Club password.
 
 ## Spotify API Integration
 

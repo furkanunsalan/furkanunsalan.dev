@@ -7,8 +7,6 @@ import ToolTabs from "@/components/ToolTabs";
 import { tools } from "@/data/tools";
 import { personalInfo } from "@/data/constants";
 import LiteralCurrentlyReading from "@/components/LiteralCurrentlyReading";
-import { fetchCurrentlyReading } from "@/lib/literal";
-import LiteralLoginForm from "@/components/LiteralLoginForm";
 
 export default function Me() {
   const routes = [
@@ -18,17 +16,31 @@ export default function Me() {
     { name: "CV", url: "/resume.pdf" },
   ];
 
-  const [token, setToken] = useState<string | null>(null);
   const [currentlyReading, setCurrentlyReading] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) return;
-    setError(null);
-    fetchCurrentlyReading(token)
-      .then(setCurrentlyReading)
-      .catch((err) => setError(err.message));
-  }, [token]);
+    const fetchReadingData = async () => {
+      try {
+        setError(null);
+        const response = await fetch("/api/literal");
+        const data = await response.json();
+
+        if (response.ok) {
+          setCurrentlyReading(data.books || []);
+        } else {
+          setError(data.error || "Failed to fetch reading data");
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch reading data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReadingData();
+  }, []);
 
   return (
     <>
@@ -124,8 +136,8 @@ export default function Me() {
             )}
 
             <motion.div className="mb-12 mt-0">
-              {!token ? (
-                <LiteralLoginForm onToken={setToken} />
+              {loading ? (
+                <div className="text-center my-4">Loading reading data...</div>
               ) : (
                 currentlyReading.length > 0 && (
                   <section className="flex flex-col items-center w-full max-w-xl text-left mb-4 mx-auto">
