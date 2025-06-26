@@ -91,6 +91,8 @@ export default async function BlogPost({ params }: BlogPostProps) {
       <div
         className="prose prose-lg mx-auto
         prose-a:text-accent-primary
+        prose-blockquote:border-l-accent-primary prose-blockquote:text-accent-primary
+        prose-code:text-accent-primary prose-pre:bg-accent-primary/10 prose-pre:text-accent-primary
         prose-headings:mt-8 
         prose-headings:mb-4 
         prose-headings:font-bold

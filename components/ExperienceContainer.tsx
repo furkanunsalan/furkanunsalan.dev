@@ -1,36 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import type { Experience } from "@/types";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { slugify } from "markdown-to-jsx";
-import { X } from "lucide-react";
 
 export default function ExperienceContainer({ work }: { work: Experience }) {
-  const [images, setImages] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Function to fetch images
-    const fetchImages = async () => {
-      try {
-        // Create the directory path based on work organization and title
-        const dirPath = `/photos/experiences/${slugify(work.organization.replace(/\s+/g, ""))}${slugify(work.title.replace(/\s+/g, ""))}`;
-        // In client-side code, we need to fetch the images via an API route
-        const response = await fetch(
-          `/api/get-images?path=${encodeURIComponent(dirPath)}`,
-        );
-        const data = await response.json();
-        if (data.images && Array.isArray(data.images)) {
-          setImages(data.images);
-        }
-      } catch (error) {
-        console.error("Error fetching images:", error);
-      }
-    };
-
-    fetchImages();
-  }, [work.organization, work.title]);
 
   // Function to open the lightbox
   const openLightbox = (img: string) => {
@@ -84,20 +59,17 @@ export default function ExperienceContainer({ work }: { work: Experience }) {
         )}
 
         {/* Image Grid */}
-        {images.length > 0 && (
+        {work.images && work.images.length > 0 && (
           <div className="mt-6">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {images.map((img, index) => (
+              {work.images.map((img, index) => (
                 <div
                   key={index}
                   className="relative h-32 overflow-hidden rounded cursor-pointer transition-all duration-300 border border-transparent hover:scale-105 hover:border-2 hover:border-accent-primary hover:dark:border-accent-primary hover:shadow-md"
                   onClick={() => openLightbox(img)}
                 >
                   <Image
-                    src={
-                      `/photos/experiences/${slugify(work.organization.replace(/\s+/g, ""))}${slugify(work.title.replace(/\s+/g, ""))}/` +
-                      img
-                    }
+                    src={img}
                     alt={`${work.organization} - ${work.title} image ${index + 1}`}
                     fill
                     className="object-cover"
@@ -126,10 +98,7 @@ export default function ExperienceContainer({ work }: { work: Experience }) {
                 }}
               >
                 <Image
-                  src={
-                    `/photos/experiences/${slugify(work.organization.replace(/\s+/g, ""))}${slugify(work.title.replace(/\s+/g, ""))}/` +
-                    selectedImage
-                  }
+                  src={selectedImage}
                   alt={`${work.organization} - ${work.title} expanded view`}
                   width={1200}
                   height={800}

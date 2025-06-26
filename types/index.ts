@@ -35,8 +35,8 @@ export type Experience = {
   start_date: string;
   end_date?: string;
   comment: string;
-  achievements?: string[];
   link?: string[]; // ["description", "url"]
+  images?: string[]; // Array of image URLs from Contentful
 };
 
 export type Contribution = {
