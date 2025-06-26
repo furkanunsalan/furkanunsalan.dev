@@ -2,12 +2,13 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import Spotify from "@/components/NowPlaying";
 import SocialNavigator from "@/components/SocialNavigator";
 import ToolTabs from "@/components/ToolTabs";
 import { tools } from "@/data/tools";
 import { personalInfo } from "@/data/constants";
-import RaindropBookmarks from "@/components/RaindropBookmarks";
+import LiteralCurrentlyReading from "@/components/LiteralCurrentlyReading";
+import { fetchCurrentlyReading } from "@/lib/literal";
+import LiteralLoginForm from "@/components/LiteralLoginForm";
 
 export default function Me() {
   const routes = [
@@ -16,6 +17,18 @@ export default function Me() {
     { name: "Mail", url: "mailto:hi@furkanunsalan.dev" },
     { name: "CV", url: "/resume.pdf" },
   ];
+
+  const [token, setToken] = useState<string | null>(null);
+  const [currentlyReading, setCurrentlyReading] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+    setError(null);
+    fetchCurrentlyReading(token)
+      .then(setCurrentlyReading)
+      .catch((err) => setError(err.message));
+  }, [token]);
 
   return (
     <>
@@ -51,7 +64,7 @@ export default function Me() {
         <SocialNavigator routes={routes} />
 
         <motion.div
-          className="w-full max-w-xl text-left mb-4 mx-auto"
+          className="w-full max-w-xl text-left mx-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.6 }}
@@ -92,8 +105,8 @@ export default function Me() {
                 </span>
               ))}
             </motion.li>
-            <motion.li
-              className="mb-2"
+            {/* <motion.li
+
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 1.4 }}
@@ -105,7 +118,25 @@ export default function Me() {
                   {index < personalInfo.reading.length - 1 ? ", " : ""}
                 </span>
               ))}
-            </motion.li>
+            </motion.li> */}
+            {error && (
+              <div className="text-red-500 text-center my-4">{error}</div>
+            )}
+
+            <motion.div className="mb-12 mt-0">
+              {!token ? (
+                <LiteralLoginForm onToken={setToken} />
+              ) : (
+                currentlyReading.length > 0 && (
+                  <section className="flex flex-col items-center w-full max-w-xl text-left mb-4 mx-auto">
+                    <strong className="mb-4 text-left w-full">
+                      📖 Reading:
+                    </strong>
+                    <LiteralCurrentlyReading books={currentlyReading} />
+                  </section>
+                )
+              )}
+            </motion.div>
           </ul>
         </motion.div>
       </motion.div>
