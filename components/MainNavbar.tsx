@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {
   return (
     <nav className="mt-8 w-full max-w-4xl">
-      <ul className="flex flex-wrap justify-center gap-4 md:gap-6">
+      <ul className="flex flex-col items-start gap-4 md:flex-row md:flex-wrap md:justify-center md:gap-6 md:w-full w-1/2 mx-auto">
         {routes.map((route, index) => {
           // Use the route for both href and display text
           const displayText = route === "/" ? "Home" : route.substring(1); // Adjust display text for root route
