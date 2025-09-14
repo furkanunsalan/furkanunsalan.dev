@@ -93,6 +93,7 @@ export const projects: Project[] = [
     short_description:
       "Headquarter website used by 30+ Developer Multigroup team members.",
     private: true,
-    long_description: "Team headquarter website for making the use of other platforms easier in a central platform, connected to Cloudflare for Assets CDN. Hub for all MultiGroup resources like photos, 100+ documentations and team info. Tech Stack: Next.js, Tailwind, shadcn/ui, FumaDocs, Vercel, Cloudflare R2, Supabase Auth & Database"
+    long_description:
+      "Team headquarter website for making the use of other platforms easier in a central platform, connected to Cloudflare for Assets CDN. Hub for all MultiGroup resources like photos, 100+ documentations and team info. Tech Stack: Next.js, Tailwind, shadcn/ui, FumaDocs, Vercel, Cloudflare R2, Supabase Auth & Database",
   },
 ];
