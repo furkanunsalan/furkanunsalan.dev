@@ -85,4 +85,14 @@ export const projects: Project[] = [
       "Official event page of Developer MultiGroup where you can discover and attend insightful events every month!",
     private: false,
   },
+  {
+    id: 8,
+    slug: "multigroup-hq",
+    title: "DMG Headquarters",
+    update: "2025/09/12",
+    short_description:
+      "Headquarter website used by 30+ Developer Multigroup team members.",
+    private: true,
+    long_description: "Team headquarter website for making the use of other platforms easier in a central platform, connected to Cloudflare for Assets CDN. Hub for all MultiGroup resources like photos, 100+ documentations and team info. Tech Stack: Next.js, Tailwind, shadcn/ui, FumaDocs, Vercel, Cloudflare R2, Supabase Auth & Database"
+  },
 ];

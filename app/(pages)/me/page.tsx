@@ -67,10 +67,11 @@ export default function Me() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          Dedicated software engineering student with a focus on frontend
-          development. Enthusiastic about contributing to open-source projects
-          and continually exploring new technologies. Excited to take on
-          innovative challenges and grow within the tech industry.
+          Dedicated software engineering student with a focus on web development
+          and special love for communities. Enthusiastic about contributing to
+          open-source projects and continually exploring new technologies.
+          Excited to take on innovative challenges and grow within the tech
+          industry.
         </motion.p>
 
         <SocialNavigator routes={routes} />
