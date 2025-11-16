@@ -142,9 +142,17 @@ export default function Me() {
               ) : (
                 currentlyReading.length > 0 && (
                   <section className="flex flex-col items-center w-full max-w-xl text-left mb-4 mx-auto">
-                    <strong className="mb-4 text-left w-full">
-                      📖 Reading
-                    </strong>
+                    <div className="flex items-center justify-between w-full mb-4">
+                      <strong className="text-left">
+                        📖 Reading
+                      </strong>
+                      <a
+                        href="/books"
+                        className="text-sm underline hover:text-accent-primary transition-all duration-200"
+                      >
+                        View all books →
+                      </a>
+                    </div>
                     <LiteralCurrentlyReading books={currentlyReading} />
                   </section>
                 )
