@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getRaindropBookmarks } from "@/lib/raindrop";
 
 export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
@@ -26,7 +27,8 @@ export async function GET(req: NextRequest) {
       status: 200,
       headers: {
         "content-type": "application/json",
-        "cache-control": "public, s-maxage=3600, stale-while-revalidate=1800",
+        "cache-control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
       },
     });
   } catch (error) {

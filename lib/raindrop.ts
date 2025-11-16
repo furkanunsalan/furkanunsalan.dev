@@ -1,5 +1,3 @@
-import { headers } from "next/headers";
-
 export type RaindropBookmark = {
   _id: string;
   title: string;
@@ -17,7 +15,6 @@ export type RaindropCollection = {
 };
 
 export async function getRaindropBookmarks(collectionId: string) {
-  const headersList = headers();
   const token = process.env.RAINDROP_TOKEN;
 
   if (!token) {
@@ -31,7 +28,7 @@ export async function getRaindropBookmarks(collectionId: string) {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      cache: "no-store", // Disable caching to always fetch fresh data
     },
   );
 
@@ -55,7 +52,7 @@ export async function getRaindropCollections() {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    next: { revalidate: 3600 }, // Cache for 1 hour
+    cache: "no-store", // Disable caching to always fetch fresh data
   });
 
   if (!response.ok) {
