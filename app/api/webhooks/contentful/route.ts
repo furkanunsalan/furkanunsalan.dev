@@ -19,7 +19,7 @@ import crypto from "crypto";
 function verifyContentfulSignature(
   body: string,
   signature: string | null,
-  secret: string
+  secret: string,
 ): boolean {
   if (!signature) {
     return false;
@@ -37,7 +37,7 @@ function verifyContentfulSignature(
 function verifyWebhookRequest(
   request: NextRequest,
   body: string,
-  webhookSecret: string
+  webhookSecret: string,
 ): boolean {
   // Method 1: Check for HMAC signature (more secure)
   const signature = request.headers.get("x-contentful-webhook-signature");
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       console.error("CONTENTFUL_WEBHOOK_SECRET is not configured");
       return NextResponse.json(
         { error: "Webhook secret not configured" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       console.error("Invalid webhook authentication");
       return NextResponse.json(
         { error: "Invalid authentication" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     const actionType = topicParts[topicParts.length - 1]; // publish, unpublish, delete, etc.
 
     console.log(
-      `Contentful webhook received: ${contentTypeId} - ${actionType}`
+      `Contentful webhook received: ${contentTypeId} - ${actionType}`,
     );
 
     // Handle different content types
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
         error: "Error processing webhook",
         message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
