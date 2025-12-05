@@ -96,4 +96,16 @@ export const projects: Project[] = [
     long_description:
       "Team headquarter website for making the use of other platforms easier in a central platform, connected to Cloudflare for Assets CDN. Hub for all MultiGroup resources like photos, 100+ documentations and team info. Tech Stack: Next.js, Tailwind, shadcn/ui, FumaDocs, Vercel, Cloudflare R2, Supabase Auth & Database",
   },
+  {
+    id: 9,
+    slug: "reklamsiz-turkiye",
+    title: "Reklamsız Türkiye",
+    repo: "turk-adfilter",
+    owner: "omerdduran",
+    branch: "main",
+    update: "2025/12/04",
+    short_description:
+      "The most up-to-date list of Turkish ads to block ads on Turkish websites ",
+    private: false,
+  }
 ];
