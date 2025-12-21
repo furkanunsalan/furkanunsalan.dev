@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import type { RaindropBookmark } from "@/lib/raindrop";
 import { ExternalLink } from "lucide-react";
 import Image from "next/image";
@@ -24,24 +24,62 @@ export default function RaindropBookmarks({
     Record<string, RaindropBookmark[]>
   >({});
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
+  const [isLoadingMore, setIsLoadingMore] = useState<
+    Record<string, boolean>
+  >({});
   const [error, setError] = useState<Record<string, string | null>>({});
+  const [currentPage, setCurrentPage] = useState<Record<string, number>>({});
+  const [hasMore, setHasMore] = useState<Record<string, boolean>>({});
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const isLoadingRef = useRef<Record<string, boolean>>({});
+  const isLoadingMoreRef = useRef<Record<string, boolean>>({});
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
 
   useEffect(() => {
-    const fetchBookmarks = async (collectionId: string) => {
-      if (bookmarks[collectionId]) return; // Don't fetch if we already have the data
+    isLoadingMoreRef.current = isLoadingMore;
+  }, [isLoadingMore]);
 
-      setIsLoading((prev) => ({ ...prev, [collectionId]: true }));
+  const fetchBookmarks = useCallback(
+    async (collectionId: string, page: number = 0, append: boolean = false) => {
+      // Don't fetch if already loading
+      if (
+        isLoadingRef.current[collectionId] ||
+        isLoadingMoreRef.current[collectionId]
+      )
+        return;
+
+      if (append) {
+        setIsLoadingMore((prev) => ({ ...prev, [collectionId]: true }));
+      } else {
+        setIsLoading((prev) => ({ ...prev, [collectionId]: true }));
+      }
       setError((prev) => ({ ...prev, [collectionId]: null }));
 
       try {
         const response = await fetch(
-          `/api/raindrop?collectionId=${collectionId}`,
+          `/api/raindrop?collectionId=${collectionId}&page=${page}&perPage=50`,
         );
         if (!response.ok) {
           throw new Error("Failed to fetch bookmarks");
         }
         const data = await response.json();
-        setBookmarks((prev) => ({ ...prev, [collectionId]: data }));
+        const newBookmarks = data.items as RaindropBookmark[];
+
+        if (append) {
+          setBookmarks((prev) => ({
+            ...prev,
+            [collectionId]: [...(prev[collectionId] || []), ...newBookmarks],
+          }));
+        } else {
+          setBookmarks((prev) => ({ ...prev, [collectionId]: newBookmarks }));
+        }
+
+        setCurrentPage((prev) => ({ ...prev, [collectionId]: page }));
+        setHasMore((prev) => ({ ...prev, [collectionId]: data.hasMore }));
       } catch (err) {
         setError((prev) => ({
           ...prev,
@@ -49,15 +87,58 @@ export default function RaindropBookmarks({
             err instanceof Error ? err.message : "Failed to load bookmarks",
         }));
       } finally {
-        setIsLoading((prev) => ({ ...prev, [collectionId]: false }));
+        if (append) {
+          setIsLoadingMore((prev) => ({ ...prev, [collectionId]: false }));
+        } else {
+          setIsLoading((prev) => ({ ...prev, [collectionId]: false }));
+        }
       }
-    };
+    },
+    [],
+  );
 
-    fetchBookmarks(activeCollection);
-  }, [activeCollection, bookmarks]);
+  // Initial fetch when collection changes
+  useEffect(() => {
+    const collectionId = activeCollection;
+    if (!bookmarks[collectionId] && !isLoading[collectionId]) {
+      fetchBookmarks(collectionId, 0, false);
+    }
+  }, [activeCollection, bookmarks, isLoading, fetchBookmarks]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const collectionId = activeCollection;
+    const sentinel = sentinelRef.current;
+
+    if (!sentinel || !hasMore[collectionId]) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (
+          entry.isIntersecting &&
+          hasMore[collectionId] &&
+          !isLoadingRef.current[collectionId] &&
+          !isLoadingMoreRef.current[collectionId]
+        ) {
+          const nextPage = (currentPage[collectionId] || 0) + 1;
+          fetchBookmarks(collectionId, nextPage, true);
+        }
+      },
+      {
+        rootMargin: "100px",
+      },
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [activeCollection, hasMore, currentPage, fetchBookmarks]);
 
   const renderBookmarks = (collectionId: string) => {
-    if (isLoading[collectionId]) {
+    if (isLoading[collectionId] && !bookmarks[collectionId]) {
       return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {[1, 2, 3, 4].map((i) => (
@@ -80,7 +161,7 @@ export default function RaindropBookmarks({
 
     const collectionBookmarks = bookmarks[collectionId] || [];
 
-    if (collectionBookmarks.length === 0) {
+    if (collectionBookmarks.length === 0 && !isLoading[collectionId]) {
       return (
         <div className="text-center py-12 text-gray-600 dark:text-gray-400">
           <p className="text-lg">No bookmarks found in this collection.</p>
@@ -89,73 +170,98 @@ export default function RaindropBookmarks({
     }
 
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {collectionBookmarks.map((bookmark) => (
-          <article
-            key={bookmark._id}
-            className="bg-light-secondary dark:bg-dark-secondary hover:border-accent-primary dark:hover:border-accent-primary p-4 md:p-6 rounded-lg border border-light-third dark:border-dark-third transition-all duration-300 h-full flex flex-col"
-          >
-            <a
-              href={bookmark.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block group h-full flex-col"
+      <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          {collectionBookmarks.map((bookmark) => (
+            <article
+              key={bookmark._id}
+              className="bg-light-secondary dark:bg-dark-secondary hover:border-accent-primary dark:hover:border-accent-primary p-4 md:p-6 rounded-lg border border-light-third dark:border-dark-third transition-all duration-300 h-full flex flex-col"
             >
-              <div className="flex flex-col h-full">
-                {bookmark.cover && (
-                  <div className="relative w-full h-48 mb-4 rounded-md overflow-hidden">
-                    <Image
-                      src={bookmark.cover}
-                      alt={bookmark.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                )}
-                <div className="flex-1 flex flex-col">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 group-hover:text-accent-primary dark:group-hover:text-accent-primary transition-colors line-clamp-2">
-                      {bookmark.title}
-                    </h3>
-                    <ExternalLink className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0 mt-1" />
-                  </div>
-                  {bookmark.excerpt && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-4 flex-1">
-                      {bookmark.excerpt}
-                    </p>
+              <a
+                href={bookmark.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block group h-full flex-col"
+              >
+                <div className="flex flex-col h-full">
+                  {bookmark.cover && (
+                    <div className="relative w-full h-48 mb-4 rounded-md overflow-hidden">
+                      <Image
+                        src={bookmark.cover}
+                        alt={bookmark.title}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
                   )}
-                  <div className="mt-auto">
-                    {bookmark.tags && bookmark.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {bookmark.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="bg-light-primary dark:bg-dark-primary text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs font-medium"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                        {bookmark.tags.length > 3 && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            +{bookmark.tags.length - 3} more
-                          </span>
-                        )}
-                      </div>
+                  <div className="flex-1 flex flex-col">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 group-hover:text-accent-primary dark:group-hover:text-accent-primary transition-colors line-clamp-2">
+                        {bookmark.title}
+                      </h3>
+                      <ExternalLink className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0 mt-1" />
+                    </div>
+                    {bookmark.excerpt && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-4 flex-1">
+                        {bookmark.excerpt}
+                      </p>
                     )}
-                    <time className="block text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(bookmark.created).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </time>
+                    <div className="mt-auto">
+                      {bookmark.tags && bookmark.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {bookmark.tags.slice(0, 3).map((tag) => (
+                            <span
+                              key={tag}
+                              className="bg-light-primary dark:bg-dark-primary text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {bookmark.tags.length > 3 && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              +{bookmark.tags.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <time className="block text-xs text-gray-500 dark:text-gray-400">
+                        {new Date(bookmark.created).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </time>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </a>
-          </article>
-        ))}
-      </div>
+              </a>
+            </article>
+          ))}
+        </div>
+        {/* Loading more indicator */}
+        {isLoadingMore[collectionId] && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mt-6">
+            {[1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-32 bg-light-secondary dark:bg-dark-secondary rounded-lg animate-pulse"
+              />
+            ))}
+          </div>
+        )}
+        {/* Sentinel element for infinite scroll */}
+        {hasMore[collectionId] && (
+          <div ref={sentinelRef} className="h-10 w-full" />
+        )}
+        {/* End of results message */}
+        {!hasMore[collectionId] &&
+          collectionBookmarks.length > 0 &&
+          !isLoadingMore[collectionId] && (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+              All bookmarks loaded
+            </div>
+          )}
+      </>
     );
   };
 

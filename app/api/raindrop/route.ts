@@ -8,6 +8,8 @@ export async function GET(req: NextRequest) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const collectionId = searchParams.get("collectionId");
+    const page = parseInt(searchParams.get("page") || "0", 10);
+    const perPage = parseInt(searchParams.get("perPage") || "50", 10);
 
     if (!collectionId) {
       return new Response(
@@ -21,16 +23,24 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const bookmarks = await getRaindropBookmarks(collectionId);
+    const bookmarks = await getRaindropBookmarks(collectionId, page, perPage);
 
-    return new Response(JSON.stringify(bookmarks), {
-      status: 200,
-      headers: {
-        "content-type": "application/json",
-        "cache-control":
-          "no-store, no-cache, must-revalidate, proxy-revalidate",
+    return new Response(
+      JSON.stringify({
+        items: bookmarks,
+        page,
+        perPage,
+        hasMore: bookmarks.length === perPage,
+      }),
+      {
+        status: 200,
+        headers: {
+          "content-type": "application/json",
+          "cache-control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
       },
-    });
+    );
   } catch (error) {
     console.error("Error in /api/raindrop:", error);
     return new Response(

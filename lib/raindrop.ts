@@ -14,23 +14,30 @@ export type RaindropCollection = {
   count: number;
 };
 
-export async function getRaindropBookmarks(collectionId: string) {
+export async function getRaindropBookmarks(
+  collectionId: string,
+  page: number = 0,
+  perPage: number = 50,
+) {
   const token = process.env.RAINDROP_TOKEN;
 
   if (!token) {
     throw new Error("Raindrop token is not configured");
   }
 
-  const response = await fetch(
+  const url = new URL(
     `https://api.raindrop.io/rest/v1/raindrops/${collectionId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      cache: "no-store", // Disable caching to always fetch fresh data
-    },
   );
+  url.searchParams.set("perpage", perPage.toString());
+  url.searchParams.set("page", page.toString());
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    cache: "no-store", // Disable caching to always fetch fresh data
+  });
 
   if (!response.ok) {
     throw new Error("Failed to fetch bookmarks from Raindrop");
