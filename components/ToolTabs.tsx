@@ -1,7 +1,9 @@
+"use client";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Tool as ToolType } from "@/types";
-import Tool from "@/components/Tool"; // Import your Tool component
-import { useMemo } from "react";
+import Tool from "@/components/Tool";
+import { useMemo, useState, useEffect, useRef } from "react";
 
 export default function ToolTabs({ tools }: { tools: ToolType[] }) {
   // Group the tools by category
@@ -15,25 +17,74 @@ export default function ToolTabs({ tools }: { tools: ToolType[] }) {
 
   // Extract the unique categories
   const categories = Object.keys(toolsByCategory);
+  const [activeTab, setActiveTab] = useState(categories[0]);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  const tabsListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const updateIndicator = () => {
+      const tabsListElement = tabsListRef.current;
+      if (!tabsListElement) return;
+
+      const activeTabElement = tabsListElement.querySelector(
+        `[data-state="active"]`,
+      ) as HTMLElement;
+
+      if (activeTabElement) {
+        const tabsListRect = tabsListElement.getBoundingClientRect();
+        const activeTabRect = activeTabElement.getBoundingClientRect();
+        const left = activeTabRect.left - tabsListRect.left;
+        const width = activeTabRect.width;
+
+        setIndicatorStyle({ left, width });
+      }
+    };
+
+    // Update immediately and also after next frame to catch any layout changes
+    updateIndicator();
+    const frameId = requestAnimationFrame(updateIndicator);
+    window.addEventListener("resize", updateIndicator);
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", updateIndicator);
+    };
+  }, [activeTab, categories]);
 
   return (
-    <Tabs defaultValue={categories[0]} className="max-w-xl mx-auto p-2">
+    <Tabs
+      defaultValue={categories[0]}
+      className="max-w-xl mx-auto"
+      onValueChange={setActiveTab}
+    >
       {/* Tabs List */}
-      <TabsList className="grid w-full grid-cols-3 bg-light-secondary dark:bg-dark-third rounded-lg p-1">
-        {categories.map((category) => (
-          <TabsTrigger
-            key={category}
-            value={category}
-            className="capitalize mx-1 hover:bg-light-third dark:hover:bg-dark-secondary transition data-[state=active]:bg-light-primary dark:data-[state=active]:bg-dark-primary rounded-lg"
-          >
-            {category}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      <div className="relative">
+        <TabsList
+          ref={tabsListRef}
+          className="grid w-full grid-cols-3 bg-transparent p-0 gap-0 relative"
+        >
+          {categories.map((category) => (
+            <TabsTrigger
+              key={category}
+              value={category}
+              className="capitalize px-0 py-2 bg-transparent hover:bg-transparent dark:hover:bg-transparent data-[state=active]:bg-transparent rounded-none transition-colors duration-300"
+            >
+              {category}
+            </TabsTrigger>
+          ))}
+          {/* Sliding indicator */}
+          <div
+            className="absolute bottom-0 h-0.5 bg-accent-primary"
+            style={{
+              left: `${indicatorStyle.left}px`,
+              width: `${indicatorStyle.width}px`,
+            }}
+          />
+        </TabsList>
+      </div>
 
       {/* Tabs Content */}
       {categories.map((category) => (
-        <TabsContent key={category} value={category} className="p-4">
+        <TabsContent key={category} value={category} className="mt-6">
           {toolsByCategory[category].map((tool) => (
             <Tool key={tool.id} tool={tool} />
           ))}

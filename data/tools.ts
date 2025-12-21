@@ -76,38 +76,6 @@ export const tools: Tool[] = [
     favorite: false,
   },
   {
-    id: 8,
-    category: "desk",
-    what: "Monitor",
-    brand: "Asus",
-    name: "24'' ",
-    comment:
-      "My side monitor. I don't remember the exact model but it's ok for my use case",
-    favorite: false,
-  },
-  {
-    id: 9,
-    category: "desk",
-    what: "Monitor Light",
-    brand: "Temu",
-    name: "Monitor Screen Lamp",
-    comment:
-      "I bought it for fun at first but I really like using it now and will recommend.",
-    favorite: false,
-    link: "https://share.temu.com/7io8rnL20pA",
-  },
-  {
-    id: 10,
-    category: "desk",
-    what: "Mouse",
-    brand: "Logitech",
-    name: "G305",
-    comment:
-      "I'm not really a mouse guy I mostly use my trackpad but in some designing software or when I'm chilling I like this mouse.",
-    favorite: false,
-    link: "https://www.hepsiburada.com/logitech-g-g305-lightspeed-12-000-dpi-kablosuz-oyuncu-mouse-siyah-p-HBV00000EAGAE",
-  },
-  {
     id: 1,
     category: "other",
     what: "Backpack",
@@ -126,5 +94,25 @@ export const tools: Tool[] = [
     comment:
       "My main camera besides my iPhone which i like for some hobby shots.",
     favorite: false,
+  },
+  {
+    id: 13,
+    category: "desk",
+    what: "Desk",
+    brand: "Karr",
+    name: "O-Flex HeightAdjustable Desk",
+    comment: "My desk for working and studying.",
+    favorite: false,
+    link: "https://karr.store/products/o-flex-tek-motorlu-elektrikli-yukseklik-ayarli-beyaz-ayak-masa",
+  },
+  {
+    id: 14,
+    category: "desk",
+    what: "Chair",
+    brand: "Odessa",
+    name: "Fonksiyonel Çalışma Koltuğu",
+    comment: "The thing that makes me feel like I'm in a office.",
+    favorite: false,
+    link: "https://karr.store/products/odessa-fonksi%CC%87yonel-calisma-koltugu-gri%CC%87",
   },
 ];

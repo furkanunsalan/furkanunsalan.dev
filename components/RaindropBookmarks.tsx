@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import type { RaindropBookmark } from "@/lib/raindrop";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, FileText, Play } from "lucide-react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -33,6 +33,8 @@ export default function RaindropBookmarks({
   const sentinelRef = useRef<HTMLDivElement>(null);
   const isLoadingRef = useRef<Record<string, boolean>>({});
   const isLoadingMoreRef = useRef<Record<string, boolean>>({});
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  const tabsListRef = useRef<HTMLDivElement>(null);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -96,6 +98,35 @@ export default function RaindropBookmarks({
     },
     [],
   );
+
+  // Update indicator position when active collection changes
+  useEffect(() => {
+    const updateIndicator = () => {
+      const tabsListElement = tabsListRef.current;
+      if (!tabsListElement) return;
+
+      const activeTabElement = tabsListElement.querySelector(
+        `[data-state="active"]`,
+      ) as HTMLElement;
+
+      if (activeTabElement) {
+        const tabsListRect = tabsListElement.getBoundingClientRect();
+        const activeTabRect = activeTabElement.getBoundingClientRect();
+        const left = activeTabRect.left - tabsListRect.left;
+        const width = activeTabRect.width;
+
+        setIndicatorStyle({ left, width });
+      }
+    };
+
+    updateIndicator();
+    const frameId = requestAnimationFrame(updateIndicator);
+    window.addEventListener("resize", updateIndicator);
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", updateIndicator);
+    };
+  }, [activeCollection, collections]);
 
   // Initial fetch when collection changes
   useEffect(() => {
@@ -268,22 +299,49 @@ export default function RaindropBookmarks({
     );
   };
 
+  // Get icon for collection
+  const getCollectionIcon = (title: string) => {
+    if (title.toLowerCase().includes("post")) {
+      return <FileText className="w-5 h-5" />;
+    }
+    if (title.toLowerCase().includes("video")) {
+      return <Play className="w-5 h-5" />;
+    }
+    return null;
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto">
-      <Tabs defaultValue={collections[0].id} className="w-full">
+      <Tabs
+        defaultValue={collections[0].id}
+        className="w-full"
+        onValueChange={setActiveCollection}
+      >
         <div className="flex justify-center mb-8">
-          <TabsList className="flex flex-wrap justify-center gap-2 p-1">
-            {collections.map((collection) => (
-              <TabsTrigger
-                key={collection.id}
-                value={collection.id}
-                onClick={() => setActiveCollection(collection.id)}
-                className="text-sm md:text-base px-3 md:px-4 py-2"
-              >
-                {collection.title}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="relative">
+            <TabsList
+              ref={tabsListRef}
+              className="flex flex-wrap justify-center gap-2 p-0 bg-transparent relative"
+            >
+              {collections.map((collection) => (
+                <TabsTrigger
+                  key={collection.id}
+                  value={collection.id}
+                  className="px-4 py-2 bg-transparent hover:bg-transparent dark:hover:bg-transparent data-[state=active]:bg-transparent rounded-none transition-colors duration-300"
+                >
+                  {getCollectionIcon(collection.title)}
+                </TabsTrigger>
+              ))}
+              {/* Sliding indicator */}
+              <div
+                className="absolute bottom-0 h-0.5 bg-accent-primary"
+                style={{
+                  left: `${indicatorStyle.left}px`,
+                  width: `${indicatorStyle.width}px`,
+                }}
+              />
+            </TabsList>
+          </div>
         </div>
         {collections.map((collection) => (
           <TabsContent key={collection.id} value={collection.id}>

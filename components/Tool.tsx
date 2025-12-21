@@ -1,14 +1,19 @@
 import type { Tool as ToolType } from "@/types";
-import { FaShoppingCart, FaHeart } from "react-icons/fa";
+import { FaHeart } from "react-icons/fa";
+import { ChevronRight, ArrowRight } from "lucide-react";
 import Link from "next/link"; // If you are using Next.js for routing
 import { motion } from "framer-motion"; // Import Framer Motion
 
 export default function Tool({ tool }: { tool: ToolType }) {
   const { name, comment, brand, favorite, what, link } = tool;
 
-  return (
+  const content = (
     <motion.article
-      className="flex justify-between items-start border-b border-b-light-secondary py-4 sm:py-8 dark:border-b-zinc-800"
+      className={`group flex justify-between items-start border-b border-b-light-secondary py-4 sm:py-8 dark:border-b-zinc-800 ${
+        link
+          ? "cursor-pointer hover:opacity-80 transition-opacity duration-300"
+          : ""
+      }`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: "easeIn" }}
@@ -29,16 +34,22 @@ export default function Tool({ tool }: { tool: ToolType }) {
 
       {link && (
         <footer className="flex-shrink-0 flex items-center ml-4 my-auto">
-          <Link
-            href={link}
-            target="_blank"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-light-secondary dark:bg-dark-third rounded-lg hover:bg-light-third hover:dark:bg-dark-secondary transition"
-            data-umami-event={name + " -> Web"}
-          >
-            <FaShoppingCart size={16} />
-          </Link>
+          <div className="relative inline-flex items-center justify-center">
+            <ChevronRight className="w-4 h-4 text-white dark:text-white group-hover:opacity-0 group-hover:scale-0 transition-all duration-300" />
+            <ArrowRight className="w-4 h-4 text-accent-primary absolute opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300" />
+          </div>
         </footer>
       )}
     </motion.article>
   );
+
+  if (link) {
+    return (
+      <Link href={link} target="_blank" data-umami-event={name + " -> Web"}>
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }
