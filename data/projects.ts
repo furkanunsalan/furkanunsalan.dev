@@ -107,5 +107,5 @@ export const projects: Project[] = [
     short_description:
       "The most up-to-date list of Turkish ads to block ads on Turkish websites ",
     private: false,
-  }
+  },
 ];

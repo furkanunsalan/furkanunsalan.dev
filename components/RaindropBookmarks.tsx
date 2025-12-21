@@ -24,9 +24,9 @@ export default function RaindropBookmarks({
     Record<string, RaindropBookmark[]>
   >({});
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
-  const [isLoadingMore, setIsLoadingMore] = useState<
-    Record<string, boolean>
-  >({});
+  const [isLoadingMore, setIsLoadingMore] = useState<Record<string, boolean>>(
+    {},
+  );
   const [error, setError] = useState<Record<string, string | null>>({});
   const [currentPage, setCurrentPage] = useState<Record<string, number>>({});
   const [hasMore, setHasMore] = useState<Record<string, boolean>>({});
@@ -225,11 +225,14 @@ export default function RaindropBookmarks({
                         </div>
                       )}
                       <time className="block text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(bookmark.created).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
+                        {new Date(bookmark.created).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          },
+                        )}
                       </time>
                     </div>
                   </div>
