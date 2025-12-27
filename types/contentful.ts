@@ -40,3 +40,21 @@ export interface ContentfulToolFields {
 }
 
 export type ToolSkeleton = EntrySkeletonType<ContentfulToolFields, "tools">;
+
+// Contentful field names for Projects
+export interface ContentfulProjectFields {
+  slug: string;
+  title: string;
+  shortDescription: string;
+  update: string;
+  private: boolean;
+  repo?: string;
+  owner?: string;
+  branch?: string;
+  longDescription?: string;
+}
+
+export type ProjectSkeleton = EntrySkeletonType<
+  ContentfulProjectFields,
+  "projects"
+>;

@@ -1,97 +1,80 @@
-"use client";
-
 import { find_by_slug } from "@/lib/project-finder";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Loading from "@/components/Loading";
+import { notFound } from "next/navigation";
 import Markdown from "markdown-to-jsx";
 import type { Project } from "@/types";
+import { Metadata } from "next";
 
-export default function ProjectPage({ params }: { params: { slug: string } }) {
-  const router = useRouter();
-  const [project, setProject] = useState<Project | null>(null);
-  const [readmeContent, setReadmeContent] = useState("");
-  const [loading, setLoading] = useState(true);
+async function fetchReadme(owner: string, repo: string, branch: string) {
+  const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/README.md`;
 
-  useEffect(() => {
-    const fetchedProject = find_by_slug(params.slug);
-    if (!fetchedProject) {
-      console.warn("Project not found with slug:", params.slug);
-      router.replace("/not-found");
-      return;
-    }
+  try {
+    const response = await fetch(url, { next: { revalidate: 3600 } });
+    if (response.ok) {
+      let markdown = await response.text();
 
-    setProject(fetchedProject);
-
-    if (!fetchedProject.private) {
-      const fetchReadme = async () => {
-        const { owner, repo, branch } = fetchedProject;
-        const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/README.md`;
-
-        try {
-          const response = await fetch(url);
-          if (response.ok) {
-            let markdown = await response.text();
-
-            // Replace image paths in the markdown
-            markdown = markdown.replace(
-              /!\[([^\]]*)\]\(([^)]+)\)/g,
-              (match, altText, imageUrl) => {
-                if (!/^https?:\/\//.test(imageUrl)) {
-                  const baseUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}`;
-                  const updatedImageUrl = `${baseUrl}${
-                    imageUrl.startsWith("/") ? "" : "/"
-                  }${imageUrl}`;
-                  return `![${altText}](${updatedImageUrl})`;
-                }
-                return match;
-              },
-            );
-
-            setReadmeContent(markdown);
-          } else {
-            console.warn(
-              "Failed to fetch README content, status:",
-              response.status,
-            );
-            setReadmeContent("README not found for this project.");
+      // Replace image paths in the markdown
+      markdown = markdown.replace(
+        /!\[([^\]]*)\]\(([^)]+)\)/g,
+        (match, altText, imageUrl) => {
+          if (!/^https?:\/\//.test(imageUrl)) {
+            const baseUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}`;
+            const updatedImageUrl = `${baseUrl}${
+              imageUrl.startsWith("/") ? "" : "/"
+            }${imageUrl}`;
+            return `![${altText}](${updatedImageUrl})`;
           }
-        } catch (error) {
-          console.error("Error fetching README:", error);
-          setReadmeContent("Error loading README content.");
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchReadme();
-    }
-
-    document.title = `${fetchedProject.title} | Furkan Ünsalan`;
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute(
-        "content",
-        `Details and description of ${fetchedProject.title}`,
+          return match;
+        },
       );
+
+      return markdown;
     } else {
-      const newMetaTag = document.createElement("meta");
-      newMetaTag.name = "description";
-      newMetaTag.content = `Details and description of ${fetchedProject.title}`;
-      document.head.appendChild(newMetaTag);
+      return "README not found for this project.";
     }
-
-    if (fetchedProject.private) {
-      setLoading(false);
-    }
-  }, [params.slug, router]);
-
-  if (loading) {
-    return <Loading />;
+  } catch (error) {
+    console.error("Error fetching README:", error);
+    return "Error loading README content.";
   }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const project = await find_by_slug(params.slug);
 
   if (!project) {
-    return <p>Project not found.</p>;
+    return {
+      title: "Project Not Found | Furkan Ünsalan",
+    };
+  }
+
+  return {
+    title: `${project.title} | Furkan Ünsalan`,
+    description: `Details and description of ${project.title}`,
+  };
+}
+
+export default async function ProjectPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const project: Project | null = await find_by_slug(params.slug);
+
+  if (!project) {
+    notFound();
+  }
+
+  let readmeContent = "";
+
+  if (!project.private) {
+    readmeContent = await fetchReadme(
+      project.owner,
+      project.repo,
+      project.branch,
+    );
   }
 
   if (project.private) {

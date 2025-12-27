@@ -5,8 +5,10 @@ import {
   ExperienceSkeleton,
   ContentfulExperienceFields,
   ToolSkeleton,
+  ProjectSkeleton,
+  ContentfulProjectFields,
 } from "@/types/contentful";
-import { Experience, Tool } from "@/types";
+import { Experience, Tool, Project } from "@/types";
 
 const client = createClient({
   space: process.env.CONTENTFUL_SPACE_ID || "",
@@ -81,4 +83,76 @@ export const getContentfulTools = async (): Promise<Tool[]> => {
       link: item.fields.link,
     };
   });
+};
+
+export const getContentfulProjects = async (): Promise<Project[]> => {
+  const res = await client.getEntries<ProjectSkeleton>({
+    content_type: "projects",
+    order: ["-fields.update"] as any,
+  });
+
+  return res.items.map((item, index) => {
+    const baseProject = {
+      id: index + 1,
+      slug: item.fields.slug,
+      title: item.fields.title,
+      short_description: item.fields.shortDescription,
+      update: item.fields.update,
+    };
+
+    if (item.fields.private) {
+      return {
+        ...baseProject,
+        private: true as const,
+        long_description: item.fields.longDescription || "",
+      };
+    } else {
+      return {
+        ...baseProject,
+        private: false as const,
+        repo: item.fields.repo || "",
+        owner: item.fields.owner || "",
+        branch: item.fields.branch || "main",
+      };
+    }
+  });
+};
+
+export const getContentfulProjectBySlug = async (
+  slug: string,
+): Promise<Project | null> => {
+  const res = await client.getEntries<ProjectSkeleton>({
+    content_type: "projects",
+    "fields.slug": slug,
+    locale: "en-US",
+  } as any);
+
+  if (res.items.length === 0) {
+    return null;
+  }
+
+  const item = res.items[0];
+  const baseProject = {
+    id: 1, // We don't have an index here, but it's not critical for single project view
+    slug: item.fields.slug,
+    title: item.fields.title,
+    short_description: item.fields.shortDescription,
+    update: item.fields.update,
+  };
+
+  if (item.fields.private) {
+    return {
+      ...baseProject,
+      private: true as const,
+      long_description: item.fields.longDescription || "",
+    };
+  } else {
+    return {
+      ...baseProject,
+      private: false as const,
+      repo: item.fields.repo || "",
+      owner: item.fields.owner || "",
+      branch: item.fields.branch || "main",
+    };
+  }
 };

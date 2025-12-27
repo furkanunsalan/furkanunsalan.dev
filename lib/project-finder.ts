@@ -1,6 +1,6 @@
-import { projects } from "@/data/projects";
+import { getContentfulProjectBySlug } from "@/lib/contentful";
 
-export function find_by_slug(slug: string) {
-  const foundProject = projects.find((project) => project.slug === slug);
+export async function find_by_slug(slug: string) {
+  const foundProject = await getContentfulProjectBySlug(slug);
   return foundProject;
 }
