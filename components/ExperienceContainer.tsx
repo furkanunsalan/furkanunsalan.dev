@@ -4,7 +4,17 @@ import type { Experience } from "@/types";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-export default function ExperienceContainer({ work }: { work: Experience }) {
+export default function ExperienceContainer({
+  work,
+  isMainRole = false,
+  isPreviousRole = false,
+  hasPreviousRoles = false,
+}: {
+  work: Experience;
+  isMainRole?: boolean;
+  isPreviousRole?: boolean;
+  hasPreviousRoles?: boolean;
+}) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Function to open the lightbox
@@ -41,14 +51,20 @@ export default function ExperienceContainer({ work }: { work: Experience }) {
     >
       <div
         key={work.id}
-        className="mb-8 border-b border-light-secondary dark:border-dark-secondary pb-4"
+        className={`${
+          isPreviousRole ? "mb-4" : "mb-8"
+        } ${!isPreviousRole && !hasPreviousRoles ? "border-b border-light-secondary dark:border-dark-secondary pb-4" : ""}`}
       >
         <p className="text-sm opacity-60 mt-1">
           {work.start_date} - {work.end_date || "Current"}
         </p>
         <h3 className="text-lg font-semibold">{work.title}</h3>
-        <p className="opacity-60 mb-4">{work.organization}</p>
-        <p className="mt-2 mb-4 font-light">{work.comment}</p>
+        {!isPreviousRole && (
+          <p className="opacity-60 mb-4">{work.organization}</p>
+        )}
+        <p className="mt-2 mb-4 font-light whitespace-pre-line">
+          {work.comment}
+        </p>
         {work.link && (
           <a
             href={work.link[1]}
