@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { MapPin, Film, BookOpen } from "lucide-react";
 import SocialNavigator from "@/components/SocialNavigator";
 import ToolTabs from "@/components/ToolTabs";
-import { tools } from "@/data/tools";
 import { personalInfo } from "@/data/constants";
+import type { Tool } from "@/types";
 import LiteralCurrentlyReading from "@/components/LiteralCurrentlyReading";
 
 export default function Me() {
@@ -20,27 +20,67 @@ export default function Me() {
   const [currentlyReading, setCurrentlyReading] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [toolsError, setToolsError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchReadingData = async () => {
       try {
         setError(null);
-        const response = await fetch("/api/literal");
-        const data = await response.json();
+        setLoading(true);
+        const response = await fetch("/api/literal", {
+          cache: "no-store",
+        });
 
-        if (response.ok) {
-          setCurrentlyReading(data.books || []);
-        } else {
-          setError(data.error || "Failed to fetch reading data");
+        if (!response.ok) {
+          const errorData = await response
+            .json()
+            .catch(() => ({ error: "Failed to fetch reading data" }));
+          setError(errorData.error || `HTTP error! status: ${response.status}`);
+          setCurrentlyReading([]);
+          return;
         }
+
+        const data = await response.json();
+        setCurrentlyReading(data.books || []);
       } catch (err: any) {
+        console.error("Error fetching reading data:", err);
         setError(err.message || "Failed to fetch reading data");
+        setCurrentlyReading([]);
       } finally {
         setLoading(false);
       }
     };
 
+    const fetchTools = async () => {
+      try {
+        setToolsError(null);
+        const response = await fetch("/api/tools", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          const errorData = await response
+            .json()
+            .catch(() => ({ error: "Failed to fetch tools" }));
+          setToolsError(
+            errorData.error || `HTTP error! status: ${response.status}`,
+          );
+          setTools([]);
+          return;
+        }
+
+        const data = await response.json();
+        setTools(data.tools || []);
+      } catch (err: any) {
+        console.error("Failed to fetch tools:", err);
+        setToolsError(err.message || "Failed to fetch tools");
+        setTools([]);
+      }
+    };
+
     fetchReadingData();
+    fetchTools();
   }, []);
 
   return (
@@ -169,7 +209,11 @@ export default function Me() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 1.6 }}
       >
-        <ToolTabs tools={tools} />
+        {toolsError ? (
+          <div className="text-red-500 text-center my-4">{toolsError}</div>
+        ) : (
+          <ToolTabs tools={tools} />
+        )}
       </motion.div>
     </>
   );

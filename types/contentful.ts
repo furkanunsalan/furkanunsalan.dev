@@ -27,3 +27,16 @@ export type ExperienceSkeleton = EntrySkeletonType<
   ContentfulExperienceFields,
   "experiences"
 >;
+
+// Contentful field names (same as Tool type)
+export interface ContentfulToolFields {
+  name: string;
+  comment: string;
+  brand: string;
+  favorite: boolean;
+  what: string;
+  category: string;
+  link?: string;
+}
+
+export type ToolSkeleton = EntrySkeletonType<ContentfulToolFields, "tools">;

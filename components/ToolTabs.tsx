@@ -15,13 +15,37 @@ export default function ToolTabs({ tools }: { tools: ToolType[] }) {
     }, {});
   }, [tools]);
 
-  // Extract the unique categories
-  const categories = Object.keys(toolsByCategory);
-  const [activeTab, setActiveTab] = useState(categories[0]);
+  // Extract and sort categories - memoized to prevent infinite loops
+  // Order: tech - desk - other
+  const categories = useMemo(() => {
+    const categoryOrder = ["tech", "desk", "other"];
+    const allCategories = Object.keys(toolsByCategory);
+    // Sort by predefined order, then add any remaining categories
+    const sorted = categoryOrder.filter((cat) => allCategories.includes(cat));
+    const remaining = allCategories.filter(
+      (cat) => !categoryOrder.includes(cat),
+    );
+    return [...sorted, ...remaining];
+  }, [toolsByCategory]);
+
+  const [activeTab, setActiveTab] = useState<string>("");
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   const tabsListRef = useRef<HTMLDivElement>(null);
 
+  // Update activeTab when tools are loaded - only once
   useEffect(() => {
+    if (
+      categories.length > 0 &&
+      (!activeTab || !categories.includes(activeTab))
+    ) {
+      setActiveTab(categories[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tools.length]); // Only depend on tools.length to avoid infinite loops
+
+  useEffect(() => {
+    if (!activeTab) return;
+
     const updateIndicator = () => {
       const tabsListElement = tabsListRef.current;
       if (!tabsListElement) return;
@@ -40,19 +64,28 @@ export default function ToolTabs({ tools }: { tools: ToolType[] }) {
       }
     };
 
-    // Update immediately and also after next frame to catch any layout changes
-    updateIndicator();
-    const frameId = requestAnimationFrame(updateIndicator);
+    // Small delay to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
+      updateIndicator();
+      requestAnimationFrame(updateIndicator);
+    }, 0);
+
     window.addEventListener("resize", updateIndicator);
+
     return () => {
-      cancelAnimationFrame(frameId);
+      clearTimeout(timeoutId);
       window.removeEventListener("resize", updateIndicator);
     };
-  }, [activeTab, categories]);
+  }, [activeTab]); // Only depend on activeTab, not categories
+
+  // Don't render if no categories
+  if (categories.length === 0) {
+    return null;
+  }
 
   return (
     <Tabs
-      defaultValue={categories[0]}
+      value={activeTab || categories[0]}
       className="max-w-xl mx-auto"
       onValueChange={setActiveTab}
     >

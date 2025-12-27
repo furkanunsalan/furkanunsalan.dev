@@ -4,8 +4,9 @@ import {
   BlogPostFields,
   ExperienceSkeleton,
   ContentfulExperienceFields,
+  ToolSkeleton,
 } from "@/types/contentful";
-import { Experience } from "@/types";
+import { Experience, Tool } from "@/types";
 
 const client = createClient({
   space: process.env.CONTENTFUL_SPACE_ID || "",
@@ -59,6 +60,25 @@ export const getContentfulExperiences = async (): Promise<Experience[]> => {
       comment: item.fields.comment,
       link: item.fields.link,
       images: imageUrls,
+    };
+  });
+};
+
+export const getContentfulTools = async (): Promise<Tool[]> => {
+  const res = await client.getEntries<ToolSkeleton>({
+    content_type: "tools",
+  });
+
+  return res.items.map((item, index) => {
+    return {
+      id: index + 1,
+      name: item.fields.name,
+      comment: item.fields.comment,
+      brand: item.fields.brand,
+      favorite: item.fields.favorite,
+      what: item.fields.what,
+      category: item.fields.category,
+      link: item.fields.link,
     };
   });
 };

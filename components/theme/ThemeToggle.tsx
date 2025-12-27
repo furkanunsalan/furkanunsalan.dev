@@ -27,9 +27,9 @@ export const ThemeToggle = () => {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           className="group-hover:stroke-black group-hover:dark:stroke-white transition-colors duration-300 ease-in-out"
         >
           {" "}
@@ -51,9 +51,9 @@ export const ThemeToggle = () => {
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           className="group-hover:stroke-black group-hover:dark:stroke-white transition-colors duration-300 ease-in-out"
         >
           {" "}
