@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Force dynamic rendering to prevent caching
 export const dynamic = "force-dynamic";
 
-const LITERAL_API = "https://literal.club/graphql/";
+const LITERAL_API = "https://api.literal.club/graphql/";
 
 async function getLiteralToken() {
   const email = process.env.LITERAL_EMAIL;
