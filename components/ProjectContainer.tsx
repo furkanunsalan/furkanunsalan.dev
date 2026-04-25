@@ -1,40 +1,48 @@
 "use client";
 
 import React from "react";
-import type { Project } from "@/types";
+import type { GithubRepo } from "@/lib/github";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { Star, GitFork } from "lucide-react";
 
-export default function ProjectContainer({ project }: { project: Project }) {
-  const { title, short_description, update, slug } = project;
+export default function ProjectContainer({ repo }: { repo: GithubRepo }) {
   const router = useRouter();
 
   const handleNavigation = () => {
-    router.push(`/projects/${slug}`);
+    router.push(`/projects/${repo.name}`);
   };
 
   return (
-    <motion.div
-      className="border border-light-third dark:border-dark-third bg-light-secondary dark:bg-dark-secondary hover:border-accent-primary dark:hover:border-accent-primary w-full p-4 rounded-lg flex justify-between items-start hover:cursor-pointer transition-all duration-300"
+    <div
+      className="card-interactive group w-full p-4 flex justify-between items-start gap-4 cursor-pointer"
       onClick={handleNavigation}
-      data-umami-event={slug}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
+      data-umami-event={repo.name}
     >
-      <div className="space-y-2">
-        <p className="text-lg font-semibold dark:text-white">{title}</p>
-        <p className="text-black dark:text-zinc-400">{short_description}</p>
-      </div>
-      <div className="text-right dark:text-zinc-400">
-        <p>
-          {new Date(update).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
+      <div className="space-y-1 min-w-0 flex-1">
+        <p className="text-lg font-semibold text-white group-hover:text-accent-primary transition-colors duration-300 truncate">
+          {repo.name}
         </p>
+        {repo.description && (
+          <p className="text-light-secondary/80 text-sm line-clamp-2">
+            {repo.description}
+          </p>
+        )}
+        {repo.language && (
+          <p className="text-xs text-light-fourth pt-1">{repo.language}</p>
+        )}
       </div>
-    </motion.div>
+      <div className="flex flex-col items-end gap-1 text-light-fourth text-sm flex-shrink-0">
+        <span className="inline-flex items-center gap-1">
+          <Star className="w-3.5 h-3.5" />
+          {repo.stargazers_count}
+        </span>
+        {repo.forks_count > 0 && (
+          <span className="inline-flex items-center gap-1">
+            <GitFork className="w-3.5 h-3.5" />
+            {repo.forks_count}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }

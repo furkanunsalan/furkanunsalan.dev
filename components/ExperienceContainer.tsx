@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import type { Experience } from "@/types";
-import { motion } from "framer-motion";
 import Image from "next/image";
 
 export default function ExperienceContainer({
@@ -44,34 +43,38 @@ export default function ExperienceContainer({
   }, [selectedImage]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-    >
+    <div>
       <div
         key={work.id}
         className={`${
           isPreviousRole ? "mb-4" : "mb-8"
-        } ${!isPreviousRole && !hasPreviousRoles ? "border-b border-light-secondary dark:border-dark-secondary pb-4" : ""}`}
+        } ${!isPreviousRole && !hasPreviousRoles ? "border-b border-white/[0.06] pb-6" : ""}`}
       >
-        <p className="text-sm opacity-60 mt-1">
+        <p className="text-sm text-light-fourth mt-1">
           {work.start_date} - {work.end_date || "Current"}
         </p>
-        <h3 className="text-lg font-semibold">{work.title}</h3>
+        <h3 className="text-lg font-semibold text-white">{work.title}</h3>
         {!isPreviousRole && (
-          <p className="opacity-60 mb-4">{work.organization}</p>
+          <p className="text-light-fourth mb-4">{work.organization}</p>
         )}
-        <p className="mt-2 mb-4 font-light whitespace-pre-line">
+        <p className="mt-2 mb-4 font-light whitespace-pre-line text-light-secondary/90">
           {work.comment}
         </p>
-        {work.link && (
-          <a
-            href={work.link[1]}
-            className="underline font-extralight hover:text-accent-primary transition-all duration-200"
-          >
-            {work.link[0]}
-          </a>
+        {work.links && work.links.length > 0 && (
+          <ul className="flex flex-wrap gap-x-4 gap-y-1">
+            {work.links.map((l) => (
+              <li key={l.url}>
+                <a
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline font-extralight hover:text-accent-primary transition-all duration-200"
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
         )}
 
         {/* Image Grid */}
@@ -81,7 +84,7 @@ export default function ExperienceContainer({
               {work.images.map((img, index) => (
                 <div
                   key={index}
-                  className="relative h-32 overflow-hidden rounded cursor-pointer transition-all duration-300 border border-transparent hover:scale-105 hover:border-2 hover:border-accent-primary hover:dark:border-accent-primary hover:shadow-md"
+                  className="relative h-32 overflow-hidden rounded-lg cursor-pointer transition-all duration-300 border border-white/[0.06] hover:scale-[1.02] hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
                   onClick={() => openLightbox(img)}
                 >
                   <Image
@@ -132,6 +135,6 @@ export default function ExperienceContainer({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

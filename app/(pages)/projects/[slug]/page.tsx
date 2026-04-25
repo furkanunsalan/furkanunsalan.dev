@@ -1,58 +1,27 @@
-import { find_by_slug } from "@/lib/project-finder";
 import { notFound } from "next/navigation";
 import Markdown from "markdown-to-jsx";
-import type { Project } from "@/types";
 import { Metadata } from "next";
+import { Star, GitFork, ExternalLink } from "lucide-react";
+import { getGithubRepo, getGithubReadme } from "@/lib/github";
 
-async function fetchReadme(owner: string, repo: string, branch: string) {
-  const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/README.md`;
-
-  try {
-    const response = await fetch(url, { next: { revalidate: 3600 } });
-    if (response.ok) {
-      let markdown = await response.text();
-
-      // Replace image paths in the markdown
-      markdown = markdown.replace(
-        /!\[([^\]]*)\]\(([^)]+)\)/g,
-        (match, altText, imageUrl) => {
-          if (!/^https?:\/\//.test(imageUrl)) {
-            const baseUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}`;
-            const updatedImageUrl = `${baseUrl}${
-              imageUrl.startsWith("/") ? "" : "/"
-            }${imageUrl}`;
-            return `![${altText}](${updatedImageUrl})`;
-          }
-          return match;
-        },
-      );
-
-      return markdown;
-    } else {
-      return "README not found for this project.";
-    }
-  } catch (error) {
-    console.error("Error fetching README:", error);
-    return "Error loading README content.";
-  }
-}
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const project = await find_by_slug(params.slug);
+  const repo = await getGithubRepo(params.slug);
 
-  if (!project) {
+  if (!repo) {
     return {
       title: "Project Not Found | Furkan Ünsalan",
     };
   }
 
   return {
-    title: `${project.title} | Furkan Ünsalan`,
-    description: `Details and description of ${project.title}`,
+    title: `${repo.name} | Furkan Ünsalan`,
+    description: repo.description ?? `Details for ${repo.name}`,
   };
 }
 
@@ -61,46 +30,18 @@ export default async function ProjectPage({
 }: {
   params: { slug: string };
 }) {
-  const project: Project | null = await find_by_slug(params.slug);
+  const repo = await getGithubRepo(params.slug);
+  if (!repo) notFound();
 
-  if (!project) {
-    notFound();
-  }
-
-  let readmeContent = "";
-
-  if (!project.private) {
-    readmeContent = await fetchReadme(
-      project.owner,
-      project.repo,
-      project.branch,
-    );
-  }
-
-  if (project.private) {
-    return (
-      <div className="container mx-auto p-6 mt-32 text-center">
-        <h1 className="text-3xl font-bold">{project.title}</h1>
-        <p className="text-sm mt-6 text-zinc-900 dark:text-zinc-400">
-          Last updated:{" "}
-          {new Date(project.update).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
-        </p>
-        <p className="text-xl mt-12">{project.long_description}</p>
-      </div>
-    );
-  }
+  const readme = await getGithubReadme(
+    repo.owner,
+    repo.name,
+    repo.default_branch,
+  );
 
   const markdownOptions = {
     overrides: {
-      img: {
-        props: {
-          className: "rounded-lg",
-        },
-      },
+      img: { props: { className: "rounded-lg" } },
       a: {
         props: {
           className: "text-accent-primary hover:underline",
@@ -112,36 +53,78 @@ export default async function ProjectPage({
       h2: { props: { className: "text-2xl font-semibold mt-4 mb-3" } },
       h3: { props: { className: "text-xl font-semibold mt-3 mb-2" } },
       p: { props: { className: "mb-4" } },
+      code: {
+        props: {
+          className: "bg-zinc-900 px-1.5 py-0.5 rounded text-sm",
+        },
+      },
+      pre: {
+        props: {
+          className: "bg-zinc-900 p-4 rounded-lg overflow-x-auto",
+        },
+      },
     },
   };
 
   return (
-    <div className="container mx-auto p-6 mt-32 text-center">
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">{project.repo}</h1>
-        <p className="text-sm text-zinc-900 dark:text-zinc-400">
-          Last updated:{" "}
-          {new Date(project.update).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
-        </p>
-        <div className="prose dark:prose-invert mt-4 w-full lg:w-2/3 xl:w-1/2 mx-auto text-left">
-          <Markdown options={markdownOptions}>{readmeContent}</Markdown>
+    <div className="mt-24 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold text-white">{repo.name}</h1>
+        {repo.description && (
+          <p className="mt-2 text-light-secondary/80">{repo.description}</p>
+        )}
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-light-fourth">
+          <span className="inline-flex items-center gap-1">
+            <Star className="w-4 h-4" />
+            {repo.stargazers_count}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <GitFork className="w-4 h-4" />
+            {repo.forks_count}
+          </span>
+          {repo.language && <span>{repo.language}</span>}
+          <span>
+            Updated{" "}
+            {new Date(repo.pushed_at).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })}
+          </span>
         </div>
-        <div className="flex flex-col items-center sm:flex-row sm:justify-center gap-4 lg:flex-col xl:flex-row mt-6">
+        <div className="mt-4 flex flex-wrap gap-3">
           <a
-            href={`https://github.com/${project.owner}/${project.repo}`}
+            href={repo.html_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block text-white px-6 py-3 hover:bg-dark-third bg-dark-secondary rounded-lg transition"
-            data-umami-event={`${project.repo} Github`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.06] bg-zinc-950 hover:border-accent-primary/50 transition-colors text-sm"
+            data-umami-event={`${repo.name} Github`}
           >
+            <ExternalLink className="w-4 h-4" />
             View on GitHub
           </a>
+          {repo.homepage && (
+            <a
+              href={repo.homepage}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.06] bg-zinc-950 hover:border-accent-primary/50 transition-colors text-sm"
+              data-umami-event={`${repo.name} Homepage`}
+            >
+              <ExternalLink className="w-4 h-4" />
+              Live
+            </a>
+          )}
         </div>
-      </div>
+      </header>
+
+      {readme ? (
+        <article className="prose prose-invert max-w-none">
+          <Markdown options={markdownOptions}>{readme}</Markdown>
+        </article>
+      ) : (
+        <p className="text-light-fourth">No README found for this project.</p>
+      )}
     </div>
   );
 }

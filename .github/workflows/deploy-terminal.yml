@@ -1,0 +1,150 @@
+name: Deploy SSH Terminal
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "terminal/**"
+      - "content/**"
+      - ".github/workflows/deploy-terminal.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-vps-terminal
+  cancel-in-progress: false
+
+env:
+  APP_DIR: /root/furkanunsalan-term
+  TERM_PORT: "2222"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+          cache-dependency-path: terminal/go.sum
+
+      - name: Resolve deps
+        working-directory: terminal
+        run: go mod tidy
+
+      - name: Build linux binary
+        working-directory: terminal
+        run: make build-linux
+
+      - name: Setup SSH
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Bootstrap remote directories + host key
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+            "$VPS_USER@$VPS_HOST" bash -s <<EOF
+          set -euo pipefail
+          mkdir -p $APP_DIR/bin $APP_DIR/.ssh
+          chmod 700 $APP_DIR/.ssh
+          if [ ! -f $APP_DIR/.ssh/term_ed25519 ]; then
+            ssh-keygen -t ed25519 -f $APP_DIR/.ssh/term_ed25519 -N '' -C 'furkanunsalan-term'
+          fi
+          EOF
+
+      - name: Write systemd unit
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+            "$VPS_USER@$VPS_HOST" bash -s <<EOF
+          set -euo pipefail
+          cat > /etc/systemd/system/furkanunsalan-term.service <<UNIT
+          [Unit]
+          Description=furkanunsalan.dev SSH terminal
+          After=network.target
+
+          [Service]
+          Type=simple
+          WorkingDirectory=$APP_DIR
+          EnvironmentFile=$APP_DIR/term.env
+          ExecStart=$APP_DIR/bin/term
+          Restart=on-failure
+          RestartSec=2
+          StandardOutput=journal
+          StandardError=journal
+
+          [Install]
+          WantedBy=multi-user.target
+          UNIT
+          systemctl daemon-reload
+          systemctl enable furkanunsalan-term >/dev/null
+          EOF
+
+      - name: Write env file
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          RAINDROP_TOKEN: ${{ secrets.RAINDROP_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Build env file locally then ship — keeps secrets out of remote shell history
+          cat > term.env <<EOF
+          HOST=0.0.0.0
+          PORT=${TERM_PORT}
+          HOST_KEY=${APP_DIR}/.ssh/term_ed25519
+          CONTENT_ROOT=${APP_DIR}
+          GITHUB_TOKEN=${GH_PAT}
+          GITHUB_USERNAME=furkanunsalan
+          RAINDROP_TOKEN=${RAINDROP_TOKEN}
+          EOF
+          rsync -az --chmod=600 \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
+            term.env "$VPS_USER@$VPS_HOST:$APP_DIR/term.env"
+
+      - name: Rsync binary + content
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          rsync -az --chmod=755 \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
+            terminal/bin/term-linux "$VPS_USER@$VPS_HOST:$APP_DIR/bin/term"
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
+            content "$VPS_USER@$VPS_HOST:$APP_DIR/"
+
+      - name: Restart service
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+            "$VPS_USER@$VPS_HOST" "systemctl restart furkanunsalan-term && sleep 2 && systemctl is-active furkanunsalan-term"
+
+      - name: Health check
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+            "$VPS_USER@$VPS_HOST" "for i in 1 2 3 4 5; do nc -z 127.0.0.1 ${TERM_PORT} && exit 0; sleep 2; done; echo 'SSH terminal not listening'; journalctl -u furkanunsalan-term --no-pager -n 50; exit 1"

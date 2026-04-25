@@ -1,160 +1,109 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Slash } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+  Home,
+  Briefcase,
+  FolderGit2,
+  Camera,
+  Bookmark,
+  PenLine,
+} from "lucide-react";
 
-// Helper function to convert a slugified string into title case
-const toTitleCase = (str: string) => {
-  return str
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
+const ICON_CLASS = "w-5 h-5";
 
-// Helper function to letterize a segment
-const letterizeSegment = (segment: string) => segment.charAt(0).toUpperCase();
+const routes: { name: string; href: string; icon: React.ReactNode }[] = [
+  { name: "Home", href: "/", icon: <Home className={ICON_CLASS} /> },
+  {
+    name: "Experience",
+    href: "/experience",
+    icon: <Briefcase className={ICON_CLASS} />,
+  },
+  {
+    name: "Projects",
+    href: "/projects",
+    icon: <FolderGit2 className={ICON_CLASS} />,
+  },
+  { name: "Photos", href: "/photos", icon: <Camera className={ICON_CLASS} /> },
+  {
+    name: "Bookmarks",
+    href: "/bookmarks",
+    icon: <Bookmark className={ICON_CLASS} />,
+  },
+  {
+    name: "Writing",
+    href: "/writing",
+    icon: <PenLine className={ICON_CLASS} />,
+  },
+];
 
 export default function BreadcrumbNavigator() {
-  const pathname = usePathname(); // Get the current pathname
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [prevPathname, setPrevPathname] = useState("");
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
-    setPrevPathname(pathname);
-  }, [pathname]);
-
-  // Split the pathname into segments
-  const pathSegments = pathname?.split("/").filter((segment) => segment) || [];
-
-  // Define your main routes with aliases
-  const mainRoutes = [
-    { name: "Home", href: "/", alias: "H" },
-    { name: "Me", href: "/me", alias: "M" },
-    { name: "Experience", href: "/experience", alias: "E" },
-    { name: "Projects", href: "/projects", alias: "P" },
-    { name: "Photos", href: "/photos", alias: "Ph" },
-    { name: "Writing", href: "/writing", alias: "W" },
-    { name: "Bookmarks", href: "/bookmarks", alias: "B" },
-  ];
-
-  // Determine the href and name of the latest breadcrumb item
-  const latestBreadcrumbHref = "/" + pathSegments.join("/");
-  const latestBreadcrumbName =
-    pathSegments.length > 0
-      ? toTitleCase(pathSegments[pathSegments.length - 1])
-      : "Home";
-
-  // Get the active route from the pathSegments
-  const activeRoute = `/${pathSegments.join("/")}`;
-
-  // Filter out the active route from the mainRoutes
-  const filteredRoutes = mainRoutes.filter(
-    (route) => route.href !== activeRoute && route.href !== "/",
-  );
-
-  const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0 },
-  };
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const idx = parseInt(e.key, 10);
+      if (Number.isNaN(idx) || idx < 1 || idx > routes.length) return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      e.preventDefault();
+      router.push(routes[idx - 1].href);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [router]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-10 p-4 flex justify-center bg-light-primary dark:bg-dark-primary">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink
-              href="/"
-              className={
-                pathname === "/" ? "text-purple-00 text-xl" : "text-xl"
-              }
-            >
-              {pathSegments.length >= 2 ? "H" : "Home"}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator>
-            <Slash />
-          </BreadcrumbSeparator>
-          {pathSegments.slice(0, -1).map((segment, index) => {
-            const href = "/" + pathSegments.slice(0, index + 1).join("/");
-            const isActive = pathname === href; // Check if the current segment is the active route
-            const displayName =
-              pathSegments.length >= 2
-                ? letterizeSegment(segment)
-                : toTitleCase(segment);
-
+    <div className="fixed top-0 left-0 right-0 z-10 p-4 flex justify-center bg-dark-primary">
+      <nav>
+        <ul className="flex flex-row flex-wrap items-center justify-center gap-x-2 text-base md:text-lg">
+          {routes.map((route, index) => {
+            const isActive =
+              route.href === "/"
+                ? pathname === "/"
+                : pathname === route.href ||
+                  pathname?.startsWith(route.href + "/");
             return (
-              <React.Fragment key={href}>
-                <BreadcrumbItem>
-                  <BreadcrumbLink
-                    href={href}
-                    className={isActive ? "text-indigo-700 text-xl" : "text-xl"}
+              <React.Fragment key={route.href}>
+                {index > 0 && (
+                  <span
+                    aria-hidden
+                    className="text-light-fourth/60 select-none font-thin text-sm"
                   >
-                    {displayName} {/* Letterize or use full title case */}
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator>
-                  <Slash />
-                </BreadcrumbSeparator>
+                    /
+                  </span>
+                )}
+                <li>
+                  <Link
+                    href={route.href}
+                    aria-label={route.name}
+                    title={route.name}
+                    className={`relative inline-flex items-center px-1 py-0.5 transition-colors duration-300 ease-in-out ${
+                      isActive
+                        ? "text-accent-primary"
+                        : "text-light-secondary hover:text-white"
+                    }`}
+                    data-umami-event={route.href}
+                  >
+                    {route.icon}
+                  </Link>
+                </li>
               </React.Fragment>
             );
           })}
-          {/* Latest Breadcrumb Item as Dropdown Trigger */}
-          {pathSegments.length > 0 && (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={latestBreadcrumbHref}
-                initial="hidden"
-                animate="visible"
-                variants={itemVariants}
-                transition={{ duration: 0.3 }}
-              >
-                <BreadcrumbItem>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      className="text-xl cursor-pointer text-accent-primary hover:text-indigo-300"
-                      onClick={() => setDropdownOpen(!isDropdownOpen)}
-                    >
-                      {latestBreadcrumbName + " ▾"}
-                    </DropdownMenuTrigger>
-                    {isDropdownOpen && (
-                      <DropdownMenuContent className="absolute left-2/3 transform -translate-x-1/2 mt-2 w-48 bg-white dark:bg-zinc-800 shadow-lg rounded-md border border-zinc-200 dark:border-zinc-700">
-                        {filteredRoutes.map((route) => (
-                          <DropdownMenuItem
-                            key={route.href}
-                            onClick={() => setDropdownOpen(false)}
-                          >
-                            <a
-                              href={route.href}
-                              className="rounded-md block px-4 py-2 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors duration-200"
-                            >
-                              {route.name}
-                            </a>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    )}
-                  </DropdownMenu>
-                </BreadcrumbItem>
-              </motion.div>
-            </AnimatePresence>
-          )}
-        </BreadcrumbList>
-      </Breadcrumb>
+        </ul>
+      </nav>
     </div>
   );
 }

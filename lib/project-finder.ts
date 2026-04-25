@@ -1,6 +1,5 @@
-import { getContentfulProjectBySlug } from "@/lib/contentful";
+import { getGithubRepo } from "@/lib/github";
 
 export async function find_by_slug(slug: string) {
-  const foundProject = await getContentfulProjectBySlug(slug);
-  return foundProject;
+  return getGithubRepo(slug);
 }

@@ -1,0 +1,19 @@
+{
+  "id": "devmultigroup-executive-member",
+  "order": 3,
+  "organization": "Developer MultiGroup",
+  "title": "Executive Member",
+  "startDate": "2025-10-01",
+  "endDate": null,
+  "comment": "- Focusing on leading full-stack web projects both internal and freelance as of 2026\n- Designing bootcamps for people who are interested in web technologies and want to get involved\n- Leading a team of 8 people with project guidance, feedbacks and code reviews while also holding weekly meetings where we constantly update and learn from eachother.\n- Exploring, learning and experimenting on new technologies to use within both internal and outsource projects while improving myself.\n\nDelivered Projects:\n- Foundations Frontend Web Development Certification Course\n- In-house Event Management Platform built around Cloudflare Ecosystem\n- Learning Management Systems to support our education platform MultiAcademy for better student guidance and communication\n- Internal Mailing Management Platform to help our team control marketing mailings systematically",
+  "links": [
+    {
+      "label": "Foundation Frontend Web Development Course",
+      "url": "https://www.youtube.com/playlist?list=PLQvJkakaBRKdcsPly1CW1lxgovGMf-kDS"
+    }
+  ],
+  "images": [
+    "developer-multigroup-executive-member-0-0.jpg",
+    "developer-multigroup-executive-member-0-1.jpeg"
+  ]
+}

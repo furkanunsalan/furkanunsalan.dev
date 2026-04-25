@@ -11,7 +11,7 @@ concurrency:
 
 env:
   APP_DIR: /root/furkanunsalan.dev
-  NODE_VERSION: '20'
+  NODE_VERSION: "20"
 
 jobs:
   build-and-deploy:
@@ -33,17 +33,14 @@ jobs:
 
       - name: Build (Next.js standalone)
         env:
-          CONTENTFUL_SPACE_ID: ${{ secrets.CONTENTFUL_SPACE_ID }}
-          CONTENTFUL_ACCESS_TOKEN: ${{ secrets.CONTENTFUL_ACCESS_TOKEN }}
-          CONTENTFUL_WEBHOOK_SECRET: ${{ secrets.CONTENTFUL_WEBHOOK_SECRET }}
-          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
-          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
-          SPOTIFY_REFRESH_TOKEN: ${{ secrets.SPOTIFY_REFRESH_TOKEN }}
-          SPOTIFY_REDIRECT_URI: ${{ secrets.SPOTIFY_REDIRECT_URI }}
           RAINDROP_TOKEN: ${{ secrets.RAINDROP_TOKEN }}
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
-          LITERAL_EMAIL: ${{ secrets.LITERAL_EMAIL }}
-          LITERAL_PASSWORD: ${{ secrets.LITERAL_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          KEYSTATIC_GITHUB_CLIENT_ID: ${{ secrets.KEYSTATIC_GITHUB_CLIENT_ID }}
+          KEYSTATIC_GITHUB_CLIENT_SECRET: ${{ secrets.KEYSTATIC_GITHUB_CLIENT_SECRET }}
+          KEYSTATIC_SECRET: ${{ secrets.KEYSTATIC_SECRET }}
+          KEYSTATIC_URL: https://furkanunsalan.dev
+          NEXT_PUBLIC_KEYSTATIC_GITHUB_APP_SLUG: ${{ secrets.KEYSTATIC_GITHUB_APP_SLUG }}
           NEXT_PUBLIC_SITE_URL: https://furkanunsalan.dev
         run: npm run build
 

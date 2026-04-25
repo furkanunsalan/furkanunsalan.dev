@@ -86,7 +86,7 @@ export default function ToolTabs({ tools }: { tools: ToolType[] }) {
   return (
     <Tabs
       value={activeTab || categories[0]}
-      className="max-w-xl mx-auto"
+      className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8"
       onValueChange={setActiveTab}
     >
       {/* Tabs List */}
@@ -99,7 +99,7 @@ export default function ToolTabs({ tools }: { tools: ToolType[] }) {
             <TabsTrigger
               key={category}
               value={category}
-              className="capitalize px-0 py-2 bg-transparent hover:bg-transparent dark:hover:bg-transparent data-[state=active]:bg-transparent rounded-none transition-colors duration-300"
+              className="capitalize text-sm px-0 py-2 bg-transparent hover:bg-transparent dark:hover:bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-accent-primary rounded-none transition-colors duration-300"
             >
               {category}
             </TabsTrigger>
