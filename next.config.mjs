@@ -17,6 +17,13 @@ if (process.env.NEXT_PHASE === "phase-production-build") {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  // We sit behind nginx on the VPS; trust X-Forwarded-Host/Proto so
+  // request.url reflects the public domain instead of the bind address
+  // (otherwise things like Keystatic's OAuth redirect_uri get built with
+  // 127.0.0.1:3010 and GitHub rejects them).
+  experimental: {
+    trustHostHeader: true,
+  },
   images: {
     remotePatterns: [
       {
