@@ -1,15 +1,16 @@
 import { config, fields, collection } from "@keystatic/core";
 
 export default config({
-  // Use GitHub-backed storage only when the OAuth env vars are present
-  // (i.e. real production with the Keystatic GitHub App configured). Otherwise
-  // fall back to local storage so dev + local builds work without any setup.
-  storage: process.env.KEYSTATIC_GITHUB_CLIENT_ID
-    ? {
-        kind: "github",
-        repo: { owner: "furkanunsalan", name: "furkanunsalan.dev" },
-      }
-    : { kind: "local" },
+  // Local storage in dev (no auth, writes to filesystem); GitHub-backed in
+  // production so /keystatic gates behind GitHub OAuth. The wizard at
+  // /keystatic walks through creating the GitHub App on first visit.
+  storage:
+    process.env.NODE_ENV === "production"
+      ? {
+          kind: "github",
+          repo: { owner: "furkanunsalan", name: "furkanunsalan.dev" },
+        }
+      : { kind: "local" },
   ui: {
     brand: { name: "furkanunsalan.dev" },
   },
