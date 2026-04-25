@@ -2,8 +2,7 @@ import { config, fields, collection } from "@keystatic/core";
 
 export default config({
   // Local storage in dev (no auth, writes to filesystem); GitHub-backed in
-  // production so /keystatic gates behind GitHub OAuth. The wizard at
-  // /keystatic walks through creating the GitHub App on first visit.
+  // production so /keystatic gates behind GitHub OAuth.
   storage:
     process.env.NODE_ENV === "production"
       ? {
