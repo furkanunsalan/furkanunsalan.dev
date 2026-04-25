@@ -19,7 +19,8 @@ function rewriteOrigin(req: Request): Request {
     const target = new URL(base);
     const u = new URL(req.url);
     u.protocol = target.protocol;
-    u.host = target.host;
+    u.hostname = target.hostname;
+    u.port = target.port; // empty string clears the inherited bind port
     return new Request(u.toString(), req);
   } catch {
     return req;
