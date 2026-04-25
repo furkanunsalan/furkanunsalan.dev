@@ -1,35 +1,43 @@
 ![screenshot](public/photos/preview/image.png)
 
-# Furkan Ünsalan Portfolio Website
+# furkanunsalan.dev
 
-Hey there! Welcome to my portfolio where you can find all the information about me. Don't be shy to use this as a boilerplate for your portfolios and enjoy your time navigating through.
+My personal site. Two ways in:
 
-## Overview
+- The web — [furkanunsalan.dev](https://furkanunsalan.dev)
+- The terminal — `ssh -p 2222 furkanunsalan.dev` (same content, in a TUI)
 
-- `/` — Home page.
-- `/me` — You can find information about me in this page.
-- `/experience` — My latest volunteering and work experiences.
-- `/projects` — Projects display page for my side projects.
-- `/photos` — My favourite photos fetched from Unsplash.
-- `/writing` — Where I talk about the stuff I like, mostly tech.
-- `/bookmarks` — Checkout my public bookmarks about what I watch and read
+## What's here
 
-## Tech Stack
+A small AMOLED-dark Next.js site with a few sections:
 
-- [Next.js](https://nextjs.org)
-- [Tailwind CSS](https://tailwindcss.com)
-- [shadcn/ui](https://ui.shadcn.com)
-- [Vercel](https://vercel.com)
-- [Contentful](https://contentful.com)
+- **Home** — short intro, social links, a clock, a "latest" feed across every section, and the gear I use.
+- **Experience** — work + volunteering history, with photos and links.
+- **Projects** — public GitHub repos by stars, plus a self-hosted contribution heatmap and per-repo README pages.
+- **Photos** — masonry gallery pulled from my Unsplash.
+- **Bookmarks** — recent saves from Raindrop, split into Posts and Videos.
+- **Writing** — long-form posts, Markdoc-rendered, with an RSS feed at `/rss.xml`.
 
-## Repo Activity
+A `/keystatic` admin route is wired up for editing posts, experiences, and tools through a UI — the data lives as plain markdown / JSON files in `content/`, and edits commit straight back to the repo.
 
-![Alt](https://repobeats.axiom.co/api/embed/94a2829520bc7e0ee83043b228c0db765d31cf5b.svg "Repobeats analytics image")
+## The terminal version
 
-## License
+Same data, served over real SSH. Written in Go with [Charm Wish](https://github.com/charmbracelet/wish) + Bubble Tea. Reads the same `content/` files and APIs the web version does, so anything edited in `/keystatic` shows up in both. Connect anonymously, no account, full keyboard or mouse-wheel scrolling. See `terminal/README.md` for details.
 
-This project is licensed under the GNU License. See the [LICENSE](LICENSE) file for details.
+## What it talks to
 
-## Contact
+- **GitHub** — repo list, contribution graph, READMEs.
+- **Raindrop** — bookmarks.
+- **Unsplash** — photos.
+- **Keystatic** — content editing.
 
-If you have any questions, feel free to reach out to me at `me@furkanunsalan.dev`.
+## Deploys
+
+Self-hosted on a VPS. Two GitHub Actions workflows:
+
+- `deploy.yml` — builds Next.js, rsyncs, reloads PM2.
+- `deploy-terminal.yml` — cross-compiles the Go binary, syncs the content folder, idempotently sets up the systemd unit, restarts.
+
+## License & contact
+
+GNU — see [LICENSE](LICENSE). Reach me at `hi@furkanunsalan.dev`.

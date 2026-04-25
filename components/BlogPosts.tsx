@@ -40,18 +40,18 @@ export default function BlogPosts({ posts }: SearchInputProps) {
   return (
     <div>
       {/* Search bar and tag selector container */}
-      <div className="flex gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-6">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search posts..."
-          className="flex-1 p-3 rounded-lg border border-light-third bg-light-secondary dark:bg-dark-secondary dark:border-dark-third dark:text-gray-200"
+          className="card flex-1 px-3 py-2 text-sm text-light-secondary placeholder:text-light-fourth focus:outline-none focus:border-accent-primary/40"
         />
         <select
           value={selectedTag}
           onChange={(e) => setSelectedTag(e.target.value)}
-          className="w-1/3 p-3 rounded-lg border border-light-third dark:bg-dark-secondary dark:border-dark-third dark:text-gray-200 appearance-none bg-light-secondary cursor-pointer"
+          className="card w-full sm:w-1/3 px-3 py-2 text-sm text-light-secondary appearance-none cursor-pointer focus:outline-none focus:border-accent-primary/40"
         >
           <option value="">All Tags</option>
           {uniqueTags.map((tag) => (
@@ -63,34 +63,31 @@ export default function BlogPosts({ posts }: SearchInputProps) {
       </div>
 
       {/* Posts list */}
-      <ul className="space-y-6">
+      <ul className="space-y-4">
         {filteredPosts.length > 0 ? (
           filteredPosts.map((post) => (
             <li
               key={post.slug}
-              className="bg-light-secondary dark:bg-dark-secondary hover:border-accent-primary dark:hover:border-accent-primary hover:cursor-pointer p-4 rounded-lg border border-light-third dark:border-dark-third transition-all duration-300"
+              className="card-interactive group cursor-pointer p-3 sm:p-4"
             >
-              <Link href={`/writing/${post.slug}`} className="block group">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+              <Link href={`/writing/${post.slug}`} className="block">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-base sm:text-xl font-semibold text-white group-hover:text-accent-primary transition-colors duration-300">
                       {post.title}
                     </h2>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <time className="text-sm text-black dark:text-gray-400">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
+                      <time className="text-xs sm:text-sm text-light-fourth">
                         {new Date(post.date).toLocaleDateString("en-US", {
                           year: "numeric",
-                          month: "long",
+                          month: "short",
                           day: "numeric",
                         })}
                       </time>
                       {post.tags && post.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-x-2 gap-y-1">
+                        <div className="flex flex-wrap gap-1.5">
                           {post.tags.map((tag, index) => (
-                            <span
-                              key={index}
-                              className="bg-light-secondary border border-light-third dark:border-dark-third dark:bg-dark-secondary text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full text-xs font-medium"
-                            >
+                            <span key={index} className="chip">
                               {tag}
                             </span>
                           ))}
@@ -98,15 +95,13 @@ export default function BlogPosts({ posts }: SearchInputProps) {
                       )}
                     </div>
                   </div>
-                  <FaChevronRight className="text-gray-500 dark:text-gray-400 ml-2 h-5 w-5" />
+                  <FaChevronRight className="text-light-fourth group-hover:text-accent-primary group-hover:translate-x-0.5 transition-all duration-300 mt-1.5 h-4 w-4 flex-shrink-0" />
                 </div>
               </Link>
             </li>
           ))
         ) : (
-          <p className="text-center text-gray-500 dark:text-gray-400">
-            No posts found.
-          </p>
+          <p className="text-center text-light-fourth">No posts found.</p>
         )}
       </ul>
     </div>

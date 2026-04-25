@@ -2,7 +2,7 @@ import CompanyExperienceGroup from "@/components/CompanyExperienceGroup";
 import ExperienceContainer from "@/components/ExperienceContainer";
 import { Experience } from "@/types";
 import { Metadata } from "next";
-import { getContentfulExperiences } from "@/lib/contentful";
+import { getExperiences } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Experience | Furkan Ünsalan",
@@ -60,13 +60,17 @@ const groupExperiencesByCompany = (
     experiences: exps,
   }));
 
-  // Sort company groups by most recent experience date
+  // Sort company groups by the custom order field (asc), tiebreak by most recent date
   result.sort((a, b) => {
-    // Get the most recent experience from each company (already sorted)
-    const mostRecentA = a.experiences[0];
-    const mostRecentB = b.experiences[0];
-    const dateA = parseDate(mostRecentA.end_date || mostRecentA.start_date);
-    const dateB = parseDate(mostRecentB.end_date || mostRecentB.start_date);
+    const orderA = a.experiences[0].order;
+    const orderB = b.experiences[0].order;
+    if (orderA !== orderB) return orderA - orderB;
+    const dateA = parseDate(
+      a.experiences[0].end_date || a.experiences[0].start_date,
+    );
+    const dateB = parseDate(
+      b.experiences[0].end_date || b.experiences[0].start_date,
+    );
     return dateB.getTime() - dateA.getTime();
   });
 
@@ -74,12 +78,12 @@ const groupExperiencesByCompany = (
 };
 
 export default async function Experiences() {
-  const works: Experience[] = await getContentfulExperiences();
+  const works: Experience[] = await getExperiences();
   const groupedExperiences = groupExperiencesByCompany(works);
 
   return (
-    <div className="flex flex-col items-center mt-32 justify-center min-h-screen">
-      <div className="w-5/6 md:w-2/3 xl:w-1/3 mx-auto text-left">
+    <div className="mt-24 min-h-screen">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
         {groupedExperiences.map((group) => {
           // If only one experience for this company, display normally
           if (group.experiences.length === 1) {

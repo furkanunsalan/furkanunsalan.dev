@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -38,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         {/* Umami Analytics */}
         <Script
@@ -46,9 +45,7 @@ export default function RootLayout({
           data-website-id="227d51b5-5f5f-42aa-a9eb-a38128095d7b"
         />
       </head>
-      <body className={inter.className}>
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }

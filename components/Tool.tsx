@@ -1,46 +1,36 @@
 import type { Tool as ToolType } from "@/types";
-import { FaHeart } from "react-icons/fa";
-import { ChevronRight, ArrowRight } from "lucide-react";
-import Link from "next/link"; // If you are using Next.js for routing
-import { motion } from "framer-motion"; // Import Framer Motion
+import { Heart, ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 
 export default function Tool({ tool }: { tool: ToolType }) {
   const { name, comment, brand, favorite, what, link } = tool;
 
   const content = (
-    <motion.article
-      className={`group flex justify-between items-start border-b border-b-light-secondary py-4 sm:py-8 dark:border-b-zinc-800 ${
-        link
-          ? "cursor-pointer hover:opacity-80 transition-opacity duration-300"
-          : ""
+    <article
+      className={`group flex items-center gap-3 py-2 border-b border-white/[0.06] last:border-b-0 ${
+        link ? "cursor-pointer" : ""
       }`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3, ease: "easeIn" }}
     >
-      <div className="flex-1">
-        <header>
-          <h6 className="flex flex-row font-mono text-sm uppercase tracking-wider opacity-50 dark:opacity-40">
-            {what.toUpperCase()}
-            {favorite && <FaHeart className="ml-2 my-auto" />}
-          </h6>
-          <h3 className="mt-1 font-semibold">
-            <span className="">{brand}</span> <span className="">{name}</span>
-          </h3>
-        </header>
-
-        <p className="mt-1 opacity-70 dark:opacity-60">{comment}</p>
-      </div>
-
-      {link && (
-        <footer className="flex-shrink-0 flex items-center ml-4 my-auto">
-          <div className="relative inline-flex items-center justify-center">
-            <ChevronRight className="w-4 h-4 text-white dark:text-white group-hover:opacity-0 group-hover:scale-0 transition-all duration-300" />
-            <ArrowRight className="w-4 h-4 text-accent-primary absolute opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300" />
-          </div>
-        </footer>
+      {favorite && (
+        <Heart className="w-3 h-3 text-accent-primary fill-accent-primary flex-shrink-0" />
       )}
-    </motion.article>
+      <div className="flex-1 min-w-0 flex items-baseline gap-2">
+        <span className="text-sm font-medium text-white group-hover:text-accent-primary transition-colors duration-200 whitespace-nowrap">
+          {brand} {name}
+        </span>
+        <span className="text-xs font-mono uppercase tracking-wider text-light-fourth flex-shrink-0">
+          {what}
+        </span>
+        {comment && (
+          <span className="text-xs text-light-secondary/60 truncate">
+            — {comment}
+          </span>
+        )}
+      </div>
+      {link && (
+        <ArrowUpRight className="w-3.5 h-3.5 text-light-fourth group-hover:text-accent-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200 flex-shrink-0" />
+      )}
+    </article>
   );
 
   if (link) {

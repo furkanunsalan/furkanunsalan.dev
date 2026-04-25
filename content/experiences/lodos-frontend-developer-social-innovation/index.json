@@ -1,0 +1,15 @@
+{
+  "id": "lodos-frontend-developer-social-innovation",
+  "order": 2,
+  "organization": "lodos.",
+  "title": "Frontend Developer — Social Innovation Department",
+  "startDate": "2025-12-01",
+  "endDate": null,
+  "comment": "- Leading the development process and team of our social products used by 4,000+ users\n- Creating connected social products for the needs of companies, communities and social clubs\n- Co-Working and improving internal tools used by partners and team",
+  "links": [
+    { "label": "ToGather", "url": "https://togather.lodos.io" },
+    { "label": "Social Hive", "url": "https://socialhive.lodos.io" },
+    { "label": "Achieve", "url": "https://achieve.lodos.io" }
+  ],
+  "images": []
+}

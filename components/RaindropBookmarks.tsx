@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import type { RaindropBookmark } from "@/lib/raindrop";
-import { ExternalLink, FileText, Play } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import StatsCard from "@/components/StatsCard";
 
 interface Collection {
   id: string;
@@ -35,6 +36,18 @@ export default function RaindropBookmarks({
   const isLoadingMoreRef = useRef<Record<string, boolean>>({});
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   const tabsListRef = useRef<HTMLDivElement>(null);
+  const [stats, setStats] = useState<{
+    counts: Record<string, number>;
+    last24h: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const ids = collections.map((c) => c.id).join(",");
+    fetch(`/api/raindrop/stats?collectionIds=${ids}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => data && setStats(data))
+      .catch(() => {});
+  }, [collections]);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -171,12 +184,9 @@ export default function RaindropBookmarks({
   const renderBookmarks = (collectionId: string) => {
     if (isLoading[collectionId] && !bookmarks[collectionId]) {
       return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="h-32 bg-light-secondary dark:bg-dark-secondary rounded-lg animate-pulse"
-            />
+            <div key={i} className="h-32 card animate-pulse" />
           ))}
         </div>
       );
@@ -194,7 +204,7 @@ export default function RaindropBookmarks({
 
     if (collectionBookmarks.length === 0 && !isLoading[collectionId]) {
       return (
-        <div className="text-center py-12 text-gray-600 dark:text-gray-400">
+        <div className="text-center py-12 text-light-fourth">
           <p className="text-lg">No bookmarks found in this collection.</p>
         </div>
       );
@@ -202,70 +212,47 @@ export default function RaindropBookmarks({
 
     return (
       <>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {collectionBookmarks.map((bookmark) => (
             <article
               key={bookmark._id}
-              className="bg-light-secondary dark:bg-dark-secondary hover:border-accent-primary dark:hover:border-accent-primary p-4 md:p-6 rounded-lg border border-light-third dark:border-dark-third transition-all duration-300 h-full flex flex-col"
+              className="card-interactive group h-full overflow-hidden"
             >
               <a
                 href={bookmark.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block group h-full flex-col"
+                className="flex flex-row h-full"
               >
-                <div className="flex flex-col h-full">
-                  {bookmark.cover && (
-                    <div className="relative w-full h-48 mb-4 rounded-md overflow-hidden">
-                      <Image
-                        src={bookmark.cover}
-                        alt={bookmark.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  )}
-                  <div className="flex-1 flex flex-col">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 group-hover:text-accent-primary dark:group-hover:text-accent-primary transition-colors line-clamp-2">
-                        {bookmark.title}
-                      </h3>
-                      <ExternalLink className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0 mt-1" />
-                    </div>
-                    {bookmark.excerpt && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-4 flex-1">
-                        {bookmark.excerpt}
-                      </p>
+                {bookmark.cover && (
+                  <div className="relative aspect-video w-2/5 flex-shrink-0 overflow-hidden bg-zinc-900">
+                    <Image
+                      src={bookmark.cover}
+                      alt={bookmark.title}
+                      fill
+                      sizes="(max-width: 640px) 40vw, 200px"
+                      className="object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex-1 flex flex-col p-3 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-sm font-medium text-white group-hover:text-accent-primary transition-colors line-clamp-2">
+                      {bookmark.title}
+                    </h3>
+                    <ExternalLink className="w-4 h-4 text-light-fourth group-hover:text-accent-primary flex-shrink-0 mt-0.5 transition-colors" />
+                  </div>
+                  <div className="mt-auto pt-2 flex items-center justify-between gap-2">
+                    <time className="text-xs text-light-fourth">
+                      {new Date(bookmark.created).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </time>
+                    {bookmark.tags && bookmark.tags.length > 0 && (
+                      <span className="chip truncate">{bookmark.tags[0]}</span>
                     )}
-                    <div className="mt-auto">
-                      {bookmark.tags && bookmark.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {bookmark.tags.slice(0, 3).map((tag) => (
-                            <span
-                              key={tag}
-                              className="bg-light-primary dark:bg-dark-primary text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs font-medium"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                          {bookmark.tags.length > 3 && (
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              +{bookmark.tags.length - 3} more
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      <time className="block text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(bookmark.created).toLocaleDateString(
-                          "en-US",
-                          {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          },
-                        )}
-                      </time>
-                    </div>
                   </div>
                 </div>
               </a>
@@ -274,12 +261,9 @@ export default function RaindropBookmarks({
         </div>
         {/* Loading more indicator */}
         {isLoadingMore[collectionId] && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
             {[1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-32 bg-light-secondary dark:bg-dark-secondary rounded-lg animate-pulse"
-              />
+              <div key={i} className="h-32 card animate-pulse" />
             ))}
           </div>
         )}
@@ -291,7 +275,7 @@ export default function RaindropBookmarks({
         {!hasMore[collectionId] &&
           collectionBookmarks.length > 0 &&
           !isLoadingMore[collectionId] && (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+            <div className="text-center py-8 text-light-fourth text-sm">
               All bookmarks loaded
             </div>
           )}
@@ -299,19 +283,21 @@ export default function RaindropBookmarks({
     );
   };
 
-  // Get icon for collection
-  const getCollectionIcon = (title: string) => {
-    if (title.toLowerCase().includes("post")) {
-      return <FileText className="w-5 h-5" />;
-    }
-    if (title.toLowerCase().includes("video")) {
-      return <Play className="w-5 h-5" />;
-    }
-    return null;
-  };
-
   return (
-    <div className="w-full max-w-6xl mx-auto">
+    <div className="w-full">
+      <div className="grid grid-cols-3 gap-3 mb-8">
+        {collections.map((collection) => (
+          <StatsCard
+            key={collection.id}
+            title={collection.title}
+            value={stats ? String(stats.counts[collection.id] ?? 0) : "—"}
+          />
+        ))}
+        <StatsCard
+          title="Last 24h"
+          value={stats ? String(stats.last24h) : "—"}
+        />
+      </div>
       <Tabs
         defaultValue={collections[0].id}
         className="w-full"
@@ -327,9 +313,9 @@ export default function RaindropBookmarks({
                 <TabsTrigger
                   key={collection.id}
                   value={collection.id}
-                  className="px-4 py-2 bg-transparent hover:bg-transparent dark:hover:bg-transparent data-[state=active]:bg-transparent rounded-none transition-colors duration-300"
+                  className="px-4 py-2 text-sm bg-transparent hover:bg-transparent dark:hover:bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-accent-primary rounded-none transition-colors duration-300"
                 >
-                  {getCollectionIcon(collection.title)}
+                  {collection.title}
                 </TabsTrigger>
               ))}
               {/* Sliding indicator */}
@@ -345,17 +331,7 @@ export default function RaindropBookmarks({
         </div>
         {collections.map((collection) => (
           <TabsContent key={collection.id} value={collection.id}>
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                  {collection.title}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                  {collection.description}
-                </p>
-              </div>
-              {renderBookmarks(collection.id)}
-            </div>
+            {renderBookmarks(collection.id)}
           </TabsContent>
         ))}
       </Tabs>

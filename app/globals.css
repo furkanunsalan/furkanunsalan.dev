@@ -2,21 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Apply smooth transitions for background and text color changes */
+/* AMOLED dark theme */
 body {
-  @apply transition-colors duration-300 ease-in-out;
-}
-
-/* Default dark theme styles (black background) */
-body {
-  color: rgb(255, 255, 255); /* White text for dark mode */
-  background-color: rgb(17, 16, 16); /* Black background for dark mode */
-}
-
-/* Light theme styles applied when 'light' class is present on the html element */
-html.light body {
-  color: rgb(0, 0, 0); /* Black text for light mode */
-  background-color: #e4e4e7; /* White background for light mode */
+  color: rgb(255, 255, 255);
+  background-color: #000000;
 }
 
 ::selection {
@@ -29,6 +18,54 @@ html.light body {
   .text-balance {
     text-wrap: balance; /* Experimental CSS property for text balancing */
   }
+}
+
+@layer components {
+  /* AMOLED card surface */
+  .card {
+    @apply relative rounded-xl border border-white/[0.06] bg-zinc-950 transition-all duration-300;
+  }
+  .card-interactive {
+    @apply card hover:border-accent-primary/50 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)];
+  }
+  /* Inline chip/tag pill */
+  .chip {
+    @apply bg-zinc-900 border border-white/[0.08] text-light-secondary px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  /* Skeleton placeholder block */
+  .skeleton {
+    @apply bg-zinc-900 rounded animate-pulse;
+  }
+}
+
+/* Top progress bar — full-width heartbeat pulse */
+@keyframes top-progress {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.top-progress-track {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 100;
+  overflow: hidden;
+  background: transparent;
+  pointer-events: none;
+}
+
+.top-progress-bar {
+  height: 100%;
+  width: 100%;
+  background: #6366f1;
+  animation: top-progress 1.1s ease-in-out infinite;
 }
 
 /* Hide scrollbar for all browsers */

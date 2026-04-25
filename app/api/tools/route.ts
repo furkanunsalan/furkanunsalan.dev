@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { getContentfulTools } from "@/lib/contentful";
+import { getTools } from "@/lib/content";
 
-// Force dynamic rendering to prevent caching
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 export async function GET() {
   try {
-    const tools = await getContentfulTools();
+    const tools = await getTools();
     return NextResponse.json({ tools });
   } catch (error: any) {
     console.error("Error fetching tools:", error);

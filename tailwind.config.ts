@@ -16,7 +16,7 @@ const config: Config = {
       },
       colors: {
         // DARK
-        "dark-primary": "#111010", // custom
+        "dark-primary": "#000000", // AMOLED black
         "dark-secondary": "#27272A", // zinc-800
         "dark-third": "#3F3F46", // zinc-700
         "dark-fourth": "#5252B", // zinc-600

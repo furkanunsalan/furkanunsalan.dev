@@ -1,32 +1,28 @@
-// app/rss.xml/route.ts
-import { getContentfulPosts } from "@/lib/contentful";
-import { BlogPostFields } from "@/types/contentful";
 import { NextResponse } from "next/server";
-import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
-import { Document } from "@contentful/rich-text-types";
+import Markdoc from "@markdoc/markdoc";
+import { getPosts, getPostBySlug } from "@/lib/content";
 
 export async function GET() {
-  const posts = await getContentfulPosts();
+  const posts = await getPosts();
   const baseUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://furkanunsalan.dev";
 
-  // Sort posts by date (newest first)
   const sortedPosts = [...posts].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
 
-  // Convert rich text to HTML
-  const postsWithContent = sortedPosts.map((post) => {
-    const content = documentToHtmlString(post.body as unknown as Document);
-    return {
-      ...post,
-      content,
-    };
-  });
+  const postsWithContent = await Promise.all(
+    sortedPosts.map(async (post) => {
+      const full = await getPostBySlug(post.slug);
+      const html = full
+        ? Markdoc.renderers.html(Markdoc.transform(full.node))
+        : "";
+      return { ...post, content: html };
+    }),
+  );
 
   const currentDate = new Date().toUTCString();
 
-  // Generate RSS XML
   const rssXml = `<?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
     <channel>
@@ -54,7 +50,6 @@ export async function GET() {
     </channel>
 </rss>`;
 
-  // Return the RSS feed with the correct content type
   return new NextResponse(rssXml, {
     headers: {
       "Content-Type": "application/xml",

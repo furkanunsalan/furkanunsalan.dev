@@ -1,34 +1,49 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
-import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
 
 const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {
+  const router = useRouter();
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const idx = parseInt(e.key, 10);
+      if (Number.isNaN(idx) || idx < 1 || idx > routes.length) return;
+      e.preventDefault();
+      router.push(routes[idx - 1]);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [routes, router]);
+
   return (
     <nav className="mt-8 w-full max-w-4xl">
-      <ul className="flex flex-col items-start gap-4 md:flex-row md:flex-wrap md:justify-center md:gap-6 md:w-full w-1/2 mx-auto">
+      <ul className="flex flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1 text-lg">
         {routes.map((route, index) => {
-          // Use the route for both href and display text
-          const displayText = route === "/" ? "Home" : route.substring(1); // Adjust display text for root route
-
+          const raw = route === "/" ? "home" : route.substring(1);
+          const label = raw.charAt(0).toUpperCase() + raw.slice(1);
           return (
-            <motion.li
-              key={index}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <Link
-                href={route}
-                className="relative inline-block text-lg p-2 rounded-lg transition-colors duration-300 ease-in-out group"
-                id="na-buttons"
-                data-umami-event={route}
-              >
-                {`/${displayText}`}
-                <span className="block absolute left-0 bottom-0 w-0 h-0.5 bg-black dark:bg-white transition-all duration-300 ease-out group-hover:w-full"></span>
-              </Link>
-            </motion.li>
+            <React.Fragment key={route}>
+              {index > 0 && (
+                <span aria-hidden className="text-light-fourth select-none">
+                  /
+                </span>
+              )}
+              <li>
+                <Link
+                  href={route}
+                  className="relative inline-block px-1 py-0.5 transition-colors duration-300 ease-in-out group"
+                  id="na-buttons"
+                  data-umami-event={route}
+                >
+                  {label}
+                  <span className="block absolute left-0 bottom-0 w-0 h-0.5 bg-white transition-all duration-300 ease-out group-hover:w-full"></span>
+                </Link>
+              </li>
+            </React.Fragment>
           );
         })}
       </ul>

@@ -1,0 +1,141 @@
+---
+title: "Clean Code 101: Neden ve Nasıl Temiz Kod Yazmalıyız"
+date: 2025-05-11
+tags:
+  - "Clean Code"
+  - "Türkçe"
+  - "Development"
+---
+
+Bu yazıda “Temiz Kod” yazmanın genel prensiplerinden bazılarına göz atıyor olacağız. İlerleyen bölümlerdeki kod örnekleri TypeScript ile yazıldı fakat bu prensipleri çoğu dil için benzer şekillerde uygulayabilirsiniz.
+
+Bu yazıyı [Catalina Turlea](https://medium.com/u/55dc97852967)’nın [“The Checklist of My Code Review”](https://medium.com/@catalinaturlea/how-i-do-code-review-caa0e5828d8e) başlıklı içeriğinden ilham alarak ve kendi yorumlarımı da katarak Türkçeye kazandırmak amacıyla kaleme aldım. Bu sürece vesile olan [Göker Güner](https://medium.com/u/b17afd14b562)’e de ayrıca teşekkür ederim.
+
+“Clean Code” hakkında daha fazla kaynağa göz atmak isterseniz aşağıdakilere bakmayı unutmayın;
+
+- [Mert Senkaya](https://medium.com/u/e9d7d248e3fd)’nın [Swift detaylarına girerek yazdığı yazıya](https://medium.com/@mertsenkaya/swift-d%C3%BCnyas%C4%B1nda-temiz-kod-pratikleri-1-69242625257b)
+- Fatih Güzel’in [***“ilke #2 — clean code”***](https://www.youtube.com/watch?v=8Ff321ezAXY) isimli videosuna
+- Robert C. Martin’in Clean Code isimli kitabı
+
+### **1. Kendinizi tekrar etmeyin — DRY **(Don’t Repeat Yourself)** Prensibi**
+
+Aşağıdaki kod parçasını bir göz atalım:
+
+`// Array'imizin boş olmadığını düşünelim
+if (array.length === 1) {
+   submitFormWithValues("Tek değer seçildi", array);
+} else {
+   submitFormWithValues(array.length + " değer seçildi", array);
+}`
+
+Bu ilk başta normal gibi görünebilir, ancak daha yakından bakarsanız, fonksiyonun 2 çağrısı arasındaki tek fark bir parametre olmasına rağmen, bu fonksiyon 2 kez çağrılmaktadır.
+
+Örneğin, fonksiyonun adını değiştirirsek veya üçüncü bir parametre eklersek, kodunuzda yineleme olduğu için kodu 2 yerde değiştirmeniz gerekecektir.
+
+Bu durum aşağıdaki gibi bir yaklaşım ile önlenebilir:
+
+let string = array.length === 1 ? "Tek değer seçildi" : array.length + " değer seçildi"; // Now we can call the method only once
+submitFormWithValues(string, array);
+
+Artık fonksiyonun değişmesi durumunda, kodu yalnızca tek bir yere uyarlamamız gerekecektir — artık tekrarlama yok.
+
+> Bunun için pek çok örnek verilebilir, ancak temel olarak bir fonksiyonda veya dosyada aynı şeyleri birden fazla gördüğünüzde, değişken kısmı olabildiğince azaltarak yinelenen kodu nasıl kaldırabileceğinizi kendinize sorun.
+
+### 2. Boolean değerler döndürmek
+
+function isEmpty(array: string[]): boolean {
+   if (array.length === 0) {
+       return true;
+   } else {
+       return false;
+   }
+}
+
+Boolean değerler döndürdüğünüz durumlarda kodunuza biraz daha dikkatli bakarsanız genellikle işinize yarayacak daha basit bir yol olduğunu görebilirsiniz
+
+function isEmpty(array: string[]): boolean {
+   return array.length === 0;
+}
+
+Aynı durum nesneler üzerindeki boolean özellikleri hesaplarken de geçerlidir. Mesela aşağıdaki gibi bir kod bloğunuz olduğunda:
+
+function hideHeaderIfEmptyTableView(): void {
+  if (datasource.length === 0) {
+    header.hidden = true;
+  } else {
+    header.hidden = false;
+  }
+}
+
+Bu şekilde uzun bir blok yazmak yerine aşağıdaki gibi boolean değerleri ayarladığınız (veya döndürdüğünüz) bir if durumunuz varsa bu değerleri direkt olarak kullanabilirsiniz.
+
+function hideHeaderIfEmptyTableView(): void {
+  header.hidden = (datasource.length === 0);
+}
+
+### 3. Girinti seviyesini azaltın ve erken çıkışları (return) kullanın
+
+Kodunuzda ne kadar çok girinti seviyesi varsa, okunması ve anlaşılması o kadar zorlaşır.
+
+> Beynimiz aynı anda yalnızca sınırlı sayıda koşulu tutabilir, bu nedenle ne kadar çok döngüye sahip olursanız, beyninizin bunu anlamlandırması için o kadar fazla çaba gerekir.
+
+Bu bir nevi erken çıkış kuralı ile aynı konsepti temsil eder. Tüm kodunuzu bir if bloğuna sarmak yerine (tüm kod girintilidir), önce döngünün yürütülmediği koşulu ekleyebilir ve bu durumda sadece geri dönebilirsiniz.
+
+Aslında oldukça basit, aşağıdaki kod bloğu yerine:
+
+function myMethod(elements: string[]): void {
+  if (elements.length > 0) {
+    for (const element of elements) {
+      // bir takım işlemler
+    }
+  }
+}
+
+Daha ayrık bir yaklaşım gösterebilirsiniz:
+
+function myMethod(elements: string[]): void {
+  if (elements.length === 0) {
+    return;
+  }
+  
+  for (const element of elements) {
+    // bir takım işlemler
+  }
+}
+
+Siz de takdir edersiniz ki bu biraz zevk ve stil meselesidir, ancak takip etmenin çok daha kolay olduğunu ve kontrol akışının biraz daha doğrusal olduğunu düşünmek bence yanlış olmaz.
+
+### 4. “Utangaç” Kod
+
+The Pragmatic Programmer’da belirtildiği gibi, kodunuz her zaman “utangaç kod” olmalıdır.
+
+Her şeyi mümkün olan en küçük kapsamla yazın ve kapsamı yalnızca gerçekten ihtiyacınız varsa artırın — örneğin, her şey private olarak başlayın; özellikleriniz, yöntemleriniz, sınıflarınız...
+
+Bu kuralın geçerli olduğu bir başka yol da nesnelerinizin sahip olduğu özelliklerin açıklanma düzeyidir. Diyelim ki içinde bir resim içeren özel bir UI bileşeniniz var ve bu resim bileşeninizin dışından da ayarlanabilmelidir.
+
+Görüntüyü bir okuma/yazma özelliği olarak göstermek yerine, sınıfınızın içinde ilgili özelliği güncellemek için bir yöntem sağlayabilirsiniz. Görüntü yalnızca salt okunur olarak gösterilecektir ve ayrıca özelliğinizde ayarlanan değerler üzerinde daha fazla kontrole sahip olabilirsiniz.
+
+### 5. Boş fonksiyonları ve kullanılmayan oluşturulmuş kodları kaldırın
+
+> En iyi kod, varolmayan koddur.
+
+Kullanmadığınız tüm kodları (IDE tarafından oluşturulmuş olsa bile) silmeyi alışkanlık haline getirin. Boş metotları, kullanılmayan değişkenleri, içe aktarmaları, modası geçmiş yorumları projenizde bırakmayın.
+
+Kod silmek, bir geliştirici olarak en sevdiğiniz etkinliklerden biri olmalıdır çünkü aslında projenizin daha temiz ve minimal bir hale gelmesine yardımcı olur.
+
+> “Mükemmelliğe eklenecek bir şey kalmadığında değil, çıkarılacak bir şey kalmadığında ulaşılır” — Antoine de Saint-Exupery
+
+Aynı şey yorumlanmış kodlar için de geçerlidir. Orada öylece bırakmayın. Zaten kaynak kontrol aracınızdaki (git vs.) tüm geçmişe sahipsiniz, bu yüzden kaldırın. Eğer tekrar ihtiyacınız olursa, dosyanızı geri döndürebilirsiniz — her ne kadar benim deneyimlerime göre, emin olmadığınız kodlara nadiren geri dönersiniz (ilk etapta yorumlamaya karar vermenizin nedeni bu olabilir).
+
+### Dikkate alınması gereken diğer hususlar
+
+Kodunuzu gözden geçirirken şunu her zaman aklınızda bulundurmalısınız:
+
+- Sabit kodlanmış değerler: Öncelikle kendinize şunu sormanız gerekir: Statik değeri kaldırmanın bir yolu yok mu? String, float, ints ne olursa olsun. Eğer cevap evet ise, devam edin ve daha iyi hale getirin :) Eğer ondan kurtulmanın bir yolu yoksa, onu statik bir değişkende saklayın (ya da kullandığınız dilde formatı her ne ise).
+
+İsim, değere ***defaultImageWidth*** veya ***controllerIdentifier*** gibi bir bağlam sağlayacak ve bir süre sonra koda geri döndüğünüzde ne anlama gelmesi gerektiğini anlamanızı kolaylaştıracaktır. Bir başka faydası da, deneyimlerime göre, bazen bu değerlerin daha fazla yerde tekrar tekrar ortaya çıkmasıdır. Bunları bir değişkende saklamadan, değeriniz 3'ten 4'e değiştiğinde kodu her yerde değiştirmeniz gerekirdi — tekrarlanan bir koda sahip olurdunuz.
+
+- **Ekip standartları ve yönergeleri**  — her zaman standartların herkes tarafından takip edildiğinden emin olun ve kod incelemenizde bazı şeylerin gözden kaçmasına izin vermeyin. Bu, değişkenleri adlandırmanın tutarlı yollarını, kod biçimlendirmesini, ekibinizde üzerinde anlaşmaya varılan diliniz için en iyi uygulamaları, adların, yöntemlerin ve kararların herkes için aynı anlama gelmesine dikkat etmeyi içermelidir.
+- **Hatalarınızı kaydedin**  — belki barizdir, ancak özellikle kodunuz zaten üretimde olmadığı sürece bunun değerini göremeyeceğiniz için bahsetmeye değer olduğunu düşünüyorum (o zaman değişiklik yapmak biraz zor, en azından mobil uygulamalar için). Kodunuz geçersiz bir duruma ulaştığında veya bazı özellikler yanlış yapılandırıldığında, bazı şeylerin imkansız olduğunu düşünseniz bile, hatayı günlüğe kaydettiğinizden ve mesaja mümkün olduğunca fazla bilgi eklediğinizden emin olun. Bunun kaç kez işe yarayacağına inanamayacaksınız.
+
+Bu yazıda sizlere çoğu yazılım dilinde karşılabileceğiniz, bazıları bariz bazıları ise biraz daha zor fark edilebilen ***“Clean Code”*** prensiplerinden TypeScript örnekleri ile bahsetmeye çalıştım, umarım sizin için faydalı olmuştur.

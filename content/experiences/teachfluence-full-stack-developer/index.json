@@ -1,0 +1,13 @@
+{
+  "id": "teachfluence-full-stack-developer",
+  "order": 1,
+  "organization": "Teachfluence",
+  "title": "Full Stack Developer",
+  "startDate": "2025-09-01",
+  "endDate": null,
+  "comment": "- Taking part in both Frontend and Backend feature developments\n- Experimenting around AI workflows to improve team efficiency and productivity\n- Building AI Focused features around our app to give users a smooth usage around our features\n\nDelivered Features:\n- Full revision of our In-House automation system UI/UX\n- Full revision of our \"Forms\" feature\n- Custom profile pages for organizations\n- Provided better UX across the app for new users by implementing specialized flows for features\n- Rebuilt an In-House CMS documentation system used by our customers for better management and independency.",
+  "links": [
+    { "label": "teachfluence.com", "url": "https://teachfluence.com" }
+  ],
+  "images": []
+}

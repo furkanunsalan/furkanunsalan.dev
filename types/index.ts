@@ -9,34 +9,16 @@ export type Tool = {
   link?: string;
 };
 
-export type Project = {
-  id: number;
-  slug: string;
-  title: string;
-  short_description: string;
-  update: string;
-} & (
-  | {
-      private: false;
-      repo: string;
-      owner: string;
-      branch: string;
-    }
-  | {
-      private: true;
-      long_description: string;
-    }
-);
-
 export type Experience = {
   id: number;
+  order: number;
   organization: string;
   title: string;
   start_date: string;
   end_date?: string;
   comment: string;
-  link?: string[]; // ["description", "url"]
-  images?: string[]; // Array of image URLs from Contentful
+  links?: { label: string; url: string }[];
+  images?: string[];
 };
 
 export type Contribution = {

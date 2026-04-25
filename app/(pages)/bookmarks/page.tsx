@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const collections = [
   {
     id: "54606666",
-    title: "Good Posts Archive",
+    title: "Posts",
     description:
       "An archive for the posts that I've bookmarked and read along the way.",
   },
@@ -25,19 +25,8 @@ const collections = [
 
 export default function BookmarksPage() {
   return (
-    <div className="min-h-screen px-4 py-8 mt-32">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-            Bookmarks
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
-            A curated collection of interesting articles, tools, and resources
-            I&apos;ve found across the web.
-          </p>
-        </div>
-        <RaindropBookmarks collections={collections} />
-      </div>
+    <div className="mt-24 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <RaindropBookmarks collections={collections} />
     </div>
   );
 }
