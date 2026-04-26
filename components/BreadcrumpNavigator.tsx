@@ -65,7 +65,7 @@ export default function BreadcrumbNavigator() {
   }, [router]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-10 p-4 flex justify-center bg-dark-primary">
+    <div className="fixed top-0 left-0 right-0 z-10 p-4 flex justify-center bg-dark-primary animate-fade-in-down after:content-[''] after:pointer-events-none after:absolute after:left-0 after:right-0 after:top-full after:h-8 after:bg-gradient-to-b after:from-dark-primary after:to-transparent">
       <nav>
         <ul className="flex flex-row flex-wrap items-center justify-center gap-x-2 text-base md:text-lg">
           {routes.map((route, index) => {
@@ -89,7 +89,7 @@ export default function BreadcrumbNavigator() {
                     href={route.href}
                     aria-label={route.name}
                     title={route.name}
-                    className={`relative inline-flex items-center px-1 py-0.5 transition-colors duration-300 ease-in-out ${
+                    className={`relative inline-flex items-center px-1 py-0.5 transition-all duration-300 ease-in-out hover:-translate-y-0.5 ${
                       isActive
                         ? "text-accent-primary"
                         : "text-light-secondary hover:text-white"

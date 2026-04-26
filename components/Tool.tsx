@@ -11,16 +11,20 @@ export default function Tool({ tool }: { tool: ToolType }) {
         link ? "cursor-pointer" : ""
       }`}
     >
-      {favorite && (
-        <Heart className="w-3 h-3 text-accent-primary fill-accent-primary flex-shrink-0" />
-      )}
       <div className="flex-1 min-w-0 flex items-baseline gap-2">
-        <span className="text-sm font-medium text-white group-hover:text-accent-primary transition-colors duration-200 whitespace-nowrap">
+        <span
+          className={`text-sm font-medium text-white transition-colors duration-200 whitespace-nowrap ${
+            link ? "group-hover:text-accent-primary" : ""
+          }`}
+        >
           {brand} {name}
         </span>
         <span className="text-xs font-mono uppercase tracking-wider text-light-fourth flex-shrink-0">
           {what}
         </span>
+        {favorite && (
+          <Heart className="w-3 h-3 text-zinc-500 fill-zinc-500 flex-shrink-0 self-center" />
+        )}
         {comment && (
           <span className="text-xs text-light-secondary/60 truncate">
             — {comment}

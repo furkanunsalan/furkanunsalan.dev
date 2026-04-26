@@ -100,7 +100,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
     <div className="mt-24 mb-16 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="lg:grid lg:grid-cols-[1fr_220px] lg:gap-12">
         <article className="min-w-0">
-          <header className="mb-8">
+          <header className="mb-8 animate-fade-in-up">
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
               {post.title}
             </h1>
@@ -122,8 +122,8 @@ export default async function BlogPost({ params }: BlogPostProps) {
           </header>
 
           <div
-            className="prose prose-invert max-w-none
-            prose-a:text-accent-primary
+            className="prose prose-invert max-w-none animate-fade-in delay-150
+            prose-a:text-accent-primary prose-a:transition-colors prose-a:duration-200
             prose-blockquote:border-l-accent-primary
             prose-code:text-accent-primary
             prose-headings:font-bold
@@ -135,7 +135,7 @@ export default async function BlogPost({ params }: BlogPostProps) {
           </div>
         </article>
 
-        <aside className="hidden lg:block">
+        <aside className="hidden lg:block animate-slide-in-right delay-200">
           <TableOfContents headings={headings} />
         </aside>
       </div>

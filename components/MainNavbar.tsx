@@ -20,7 +20,7 @@ const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {
   }, [routes, router]);
 
   return (
-    <nav className="mt-8 w-full max-w-4xl">
+    <nav className="mt-8 w-full max-w-4xl animate-fade-in delay-100">
       <ul className="flex flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1 text-lg">
         {routes.map((route, index) => {
           const raw = route === "/" ? "home" : route.substring(1);

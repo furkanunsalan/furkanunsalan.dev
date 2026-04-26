@@ -184,9 +184,19 @@ export default function RaindropBookmarks({
   const renderBookmarks = (collectionId: string) => {
     if (isLoading[collectionId] && !bookmarks[collectionId]) {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 card animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="card h-32 flex flex-row overflow-hidden">
+              <div className="skeleton w-2/5 h-full rounded-none" />
+              <div className="flex-1 flex flex-col p-3 space-y-2">
+                <div className="skeleton h-4 w-full" />
+                <div className="skeleton h-4 w-3/4" />
+                <div className="mt-auto flex items-center justify-between">
+                  <div className="skeleton h-3 w-20" />
+                  <div className="skeleton h-4 w-12 rounded-full" />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       );
@@ -212,7 +222,7 @@ export default function RaindropBookmarks({
 
     return (
       <>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
           {collectionBookmarks.map((bookmark) => (
             <article
               key={bookmark._id}
@@ -225,7 +235,7 @@ export default function RaindropBookmarks({
                 className="flex flex-row h-full"
               >
                 {bookmark.cover && (
-                  <div className="relative aspect-video w-2/5 flex-shrink-0 overflow-hidden bg-zinc-900">
+                  <div className="relative aspect-video w-2/5 flex-shrink-0 overflow-hidden bg-zinc-900 media-zoom">
                     <Image
                       src={bookmark.cover}
                       alt={bookmark.title}
@@ -261,9 +271,19 @@ export default function RaindropBookmarks({
         </div>
         {/* Loading more indicator */}
         {isLoadingMore[collectionId] && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 animate-fade-in">
             {[1, 2].map((i) => (
-              <div key={i} className="h-32 card animate-pulse" />
+              <div key={i} className="card h-32 flex flex-row overflow-hidden">
+                <div className="skeleton w-2/5 h-full rounded-none" />
+                <div className="flex-1 flex flex-col p-3 space-y-2">
+                  <div className="skeleton h-4 w-full" />
+                  <div className="skeleton h-4 w-3/4" />
+                  <div className="mt-auto flex items-center justify-between">
+                    <div className="skeleton h-3 w-20" />
+                    <div className="skeleton h-4 w-12 rounded-full" />
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -275,7 +295,7 @@ export default function RaindropBookmarks({
         {!hasMore[collectionId] &&
           collectionBookmarks.length > 0 &&
           !isLoadingMore[collectionId] && (
-            <div className="text-center py-8 text-light-fourth text-sm">
+            <div className="text-center py-8 text-light-fourth text-sm animate-fade-in">
               All bookmarks loaded
             </div>
           )}
@@ -285,7 +305,7 @@ export default function RaindropBookmarks({
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-3 gap-3 mb-8">
+      <div className="grid grid-cols-3 gap-3 mb-8 stagger">
         {collections.map((collection) => (
           <StatsCard
             key={collection.id}
@@ -320,7 +340,7 @@ export default function RaindropBookmarks({
               ))}
               {/* Sliding indicator */}
               <div
-                className="absolute bottom-0 h-0.5 bg-accent-primary"
+                className="absolute bottom-0 h-0.5 bg-accent-primary transition-[left,width] duration-300 ease-out"
                 style={{
                   left: `${indicatorStyle.left}px`,
                   width: `${indicatorStyle.width}px`,
@@ -330,7 +350,11 @@ export default function RaindropBookmarks({
           </div>
         </div>
         {collections.map((collection) => (
-          <TabsContent key={collection.id} value={collection.id}>
+          <TabsContent
+            key={collection.id}
+            value={collection.id}
+            className="animate-fade-in"
+          >
             {renderBookmarks(collection.id)}
           </TabsContent>
         ))}

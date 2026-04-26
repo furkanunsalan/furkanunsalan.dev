@@ -40,7 +40,7 @@ export default function BlogPosts({ posts }: SearchInputProps) {
   return (
     <div>
       {/* Search bar and tag selector container */}
-      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-6 animate-fade-in-down">
         <input
           type="text"
           value={searchQuery}
@@ -63,7 +63,7 @@ export default function BlogPosts({ posts }: SearchInputProps) {
       </div>
 
       {/* Posts list */}
-      <ul className="space-y-4">
+      <ul key={`${searchQuery}-${selectedTag}`} className="space-y-4 stagger">
         {filteredPosts.length > 0 ? (
           filteredPosts.map((post) => (
             <li

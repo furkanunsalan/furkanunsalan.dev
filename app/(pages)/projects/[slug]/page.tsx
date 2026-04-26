@@ -68,7 +68,7 @@ export default async function ProjectPage({
 
   return (
     <div className="mt-24 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <header className="mb-8">
+      <header className="mb-8 animate-fade-in-up">
         <h1 className="text-3xl font-bold text-white">{repo.name}</h1>
         {repo.description && (
           <p className="mt-2 text-light-secondary/80">{repo.description}</p>
@@ -97,7 +97,7 @@ export default async function ProjectPage({
             href={repo.html_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.06] bg-zinc-950 hover:border-accent-primary/50 transition-colors text-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.06] bg-zinc-950 hover:border-accent-primary/50 hover:-translate-y-0.5 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)] transition-all duration-300 text-sm"
             data-umami-event={`${repo.name} Github`}
           >
             <ExternalLink className="w-4 h-4" />
@@ -108,7 +108,7 @@ export default async function ProjectPage({
               href={repo.homepage}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.06] bg-zinc-950 hover:border-accent-primary/50 transition-colors text-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.06] bg-zinc-950 hover:border-accent-primary/50 hover:-translate-y-0.5 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)] transition-all duration-300 text-sm"
               data-umami-event={`${repo.name} Homepage`}
             >
               <ExternalLink className="w-4 h-4" />
@@ -119,11 +119,13 @@ export default async function ProjectPage({
       </header>
 
       {readme ? (
-        <article className="prose prose-invert max-w-none">
+        <article className="prose prose-invert max-w-none animate-fade-in delay-150">
           <Markdown options={markdownOptions}>{readme}</Markdown>
         </article>
       ) : (
-        <p className="text-light-fourth">No README found for this project.</p>
+        <p className="text-light-fourth animate-fade-in">
+          No README found for this project.
+        </p>
       )}
     </div>
   );

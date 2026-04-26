@@ -106,7 +106,7 @@ export default function ToolTabs({ tools }: { tools: ToolType[] }) {
           ))}
           {/* Sliding indicator */}
           <div
-            className="absolute bottom-0 h-0.5 bg-accent-primary"
+            className="absolute bottom-0 h-0.5 bg-accent-primary transition-[left,width] duration-300 ease-out"
             style={{
               left: `${indicatorStyle.left}px`,
               width: `${indicatorStyle.width}px`,
@@ -117,7 +117,11 @@ export default function ToolTabs({ tools }: { tools: ToolType[] }) {
 
       {/* Tabs Content */}
       {categories.map((category) => (
-        <TabsContent key={category} value={category} className="mt-6">
+        <TabsContent
+          key={category}
+          value={category}
+          className="mt-6 stagger animate-fade-in"
+        >
           {toolsByCategory[category].map((tool) => (
             <Tool key={tool.id} tool={tool} />
           ))}

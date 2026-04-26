@@ -1,3 +1,4 @@
+import GithubCommitHistory from "@/components/GithubCommitHistory";
 import HomeIntro from "@/components/HomeIntro";
 import HomeTools from "@/components/HomeTools";
 import LatestSection, { type LatestItem } from "@/components/LatestSection";
@@ -96,6 +97,9 @@ export default async function Home() {
     <>
       <HomeIntro />
       <LatestSection items={items} />
+      <section className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 animate-fade-in-up delay-300">
+        <GithubCommitHistory />
+      </section>
       <HomeTools />
     </>
   );
