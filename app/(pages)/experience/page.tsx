@@ -83,7 +83,7 @@ export default async function Experiences() {
 
   return (
     <div className="mt-24 min-h-screen">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-left stagger">
         {groupedExperiences.map((group) => {
           // If only one experience for this company, display normally
           if (group.experiences.length === 1) {

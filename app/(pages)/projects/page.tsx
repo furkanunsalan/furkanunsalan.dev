@@ -16,10 +16,10 @@ export default async function Projects() {
 
   return (
     <div className="mt-24 min-h-screen max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="mb-12">
+      <div className="mb-12 animate-fade-in">
         <GithubCommitHistory />
       </div>
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-4 stagger">
         {repos.map((repo) => (
           <ProjectContainer key={repo.name} repo={repo} />
         ))}

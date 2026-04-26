@@ -45,7 +45,7 @@ export default function RootLayout({
           data-website-id="227d51b5-5f5f-42aa-a9eb-a38128095d7b"
         />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={`${inter.className} page-enter`}>{children}</body>
     </html>
   );
 }

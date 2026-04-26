@@ -46,14 +46,14 @@ export default function GithubCommitHistory() {
   }
 
   if (!data) {
-    return <div className="card h-[140px] w-full animate-pulse" aria-hidden />;
+    return <div className="skeleton h-[140px] w-full rounded-xl" aria-hidden />;
   }
 
   const width = data.weeks.length * (CELL + GAP) - GAP;
   const height = 7 * (CELL + GAP) - GAP;
 
   return (
-    <div className="w-full">
+    <div className="w-full animate-fade-in">
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="xMidYMid meet"
@@ -72,6 +72,7 @@ export default function GithubCommitHistory() {
               rx={RADIUS}
               ry={RADIUS}
               fill={LEVEL_FILL[day.level]}
+              className="transition-[fill] duration-300 hover:opacity-80"
             >
               <title>
                 {day.count} contribution{day.count === 1 ? "" : "s"} on{" "}

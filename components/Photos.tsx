@@ -18,13 +18,13 @@ interface PhotoProps {
 
 function Photo({ slug, urls }: PhotoProps) {
   return (
-    <figure className="relative w-full mb-3 overflow-hidden rounded-lg">
+    <figure className="photo-figure relative w-full mb-3 overflow-hidden rounded-lg media-zoom">
       <NextImage
         src={`${urls.raw}&q=90&w=800`}
         alt={slug}
         width={300}
         height={300}
-        className="w-full h-full object-cover"
+        className="relative z-[1] w-full h-full object-cover photo-img"
         quality={90}
       />
     </figure>
@@ -44,7 +44,7 @@ const breakpointColumnsObj = {
 
 function Photos({ data }: PhotosProps) {
   return (
-    <div className="w-5/6 mb-6 mx-auto pr-3">
+    <div className="w-5/6 mb-6 mx-auto pr-3 animate-fade-in">
       <Masonry
         breakpointCols={breakpointColumnsObj}
         className="masonry-grid"

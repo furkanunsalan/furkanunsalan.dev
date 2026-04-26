@@ -13,10 +13,126 @@ body {
   color: #fff; /* Optional: Change the text color for better contrast */
 }
 
+/* Smooth focus rings everywhere */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.7);
+  outline-offset: 2px;
+  border-radius: 4px;
+  transition:
+    outline-color 200ms ease,
+    outline-offset 200ms ease;
+}
+
 /* Custom utility class using Tailwind layer */
 @layer utilities {
   .text-balance {
     text-wrap: balance; /* Experimental CSS property for text balancing */
+  }
+
+  /* Enter animations — driven by CSS only, no JS */
+  .animate-fade-in {
+    animation: fade-in 400ms ease-out both;
+  }
+  .animate-fade-in-up {
+    animation: fade-in-up 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-fade-in-down {
+    animation: fade-in-down 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-slide-in-left {
+    animation: slide-in-left 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-slide-in-right {
+    animation: slide-in-right 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-scale-in {
+    animation: scale-in 350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-blur-in {
+    animation: blur-in 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* Stagger delays — pair with .animate-* on children */
+  .delay-50 {
+    animation-delay: 50ms;
+  }
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+  .delay-150 {
+    animation-delay: 150ms;
+  }
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+  .delay-400 {
+    animation-delay: 400ms;
+  }
+  .delay-500 {
+    animation-delay: 500ms;
+  }
+
+  /* Auto-stagger children — siblings cascade their entrance */
+  .stagger > * {
+    animation: fade-in-up 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .stagger > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .stagger > *:nth-child(2) {
+    animation-delay: 60ms;
+  }
+  .stagger > *:nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .stagger > *:nth-child(4) {
+    animation-delay: 180ms;
+  }
+  .stagger > *:nth-child(5) {
+    animation-delay: 240ms;
+  }
+  .stagger > *:nth-child(6) {
+    animation-delay: 300ms;
+  }
+  .stagger > *:nth-child(7) {
+    animation-delay: 360ms;
+  }
+  .stagger > *:nth-child(8) {
+    animation-delay: 420ms;
+  }
+  .stagger > *:nth-child(9) {
+    animation-delay: 480ms;
+  }
+  .stagger > *:nth-child(10) {
+    animation-delay: 540ms;
+  }
+  .stagger > *:nth-child(n + 11) {
+    animation-delay: 600ms;
+  }
+
+  /* Hover lift */
+  .hover-lift {
+    transition:
+      transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 250ms ease,
+      border-color 250ms ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Image hover zoom — apply to the <img> inside an .img-zoom-wrapper */
+  .img-zoom-wrapper {
+    overflow: hidden;
+  }
+  .img-zoom-wrapper img {
+    transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .img-zoom-wrapper:hover img {
+    transform: scale(1.04);
   }
 }
 
@@ -26,15 +142,138 @@ body {
     @apply relative rounded-xl border border-white/[0.06] bg-zinc-950 transition-all duration-300;
   }
   .card-interactive {
-    @apply card hover:border-accent-primary/50 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)];
+    @apply card hover:border-accent-primary/50 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)] hover:-translate-y-0.5;
   }
   /* Inline chip/tag pill */
   .chip {
-    @apply bg-zinc-900 border border-white/[0.08] text-light-secondary px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply bg-zinc-900 border border-white/[0.08] text-light-secondary px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors duration-200 hover:border-accent-primary/50 hover:text-accent-primary;
   }
-  /* Skeleton placeholder block */
+  /* Skeleton placeholder block — shimmer instead of plain pulse */
   .skeleton {
-    @apply bg-zinc-900 rounded animate-pulse;
+    @apply rounded relative overflow-hidden;
+    background-color: #18181b; /* zinc-900 */
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  }
+  /* Circular skeleton (avatars) */
+  .skeleton-circle {
+    @apply skeleton rounded-full;
+  }
+  /* Image hover cover that ships with built-in zoom */
+  .media-zoom {
+    @apply relative overflow-hidden;
+  }
+  .media-zoom > * {
+    transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .media-zoom:hover > * {
+    transform: scale(1.04);
+  }
+}
+
+/* Page-level fade — applied via the body className in layout */
+.page-enter {
+  animation: page-enter 450ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ============== Keyframes ============== */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes blur-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
   }
 }
 
@@ -66,6 +305,18 @@ body {
   width: 100%;
   background: #6366f1;
   animation: top-progress 1.1s ease-in-out infinite;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Hide scrollbar for all browsers */

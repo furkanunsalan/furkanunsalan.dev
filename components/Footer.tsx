@@ -2,7 +2,7 @@ import React from "react";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="my-24 py-4 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer className="my-24 py-4 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in delay-300">
       <div className="text-left">
         <span className="block text-light-secondary">Furkan Ünsalan</span>
         <span className="block text-sm text-light-fourth">

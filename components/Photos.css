@@ -7,3 +7,28 @@
   padding-left: 12px;
   background-clip: padding-box;
 }
+
+/* Persistent shimmer skeleton behind each photo until the image paints */
+.photo-figure {
+  background-color: #18181b; /* zinc-900 */
+}
+.photo-figure::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+/* Fade the photo in as soon as it has a real source painted */
+.photo-figure .photo-img {
+  animation: fade-in 500ms ease-out both;
+}

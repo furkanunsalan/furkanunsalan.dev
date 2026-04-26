@@ -7,13 +7,13 @@ import type { Tool } from "@/types";
 function ToolsSkeleton() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex gap-4 mb-6">
-        <div className="skeleton h-6 w-16" />
-        <div className="skeleton h-6 w-16" />
-        <div className="skeleton h-6 w-16" />
+      <div className="grid grid-cols-3 gap-0 mb-6">
+        <div className="skeleton h-6 mx-2" />
+        <div className="skeleton h-6 mx-2" />
+        <div className="skeleton h-6 mx-2" />
       </div>
-      <ul className="divide-y divide-white/[0.06]">
-        {Array.from({ length: 5 }).map((_, i) => (
+      <ul className="divide-y divide-white/[0.06] stagger">
+        {Array.from({ length: 6 }).map((_, i) => (
           <li key={i} className="py-2.5 flex items-center gap-3">
             <div className="skeleton h-3 w-3 rounded-full" />
             <div className="skeleton h-4 w-40" />

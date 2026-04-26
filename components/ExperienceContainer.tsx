@@ -80,7 +80,7 @@ export default function ExperienceContainer({
         {/* Image Grid */}
         {work.images && work.images.length > 0 && (
           <div className="mt-6">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 stagger">
               {work.images.map((img, index) => (
                 <div
                   key={index}
@@ -102,10 +102,10 @@ export default function ExperienceContainer({
         {/* Lightbox */}
         {selectedImage && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4 animate-fade-in"
             onClick={closeLightbox}
           >
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center animate-scale-in">
               <div
                 className="rounded-lg overflow-hidden"
                 onClick={(e) => e.stopPropagation()}

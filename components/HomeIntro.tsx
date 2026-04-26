@@ -24,7 +24,7 @@ const socials = [
 export default function HomeIntro() {
   return (
     <div className="flex flex-col items-start text-left mt-24 w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="w-full flex items-start justify-between mb-3 select-none">
+      <div className="w-full flex items-start justify-between mb-3 select-none animate-fade-in-down">
         <h1 className="text-xl font-semibold">Furkan Ünsalan</h1>
         <div className="flex flex-col items-end">
           <div className="text-sm text-light-fourth tabular-nums">
@@ -41,7 +41,7 @@ export default function HomeIntro() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-6 stagger">
         {socials.map(({ name, url, icon: Icon }) => (
           <a
             key={name}
@@ -51,14 +51,14 @@ export default function HomeIntro() {
             aria-label={name}
             title={name}
             data-umami-event={name}
-            className="text-white/40 hover:text-accent-primary transition-colors duration-200"
+            className="text-white/40 hover:text-accent-primary hover:-translate-y-0.5 transition-all duration-200"
           >
             <Icon className="w-4 h-4" />
           </a>
         ))}
       </div>
 
-      <p className="text-base mb-4 text-justify">
+      <p className="text-base mb-4 text-justify animate-fade-in-up delay-200">
         Dedicated software engineering student with a focus on full-stack web
         development and special love for communities. Enthusiastic about
         creating and contributing to open-source projects while continually
