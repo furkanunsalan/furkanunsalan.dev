@@ -84,7 +84,7 @@ export default function ExperienceContainer({
               {work.images.map((img, index) => (
                 <div
                   key={index}
-                  className="relative h-32 overflow-hidden rounded-lg cursor-pointer transition-all duration-300 border border-white/[0.06] hover:scale-[1.02] hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
+                  className="image-skeleton relative h-32 overflow-hidden rounded-lg cursor-pointer transition-all duration-300 border border-white/[0.06] hover:scale-[1.02] hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
                   onClick={() => openLightbox(img)}
                 >
                   <Image
@@ -107,7 +107,7 @@ export default function ExperienceContainer({
           >
             <div className="flex items-center justify-center animate-scale-in">
               <div
-                className="rounded-lg overflow-hidden"
+                className="image-skeleton rounded-lg overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
                 style={{
                   display: "inline-block",

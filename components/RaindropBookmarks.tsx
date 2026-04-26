@@ -235,7 +235,7 @@ export default function RaindropBookmarks({
                 className="flex flex-row h-full"
               >
                 {bookmark.cover && (
-                  <div className="relative aspect-video w-2/5 flex-shrink-0 overflow-hidden bg-zinc-900 media-zoom">
+                  <div className="image-skeleton relative aspect-video w-2/5 flex-shrink-0 overflow-hidden media-zoom">
                     <Image
                       src={bookmark.cover}
                       alt={bookmark.title}
