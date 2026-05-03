@@ -56,6 +56,9 @@ jobs:
           # (ISR revalidate). Standalone tracing misses these dynamic reads,
           # so ship the source content alongside the server bundle.
           cp -r content release/content
+          # PM2 process descriptor — overwrite any stale config left on the
+          # VPS from previous deploys (e.g. an Astro entrypoint).
+          cp ecosystem.config.cjs release/ecosystem.config.cjs
 
       - name: Setup SSH
         run: |
@@ -73,7 +76,6 @@ jobs:
           set -euo pipefail
           rsync -az --delete \
             --exclude='.env.production' \
-            --exclude='ecosystem.config.cjs' \
             --exclude='node_modules/.cache' \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
             release/ "$VPS_USER@$VPS_HOST:$APP_DIR/"
@@ -86,7 +88,12 @@ jobs:
           set -euo pipefail
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
             "$VPS_USER@$VPS_HOST" \
-            "cd $APP_DIR && pm2 startOrReload ecosystem.config.cjs --update-env && pm2 save"
+            "cd $APP_DIR && \
+              # Drop the cached PM2 process: it may still point at the Astro
+              # entrypoint from previous failed deploys.
+              pm2 delete furkanunsalan || true && \
+              pm2 start ecosystem.config.cjs --update-env && \
+              pm2 save"
 
       - name: Health check
         env:
