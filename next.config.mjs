@@ -32,6 +32,20 @@ const nextConfig = {
       },
     ],
   },
+  // Keystatic hardcodes `/keystatic` as its basePath in the compiled UI
+  // bundle, so we can't actually mount it at /admin. Redirect /admin →
+  // /keystatic so users get a memorable entry URL while the CMS still
+  // operates from its native path.
+  async redirects() {
+    return [
+      { source: "/admin", destination: "/keystatic", permanent: false },
+      {
+        source: "/admin/:path*",
+        destination: "/keystatic/:path*",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
