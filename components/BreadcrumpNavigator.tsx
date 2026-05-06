@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -42,9 +42,12 @@ const routes: { name: string; href: string; icon: React.ReactNode }[] = [
 export default function BreadcrumbNavigator() {
   const pathname = usePathname();
   const router = useRouter();
+  const [modifierHeld, setModifierHeld] = useState(false);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) setModifierHeld(true);
+
       if (!(e.metaKey || e.ctrlKey)) return;
       const idx = parseInt(e.key, 10);
       if (Number.isNaN(idx) || idx < 1 || idx > routes.length) return;
@@ -60,8 +63,20 @@ export default function BreadcrumbNavigator() {
       e.preventDefault();
       router.push(routes[idx - 1].href);
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    const onKeyUp = (e: KeyboardEvent) => {
+      // Either modifier release clears the badges; both also clear on blur.
+      if (!e.metaKey && !e.ctrlKey) setModifierHeld(false);
+    };
+    const onBlur = () => setModifierHeld(false);
+
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
+    };
   }, [router]);
 
   return (
@@ -97,6 +112,16 @@ export default function BreadcrumbNavigator() {
                     data-umami-event={route.href}
                   >
                     {route.icon}
+                    <span
+                      aria-hidden
+                      className={`pointer-events-none absolute -bottom-1.5 -right-1.5 inline-flex items-center justify-center min-w-[14px] h-[14px] px-1 rounded-[3px] font-mono text-[9px] leading-none tabular-nums bg-zinc-950 border border-accent-primary/40 text-accent-primary transition-all duration-150 ${
+                        modifierHeld
+                          ? "opacity-100 translate-y-0 scale-100"
+                          : "opacity-0 translate-y-0.5 scale-95"
+                      }`}
+                    >
+                      {index + 1}
+                    </span>
                   </Link>
                 </li>
               </React.Fragment>
