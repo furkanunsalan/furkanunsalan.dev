@@ -305,6 +305,217 @@ body {
   }
 }
 
+/* Glitch text — used on the /404 page. Two chromatic clones sit always
+   visible at a small RGB split, then walk a fast slice animation that
+   constantly re-clips horizontal bands of the glyphs. The base layer gets a
+   tiny stutter so the characters never feel pinned. */
+.glitch {
+  position: relative;
+  color: #fff;
+  text-shadow: 0 0 1px rgba(99, 102, 241, 0.35);
+  animation: glitch-base 2.2s steps(1, end) infinite;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: transparent;
+  mix-blend-mode: screen;
+}
+.glitch::before {
+  color: #6366f1; /* indigo-500 */
+  animation: glitch-slice-a 1.4s steps(1, end) infinite;
+}
+.glitch::after {
+  color: #f43f5e; /* rose-500 */
+  animation: glitch-slice-b 1.7s steps(1, end) infinite;
+}
+
+/* Third chromatic ghost (green). Lives as an absolutely-positioned span so
+   we can hang a ::before on it without burning the parent's two pseudos. */
+.glitch-green {
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  pointer-events: none;
+  user-select: none;
+}
+.glitch-green::before {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: #22c55e; /* green-500 */
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: glitch-slice-c 1.9s steps(1, end) infinite;
+}
+
+@keyframes glitch-base {
+  0%,
+  8%,
+  14%,
+  22%,
+  36%,
+  60%,
+  72%,
+  88%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    filter: none;
+  }
+  10% {
+    transform: translate3d(0, -1px, 0);
+  }
+  18% {
+    transform: translate3d(1px, 0, 0);
+  }
+  30% {
+    transform: translate3d(-1px, 1px, 0);
+    filter: blur(0.4px);
+  }
+  44% {
+    transform: translate3d(0, 1px, 0);
+  }
+  56% {
+    transform: translate3d(-1px, 0, 0);
+    filter: blur(0.3px);
+  }
+  68% {
+    transform: translate3d(1px, -1px, 0);
+  }
+  82% {
+    transform: translate3d(0, 1px, 0);
+    filter: blur(0.4px);
+  }
+}
+
+@keyframes glitch-slice-a {
+  0% {
+    clip-path: inset(2% 0 88% 0);
+    transform: translate3d(-3px, -1px, 0);
+  }
+  10% {
+    clip-path: inset(18% 0 70% 0);
+    transform: translate3d(-4px, 0, 0);
+  }
+  20% {
+    clip-path: inset(32% 0 56% 0);
+    transform: translate3d(-2px, 1px, 0);
+  }
+  30% {
+    clip-path: inset(46% 0 38% 0);
+    transform: translate3d(-5px, 0, 0);
+  }
+  40% {
+    clip-path: inset(58% 0 22% 0);
+    transform: translate3d(-2px, -1px, 0);
+  }
+  50% {
+    clip-path: inset(70% 0 14% 0);
+    transform: translate3d(-3px, 0, 0);
+  }
+  60% {
+    clip-path: inset(8% 0 78% 0);
+    transform: translate3d(-2px, 1px, 0);
+  }
+  70% {
+    clip-path: inset(40% 0 50% 0);
+    transform: translate3d(-4px, 0, 0);
+  }
+  80% {
+    clip-path: inset(24% 0 64% 0);
+    transform: translate3d(-2px, 0, 0);
+  }
+  90% {
+    clip-path: inset(66% 0 18% 0);
+    transform: translate3d(-3px, 1px, 0);
+  }
+  100% {
+    clip-path: inset(2% 0 88% 0);
+    transform: translate3d(-3px, 0, 0);
+  }
+}
+
+@keyframes glitch-slice-c {
+  0% {
+    clip-path: inset(34% 0 52% 0);
+    transform: translate3d(0, -2px, 0);
+  }
+  14% {
+    clip-path: inset(66% 0 18% 0);
+    transform: translate3d(-1px, -1px, 0);
+  }
+  28% {
+    clip-path: inset(8% 0 80% 0);
+    transform: translate3d(1px, -2px, 0);
+  }
+  42% {
+    clip-path: inset(50% 0 36% 0);
+    transform: translate3d(-1px, 2px, 0);
+  }
+  56% {
+    clip-path: inset(72% 0 10% 0);
+    transform: translate3d(0, -1px, 0);
+  }
+  70% {
+    clip-path: inset(18% 0 70% 0);
+    transform: translate3d(1px, 2px, 0);
+  }
+  84% {
+    clip-path: inset(44% 0 42% 0);
+    transform: translate3d(-1px, -2px, 0);
+  }
+  100% {
+    clip-path: inset(34% 0 52% 0);
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+@keyframes glitch-slice-b {
+  0% {
+    clip-path: inset(60% 0 22% 0);
+    transform: translate3d(3px, 1px, 0);
+  }
+  12% {
+    clip-path: inset(14% 0 72% 0);
+    transform: translate3d(4px, 0, 0);
+  }
+  24% {
+    clip-path: inset(40% 0 46% 0);
+    transform: translate3d(2px, -1px, 0);
+  }
+  36% {
+    clip-path: inset(70% 0 12% 0);
+    transform: translate3d(5px, 0, 0);
+  }
+  48% {
+    clip-path: inset(26% 0 60% 0);
+    transform: translate3d(2px, 1px, 0);
+  }
+  60% {
+    clip-path: inset(52% 0 32% 0);
+    transform: translate3d(3px, 0, 0);
+  }
+  72% {
+    clip-path: inset(8% 0 78% 0);
+    transform: translate3d(2px, -1px, 0);
+  }
+  84% {
+    clip-path: inset(76% 0 6% 0);
+    transform: translate3d(4px, 0, 0);
+  }
+  96% {
+    clip-path: inset(36% 0 50% 0);
+    transform: translate3d(2px, 1px, 0);
+  }
+  100% {
+    clip-path: inset(60% 0 22% 0);
+    transform: translate3d(3px, 0, 0);
+  }
+}
+
 /* Top progress bar — full-width heartbeat pulse */
 @keyframes top-progress {
   0%,
