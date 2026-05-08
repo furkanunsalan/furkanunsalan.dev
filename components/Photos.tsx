@@ -18,7 +18,7 @@ interface PhotoProps {
 
 function Photo({ slug, urls }: PhotoProps) {
   return (
-    <figure className="photo-figure relative w-full mb-3 overflow-hidden rounded-lg media-zoom">
+    <figure className="photo-figure group relative w-full mb-3 overflow-hidden rounded-lg ring-1 ring-transparent hover:ring-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)] transition-[box-shadow] duration-300">
       <NextImage
         src={`${urls.raw}&q=90&w=800`}
         alt={slug}
