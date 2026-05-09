@@ -306,7 +306,7 @@ learning new technologies.` + "\n\n")
 	b.WriteString(Header.Render("Find me") + "\n")
 	b.WriteString(Item.Render("github   ") + Mono.Render("https://github.com/furkanunsalan") + "\n")
 	b.WriteString(Item.Render("linkedin ") + Mono.Render("https://linkedin.com/in/furkanunsalan") + "\n")
-	b.WriteString(Item.Render("mail     ") + Mono.Render("hi@furkanunsalan.dev") + "\n")
+	b.WriteString(Item.Render("mail     ") + Mono.Render("me@furkanunsalan.dev") + "\n")
 	b.WriteString(Item.Render("web      ") + Mono.Render("https://furkanunsalan.dev") + "\n")
 	return b.String()
 }

@@ -34,6 +34,8 @@ export type BlogPost = {
   title: string;
   date: string;
   tags: string[];
+  banner?: string;
+  excerpt?: string;
 };
 
 export type BlogPostData = {
@@ -49,3 +51,35 @@ export type Route = {
 };
 
 export type Routes = Route[];
+
+export type CustomProject = {
+  slug: string;
+  name: string;
+  description: string;
+  metric: string;
+  link: string;
+  language?: string;
+  order: number;
+  image?: string;
+};
+
+export type ProjectCardData =
+  | {
+      kind: "github";
+      slug: string;
+      name: string;
+      description: string | null;
+      language: string | null;
+      stargazers_count: number;
+      forks_count: number;
+    }
+  | {
+      kind: "custom";
+      slug: string;
+      name: string;
+      description: string;
+      language?: string;
+      metric: string;
+      link: string;
+      image?: string;
+    };
