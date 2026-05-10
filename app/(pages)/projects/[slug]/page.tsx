@@ -1,23 +1,53 @@
 import { notFound } from "next/navigation";
 import Markdown from "markdown-to-jsx";
+import Markdoc from "@markdoc/markdoc";
+import React from "react";
+import Image from "next/image";
 import { Metadata } from "next";
-import { Star, GitFork, ExternalLink } from "lucide-react";
+import { Star, GitFork, ExternalLink, Sparkles } from "lucide-react";
 import { getGithubRepo, getGithubReadme } from "@/lib/github";
+import { getCustomProjectBySlug } from "@/lib/content";
 
 export const revalidate = 3600;
+
+const markdownOptions = {
+  overrides: {
+    img: { props: { className: "rounded-lg" } },
+    a: {
+      props: {
+        className: "text-accent-primary hover:underline",
+        target: "_blank",
+        rel: "noopener noreferrer",
+      },
+    },
+    h1: { props: { className: "text-3xl font-bold mt-6 mb-4" } },
+    h2: { props: { className: "text-2xl font-semibold mt-4 mb-3" } },
+    h3: { props: { className: "text-xl font-semibold mt-3 mb-2" } },
+    p: { props: { className: "mb-4" } },
+    code: {
+      props: { className: "bg-zinc-900 px-1.5 py-0.5 rounded text-sm" },
+    },
+    pre: {
+      props: { className: "bg-zinc-900 p-4 rounded-lg overflow-x-auto" },
+    },
+  },
+};
 
 export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const repo = await getGithubRepo(params.slug);
-
-  if (!repo) {
+  const custom = await getCustomProjectBySlug(params.slug);
+  if (custom) {
     return {
-      title: "Project Not Found | Furkan Ünsalan",
+      title: `${custom.name} | Furkan Ünsalan`,
+      description: custom.description || `Details for ${custom.name}`,
     };
   }
+
+  const repo = await getGithubRepo(params.slug);
+  if (!repo) return { title: "Project Not Found | Furkan Ünsalan" };
 
   return {
     title: `${repo.name} | Furkan Ünsalan`,
@@ -30,6 +60,61 @@ export default async function ProjectPage({
 }: {
   params: { slug: string };
 }) {
+  const custom = await getCustomProjectBySlug(params.slug);
+  if (custom) {
+    const transformed = Markdoc.transform(custom.node);
+    const rendered = Markdoc.renderers.react(transformed, React);
+    return (
+      <div className="mt-24 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <header className="mb-8 animate-fade-in-up">
+          <h1 className="text-3xl font-bold text-white">{custom.name}</h1>
+          {custom.description && (
+            <p className="mt-2 text-light-secondary/80">{custom.description}</p>
+          )}
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-light-fourth">
+            {custom.metric && (
+              <span className="inline-flex items-center gap-1 text-accent-primary/90 font-medium">
+                <Sparkles className="w-4 h-4" />
+                {custom.metric}
+              </span>
+            )}
+            {custom.language && <span>{custom.language}</span>}
+          </div>
+          {custom.link && (
+            <div className="mt-4 flex flex-wrap gap-3">
+              <a
+                href={custom.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.06] bg-zinc-950 hover:border-accent-primary/50 hover:-translate-y-0.5 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)] transition-all duration-300 text-sm"
+                data-umami-event={`${custom.name} Link`}
+              >
+                <ExternalLink className="w-4 h-4" />
+                Visit
+              </a>
+            </div>
+          )}
+        </header>
+
+        {custom.image && (
+          <div className="image-skeleton relative w-full aspect-[16/9] overflow-hidden rounded-xl border border-white/[0.06] mb-8 animate-fade-in delay-100">
+            <Image
+              src={custom.image}
+              alt={custom.name}
+              fill
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="object-cover"
+            />
+          </div>
+        )}
+
+        <article className="prose prose-invert max-w-none animate-fade-in delay-150 prose-a:text-accent-primary prose-blockquote:border-l-accent-primary prose-code:text-accent-primary prose-headings:text-white">
+          {rendered}
+        </article>
+      </div>
+    );
+  }
+
   const repo = await getGithubRepo(params.slug);
   if (!repo) notFound();
 
@@ -38,33 +123,6 @@ export default async function ProjectPage({
     repo.name,
     repo.default_branch,
   );
-
-  const markdownOptions = {
-    overrides: {
-      img: { props: { className: "rounded-lg" } },
-      a: {
-        props: {
-          className: "text-accent-primary hover:underline",
-          target: "_blank",
-          rel: "noopener noreferrer",
-        },
-      },
-      h1: { props: { className: "text-3xl font-bold mt-6 mb-4" } },
-      h2: { props: { className: "text-2xl font-semibold mt-4 mb-3" } },
-      h3: { props: { className: "text-xl font-semibold mt-3 mb-2" } },
-      p: { props: { className: "mb-4" } },
-      code: {
-        props: {
-          className: "bg-zinc-900 px-1.5 py-0.5 rounded text-sm",
-        },
-      },
-      pre: {
-        props: {
-          className: "bg-zinc-900 p-4 rounded-lg overflow-x-auto",
-        },
-      },
-    },
-  };
 
   return (
     <div className="mt-24 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">

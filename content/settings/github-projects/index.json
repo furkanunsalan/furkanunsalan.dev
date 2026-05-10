@@ -1,0 +1,59 @@
+{
+  "repos": [
+    {
+      "name": "furkanunsalan.dev",
+      "visible": true,
+      "pinned": false
+    },
+    {
+      "name": "TravelMap",
+      "visible": true,
+      "pinned": false
+    },
+    {
+      "name": "teslamate-custom-dashboards",
+      "visible": true,
+      "pinned": false
+    },
+    {
+      "name": "teslamate-scripts",
+      "visible": true,
+      "pinned": false
+    },
+    {
+      "name": "golang-adventures",
+      "visible": true,
+      "pinned": false
+    },
+    {
+      "name": "advent-of-code-2024",
+      "visible": true,
+      "pinned": false
+    },
+    {
+      "name": "data-structures-and-algorithms",
+      "visible": true,
+      "pinned": false
+    },
+    {
+      "name": "CEN121",
+      "visible": true,
+      "pinned": false
+    },
+    {
+      "name": "furkanunsalan",
+      "visible": true,
+      "pinned": false
+    },
+    {
+      "name": "react-course-files",
+      "visible": true,
+      "pinned": false
+    },
+    {
+      "name": "gpa_calculator",
+      "visible": true,
+      "pinned": false
+    }
+  ]
+}
