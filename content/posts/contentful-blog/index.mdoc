@@ -1,11 +1,10 @@
 ---
-title: "Contentful ile Blog Sistemi Yönetmek"
+title: Contentful ile Blog Sistemi Yönetmek
 date: 2025-05-18
 tags:
-  - "Türkçe"
-  - "Web Dev"
+  - Türkçe
+  - Web Dev
 ---
-
 Bu rehberde [Developer MultiGroup](https://kommunity.com/devmultigroup) bünyesinde yeni başlattığımız [Android Blast Off](https://kommunity.com/devmultigroup/events/android-blast-off-jetpack-compose-bootcamp-18857d79) bootcamp serimizin [websitesine](https://android-blast-off.devmultigroup.com/) nasıl Contentful ve ve Next.js kullanarak çok basit bir şekilde bir blog sistemi kurduğumu anlatıyor olacağım. Bu yazı biraz da kendi yaptıklarımı pekiştirmek adına yazdığım bir yazı olacak; umarım beğenirsiniz, şimdiden iyi okumalar!
 
 ### Peki Nedir Bu Contentful?
@@ -29,8 +28,8 @@ Contentful’u diğer CMS’lerden ayıran özellikler:
 Contentful’u kullanmaya başlamak için öncelikle bir hesap oluşturmanız gerekiyor. İşte adım adım hesap oluşturma süreci:
 
 1. [Contentful web sitesine](https://www.contentful.com/) gidin.
-2. Sağ üst köşedeki “Sign up” butonuna tıklayın.
-3. Hesabınızı oluşturmak için:
+1. Sağ üst köşedeki “Sign up” butonuna tıklayın.
+1. Hesabınızı oluşturmak için:
 
 - E-posta adresinizi girin
 - Bir şifre oluşturun
@@ -55,10 +54,10 @@ Contentful’da içerik modelleme, “Content Types” (İçerik Tipleri) adı v
 **İçerik tipinizi oluşturmak için:**
 
 1. Sol menüden **“Content model”** bölümüne gidin.
-2. **“Add content type”** butonuna tıklayın.
-3. İçerik tipinize bir isim verin (örneğin **“Blog Post”**).
-4. İsterseniz bir açıklama ekleyin ve API identifier’ı düzenleyin.
-5. **“Create”** butonuna tıklayın.
+1. **“Add content type”** butonuna tıklayın.
+1. İçerik tipinize bir isim verin (örneğin **“Blog Post”**).
+1. İsterseniz bir açıklama ekleyin ve API identifier’ı düzenleyin.
+1. **“Create”** butonuna tıklayın.
 
 Her Content Type’a **alanlar (fields)** ekleyerek yapısını belirlemeniz gerekir. Örneğin, haydi bizim Android Blast-Off için oluşturduğumuz Content Type’a göz atalım:
 
@@ -71,12 +70,12 @@ Her Content Type’a **alanlar (fields)** ekleyerek yapısını belirlemeniz ger
 **Yeni bir alan eklemek için:**
 
 1. “Add field” butonuna tıklayın.
-2. Alan tipini seçin (Text, Number, Date, Media, Location, Reference vb.).
-3. Alana bir isim verin.
-4. Gerekli diğer ayarları yapın (zorunlu alan mı, görünürlük ayarları, yardımcı metin vb.).
-5. “Create and configure” butonuna tıklayın.
-6. Ek alan ayarlarını yapılandırın (karakter limiti, format vb.)
-7. “Confirm” butonuna tıklayın.
+1. Alan tipini seçin (Text, Number, Date, Media, Location, Reference vb.).
+1. Alana bir isim verin.
+1. Gerekli diğer ayarları yapın (zorunlu alan mı, görünürlük ayarları, yardımcı metin vb.).
+1. “Create and configure” butonuna tıklayın.
+1. Ek alan ayarlarını yapılandırın (karakter limiti, format vb.)
+1. “Confirm” butonuna tıklayın.
 
 Content Type Alan Seçenekleri
 
@@ -101,10 +100,10 @@ Content Type’larınızı oluşturduktan sonra, artık gerçek içerikler ekley
 Yeni bir içerik eklemek için:
 
 1. Sol menüden “Content” bölümüne gidin.
-2. “Add entry” butonuna tıklayın.
-3. Oluşturduğunuz Content Type’lardan birini seçin (örneğin “Blog Post”).
-4. İçeriğiniz için gerekli tüm alanları doldurun.
-5. Sağ üst köşedeki “Publish” butonuna tıklayarak içeriğinizi yayınlayın.
+1. “Add entry” butonuna tıklayın.
+1. Oluşturduğunuz Content Type’lardan birini seçin (örneğin “Blog Post”).
+1. İçeriğiniz için gerekli tüm alanları doldurun.
+1. Sağ üst köşedeki “Publish” butonuna tıklayarak içeriğinizi yayınlayın.
 
 İçerik oluştururken dikkat edilmesi gereken önemli noktalar:
 
@@ -124,21 +123,21 @@ Contentful’da blog yazılarınıza fotoğraf eklemek oldukça kolaydır. Bunun
 Eğer Content Type’ınızda bir “Media” alanı varsa (örneğin, blog yazısının kapak görseli için), bu adımları izleyin:
 
 1. İçeriğinizi düzenlerken, Media alanına tıklayın.
-2. “Add media” butonuna tıklayın.
-3. Daha önce yüklediğiniz bir görseli seçebilir veya yeni bir görsel/görseller yükleyebilirsiniz.
-4. Yeni bir görsel yüklemek için “Upload” seçeneğini kullanın.
-5. Bilgisayarınızdan bir görsel seçin ve “Open” butonuna tıklayın.
-6. Görseliniz için başlık ve açıklama ekleyin (opsiyonel).
-7. “Publish” butonuna tıklayarak görseli yayınlayın.
+1. “Add media” butonuna tıklayın.
+1. Daha önce yüklediğiniz bir görseli seçebilir veya yeni bir görsel/görseller yükleyebilirsiniz.
+1. Yeni bir görsel yüklemek için “Upload” seçeneğini kullanın.
+1. Bilgisayarınızdan bir görsel seçin ve “Open” butonuna tıklayın.
+1. Görseliniz için başlık ve açıklama ekleyin (opsiyonel).
+1. “Publish” butonuna tıklayarak görseli yayınlayın.
 
 #### 2. Rich Text Alanı İçine Fotoğraf Ekleme
 
 Rich Text alanı içindeki içeriğinize fotoğraf eklemek için:
 
 1. Rich Text düzenleyicide, görseli eklemek istediğiniz konumu seçin.
-2. Araç çubuğundaki “Embed” butonuna tıklayın.
-3. “Asset” seçeneğini tıklayın.
-4. Daha önce yüklediğiniz bir görseli seçebilir veya yeni bir görsel yükleyebilirsiniz.
+1. Araç çubuğundaki “Embed” butonuna tıklayın.
+1. “Asset” seçeneğini tıklayın.
+1. Daha önce yüklediğiniz bir görseli seçebilir veya yeni bir görsel yükleyebilirsiniz.
 
 #### Fotoğraf Yönetimi İpuçları
 
@@ -176,8 +175,8 @@ import { createClient, Entry } from "contentful";
 import { BlogPostSkeleton } from "@/types/contentful";
 
 const client = createClient({
-  space: process.env.CONTENTFUL_SPACE_ID || "",
-  accessToken: process.env.CONTENTFUL_ACCESS_TOKEN || "",
+space: process.env.CONTENTFUL_SPACE_ID || "",
+accessToken: process.env.CONTENTFUL_ACCESS_TOKEN || "",
 });
 
 [Contentful İstemcisi Dosyamız](https://github.com/Developer-MultiGroup/android-blast-off-website/blob/main/src/lib/contentful.ts)
@@ -191,13 +190,13 @@ Haydi şimdi blogları listeleyeceğimiz sayfafı ve gerekli fonksyionları yaza
 // src/lib/contentful.ts
 
 export const getBlogPosts = async (): Promise<Entry<BlogPostSkeleton>[]> => {
-  const res = await client.getEntries<BlogPostSkeleton>({
-    content_type: "dmgBlog", // Bu kısmı kendi Content Type'ınız ile değiştirmelisiniz
-  });
+const res = await client.getEntries<BlogPostSkeleton>({
+content_type: "dmgBlog", // Bu kısmı kendi Content Type'ınız ile değiştirmelisiniz
+});
 
-  console.log(res.items);
+console.log(res.items);
 
-  return res.items;
+return res.items;
 };
 
 Bu fonksyionu yazdıktan sonra ise bu blogların hepsini bir sayfada listelemeliyiz. Bunun için **“src/app/blog”** dizinine bir sayfa oluşturalım.
@@ -207,91 +206,89 @@ Bu fonksyionu yazdıktan sonra ise bu blogların hepsini bir sayfada listelemeli
 import { getBlogPosts } from "@/lib/contentful";
 import Link from "next/link";
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+Card,
+CardContent,
+CardFooter,
+CardHeader,
+CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export const revalidate = 60; // ISR
 
 export default async function BlogIndexPage() {
-  const posts = await getBlogPosts();
+const posts = await getBlogPosts();
 
-  return (
-    <div className="min-h-screen flex flex-col font-montserrat-semi">
-      {/* Fixed top spacing */}
-      <div className="h-[20vh]"></div>
+return (
+<div className="min-h-screen flex flex-col font-montserrat-semi">
+{/* Fixed top spacing */}
+<div className="h-[20vh]"></div>
 
-      {/* Content container */}
-      <div className="w-11/12 md:w-4/5 max-w-6xl mx-auto">
-        <header className="mb-12 md:mb-16 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-5 text-white">
-            Blog{" "}
-            <span className="bg-gradient-to-r text-secondary">Yazıları</span>
-          </h1>
-          <p className="text-gray-400 mb-8 max-w-2xl mx-auto text-sm md:text-base">
-            Android Blast-Off hakkında yazdığımız bütün içerikler bir arada!
-            Haydi sen de hemen okumaya başla.
-          </p>
-        </header>
+{/* Content container */}
+<div className="w-11/12 md:w-4/5 max-w-6xl mx-auto">
+<header className="mb-12 md:mb-16 text-center">
+<h1 className="text-3xl md:text-4xl font-bold mb-5 text-white">
+Blog{" "}
+<span className="bg-gradient-to-r text-secondary">Yazıları</span>
+</h1>
+<p className="text-gray-400 mb-8 max-w-2xl mx-auto text-sm md:text-base">
+Android Blast-Off hakkında yazdığımız bütün içerikler bir arada!
+Haydi sen de hemen okumaya başla.
+</p>
+</header>
 
-        {/* Blog posts grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {posts.map((post) => (
-            <Card
-              key={post.sys.id}
-              className="mb-6 bg-gray-800/70 backdrop-blur-sm border border-gray-600/30 hover:border-accent hover:bg-gray-800/80 hover:shadow-lg hover:shadow-gray-900/20 transition-all duration-300 group overflow-hidden rounded-xl w-full"
-            >
-              <CardHeader>
-                <p className="text-secondary text-sm mb-4">
-                  {new Date(post.sys.createdAt).toLocaleDateString("tr-TR", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-                <CardTitle className="text-white group-hover:text-white/90 transition-colors text-xl md:text-2xl font-bold">
-                  {String(post.fields.title) || "Untitled Post"}
-                </CardTitle>
-                {/* Writers section */}
-                {Array.isArray(post.fields.writers) &&
-                  post.fields.writers.length > 0 && (
-                    <div className="text-accent text-sm mt-2">
-                      {post.fields.writers.length === 1 ? "Yazar: " : "Yazarlar: "}
-                      {post.fields.writers.join(", ")}
-                    </div>
-                  )}
-              </CardHeader>
+{/* Blog posts grid */}*
+*<div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">*
+*{posts.map((post) => (*
+*<Card*
+*key={post.sys.id}*
+*className="mb-6 bg-gray-800/70 backdrop-blur-sm border border-gray-600/30 hover:border-accent hover:bg-gray-800/80 hover:shadow-lg hover:shadow-gray-900/20 transition-all duration-300 group overflow-hidden rounded-xl w-full"*
+*>*
+*<CardHeader>*
+*<p className="text-secondary text-sm mb-4">*
+*{new Date(post.sys.createdAt).toLocaleDateString("tr-TR", {*
+*year: "numeric",*
+*month: "long",*
+*day: "numeric",*
+*})}*
+*</p>*
+*<CardTitle className="text-white group-hover:text-white/90 transition-colors text-xl md:text-2xl font-bold">*
+*{String(post.fields.title) || "Untitled Post"}*
+*</CardTitle>*
+*{/* Writers section */}
+{Array.isArray(post.fields.writers) &&
+post.fields.writers.length > 0 && (
+<div className="text-accent text-sm mt-2">
+{post.fields.writers.length === 1 ? "Yazar: " : "Yazarlar: "}
+{post.fields.writers.join(", ")}
+</div>
+)}
+</CardHeader>
 
-              <CardContent>
-                <p className="text-white/90 text-sm md:text-base">
-                  {typeof post.fields.description === "string"
-                    ? post.fields.description
-                    : "Read this interesting blog post to learn more..."}
-                </p>
-              </CardContent>
+<CardContent>
+<p className="text-white/90 text-sm md:text-base">
+{typeof post.fields.description === "string"
+? post.fields.description
+: "Read this interesting blog post to learn more..."}
+</p>
+</CardContent>
 
-              <CardFooter className="flex justify-between items-center pt-2">
-                <Link href={`/blog/${post.fields.slug}`} passHref>
-                  <Button
-                    className="bg-gray-700/90 hover:bg-gray-600/90 text-white font-medium shadow-md hover:cursor-pointer hover:shadow-lg transition-all duration-200 border border-gray-500/30"
-                    aria-label={`Read ${
-                      String(post.fields.title) || "Untitled Post"
-                    }`}
-                  >
-                    Yazıyı Oku
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+<CardFooter className="flex justify-between items-center pt-2">
+<Link href={`/blog/${post.fields.slug}`} passHref>
+<Button
+className="bg-gray-700/90 hover:bg-gray-600/90 text-white font-medium shadow-md hover:cursor-pointer hover:shadow-lg transition-all duration-200 border border-gray-500/30"
+aria-label={`Read ${                       String(post.fields.title) || "Untitled Post"                     }`}
+
+Yazıyı Oku
+</Button>
+</Link>
+</CardFooter>
+</Card>
+))}
+</div>
+</div>
+</div>
+);
 }
 
 [Bloglarımız Listelediğimiz Sayfamız](https://github.com/Developer-MultiGroup/android-blast-off-website/blob/main/src/app/blog/page.tsx)
@@ -307,16 +304,16 @@ Evet artık bütün bloglarımızı listelediğimiz bir sayfamız olduğuna gör
 Bunun için yapmamız gereken ilk şey tekil blog yazılarının içeriklerini çekmek. Tekrardan “contentful.ts” dosyamıza gelerek bu sefer de “getPostsBySlug” adında bir fonksiyon yazmalıyız.
 
 export const getPostBySlug = async (
-  slug: string
+slug: string
 ): Promise<Entry<BlogPostSkeleton> | null> => {
-  const res = await client.getEntries<BlogPostSkeleton>({
-    content_type: "dmgBlog",
-    // 👇 safely assert it as any
-    "fields.slug": slug,
-    locale: 'en-US',
-  } as any); // acceptable in this specific case
+const res = await client.getEntries<BlogPostSkeleton>({
+content_type: "dmgBlog",
+// 👇 safely assert it as any
+"fields.slug": slug,
+locale: 'en-US',
+} as any); // acceptable in this specific case
 
-  return res.items[0] ?? null;
+return res.items[0] ?? null;
 };
 
 Bu fonksiyon bizim oluşturduğumuz her Entry için gerekli alanları çekmemizi sağlıyor.

@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import Markdoc, { Config, Schema, Tag } from "@markdoc/markdoc";
+import Image from "next/image";
 import React from "react";
 import { getPostBySlug, getPosts } from "@/lib/content";
 import TableOfContents, { type Heading } from "@/components/TableOfContents";
+import PostBentoImages from "@/components/PostBentoImages";
 
 interface BlogPostProps {
   params: { slug: string };
@@ -73,7 +75,61 @@ function buildMarkdocConfig(): Config {
       return new Tag(`h${attributes.level}`, { ...attributes, id }, children);
     },
   };
-  return { nodes: { heading } };
+  // Image-only paragraphs become a marker Tag we can later collapse into a
+  // bento grid across consecutive paragraphs. A paragraph counts as image-only
+  // when all of its meaningful inline children are images (whitespace is fine).
+  const paragraph: Schema = {
+    children: ["inline"],
+    transform(node, config) {
+      const children = node.transformChildren(config);
+      const meaningful = children.filter(
+        (c) => !(typeof c === "string" && c.trim() === ""),
+      );
+      const allImages =
+        meaningful.length > 0 &&
+        meaningful.every(
+          (c) => typeof c === "object" && (c as Tag).name === "img",
+        );
+      if (allImages) {
+        return new Tag("PostImageRun", {}, meaningful as (Tag | string)[]);
+      }
+      return new Tag("p", {}, children);
+    },
+  };
+  return { nodes: { heading, paragraph } };
+}
+
+type RenderableNode = Tag | string;
+
+// Merge runs of consecutive PostImageRun tags into a single PostBentoImages
+// tag at the document level. This lets the user split images across separate
+// paragraphs and still get one bento group.
+function collapseImageRuns(node: RenderableNode): RenderableNode {
+  if (typeof node === "string" || !node || typeof node !== "object")
+    return node;
+  const tag = node as Tag;
+  const children = Array.isArray(tag.children) ? tag.children : [];
+  const out: RenderableNode[] = [];
+  let bucket: RenderableNode[] = [];
+  const flush = () => {
+    if (bucket.length === 0) return;
+    out.push(new Tag("PostBentoImages", {}, bucket as Tag["children"]));
+    bucket = [];
+  };
+  for (const child of children) {
+    if (
+      child &&
+      typeof child === "object" &&
+      (child as Tag).name === "PostImageRun"
+    ) {
+      bucket.push(...((child as Tag).children as RenderableNode[]));
+      continue;
+    }
+    flush();
+    out.push(collapseImageRuns(child as RenderableNode));
+  }
+  flush();
+  return new Tag(tag.name, tag.attributes, out as Tag["children"]);
 }
 
 export async function generateStaticParams() {
@@ -93,7 +149,24 @@ export default async function BlogPost({ params }: BlogPostProps) {
 
   const headings = extractHeadings(post.node);
   const transformed = Markdoc.transform(post.node, buildMarkdocConfig());
-  const rendered = Markdoc.renderers.react(transformed, React);
+  const collapsed = collapseImageRuns(transformed as RenderableNode);
+  const rendered = Markdoc.renderers.react(collapsed as any, React, {
+    components: {
+      PostBentoImages: ({ children }: { children?: React.ReactNode }) => {
+        const arr = React.Children.toArray(children) as any[];
+        const images = arr
+          .map((el) => {
+            const props = (el && el.props) || {};
+            const src = props.src as string | undefined;
+            if (!src) return null;
+            return { src, alt: (props.alt as string) || "" };
+          })
+          .filter((x): x is { src: string; alt: string } => !!x);
+        if (images.length === 0) return null;
+        return <PostBentoImages images={images} />;
+      },
+    },
+  });
   const readingTime = calculateReadingTime(post.node);
 
   return (
@@ -118,6 +191,19 @@ export default async function BlogPost({ params }: BlogPostProps) {
                   </li>
                 ))}
               </ul>
+            )}
+
+            {post.banner && (
+              <div className="image-skeleton relative mt-6 w-full aspect-[16/9] rounded-xl overflow-hidden ring-1 ring-white/[0.06] animate-fade-in delay-100">
+                <Image
+                  src={post.banner}
+                  alt={post.title}
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 768px"
+                  className="object-cover"
+                />
+              </div>
             )}
           </header>
 
