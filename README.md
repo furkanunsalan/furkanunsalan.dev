@@ -2,42 +2,78 @@
 
 # furkanunsalan.dev
 
-My personal site. Two ways in:
+My personal site — an AMOLED-dark Next.js app paired with a terminal SSH twin
+that reads the same content directory. Built around a tiny custom CMS
+(Keystatic) that commits straight back to this repo.
 
-- The web — [furkanunsalan.dev](https://furkanunsalan.dev)
-- The terminal — `ssh -p 2222 furkanunsalan.dev` (same content, in a TUI)
+> Two ways in:
+>
+> - Web — [furkanunsalan.dev](https://furkanunsalan.dev)
+> - Terminal — `ssh -p 2222 furkanunsalan.dev`
 
-## What's here
+## At a glance
 
-A small AMOLED-dark Next.js site with a few sections:
+| Posts | Experiences |  Tools | Custom projects |
+| ----: | ----------: | -----: | --------------: |
+| **5** |       **9** | **11** |           **0** |
 
-- **Home** — short intro, social links, a clock, a "latest" feed across every section, and the gear I use.
-- **Experience** — work + volunteering history, with photos and links.
-- **Projects** — public GitHub repos by stars, plus a self-hosted contribution heatmap and per-repo README pages.
-- **Photos** — masonry gallery pulled from my Unsplash.
-- **Bookmarks** — recent saves from Raindrop, split into Posts and Videos.
-- **Writing** — long-form posts, Markdoc-rendered, with an RSS feed at `/rss.xml`.
+_Auto-generated on 2026-05-13 from `content/`._
 
-A `/keystatic` admin route is wired up for editing posts, experiences, and tools through a UI — the data lives as plain markdown / JSON files in `content/`, and edits commit straight back to the repo.
+## Posts per year
 
-## The terminal version
+![posts per year](docs/readme/posts-by-year.svg)
 
-Same data, served over real SSH. Written in Go with [Charm Wish](https://github.com/charmbracelet/wish) + Bubble Tea. Reads the same `content/` files and APIs the web version does, so anything edited in `/keystatic` shows up in both. Connect anonymously, no account, full keyboard or mouse-wheel scrolling. See `terminal/README.md` for details.
+## Top tags
+
+![top tags](docs/readme/top-tags.svg)
+
+## Recent writing
+
+- **Contentful ile Blog Sistemi Yönetmek** — 2025-05-18
+- **Clean Code 101: Neden ve Nasıl Temiz Kod Yazmalıyız** — 2025-05-11
+- **Gezilecek Yerler** — 2025-04-25
+- **My Takeaways from Ali Abdaal's Feel Good Productivity** — 2025-02-05
+- **Connect Your Docker Apps to a Domain** — 2024-10-22
+
+## Architecture
+
+```
+  ┌───────────────────────────────────────────────┐
+  │  Next.js 14 App Router  +  Tailwind  +  TypeScript │
+  └───────────────────────────────────────────────┘
+        │                            │
+        │ Reads content/ via Keystatic reader
+        ▼                            ▼
+  Web (this app)               Terminal (Go + Charm Wish)
+        │
+        └── GitHub OAuth Keystatic admin at /admin
+```
+
+The web app and the terminal app are both clients of one source of truth:
+the `content/` directory in this repo. Anything edited through `/admin`
+commits straight back to GitHub, so both surfaces stay in sync.
 
 ## What it talks to
 
 - **GitHub** — repo list, contribution graph, READMEs.
 - **Raindrop** — bookmarks.
 - **Unsplash** — photos.
-- **Keystatic** — content editing.
+- **Keystatic** — content editing (mounted at `/keystatic`, reachable via `/admin`).
 
 ## Deploys
 
-Self-hosted on a VPS. Two GitHub Actions workflows:
+Self-hosted on a VPS, two GitHub Actions workflows:
 
 - `deploy.yml` — builds Next.js, rsyncs, reloads PM2.
-- `deploy-terminal.yml` — cross-compiles the Go binary, syncs the content folder, idempotently sets up the systemd unit, restarts.
+- `deploy-terminal.yml` — cross-compiles the Go binary, syncs the content
+  folder, idempotently sets up the systemd unit, restarts.
+
+## Regenerating this README
+
+```bash
+node scripts/build-readme.mjs
+```
 
 ## License & contact
 
-GNU — see [LICENSE](LICENSE). Reach me at `hi@furkanunsalan.dev`.
+GNU — see [LICENSE](LICENSE). Reach me at `me@furkanunsalan.dev`.

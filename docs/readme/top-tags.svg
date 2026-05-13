@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 172" width="640" height="172" role="img" aria-label="Top tags">
+    <rect width="640" height="172" fill="#000000" rx="12" />
+    
+    <g>
+      <text x="132" y="25" fill="#d4d4d4" font-size="12" text-anchor="end" font-family="ui-sans-serif,system-ui">Türkçe</text>
+      <rect x="140" y="14" width="440" height="14" rx="4" fill="#6366f1" />
+      <text x="588" y="25" fill="#a5a8ff" font-size="12" font-family="ui-sans-serif,system-ui">3</text>
+    </g>
+    <g>
+      <text x="132" y="51" fill="#d4d4d4" font-size="12" text-anchor="end" font-family="ui-sans-serif,system-ui">English</text>
+      <rect x="140" y="40" width="293" height="14" rx="4" fill="#6366f1" />
+      <text x="441" y="51" fill="#a5a8ff" font-size="12" font-family="ui-sans-serif,system-ui">2</text>
+    </g>
+    <g>
+      <text x="132" y="77" fill="#d4d4d4" font-size="12" text-anchor="end" font-family="ui-sans-serif,system-ui">Web Dev</text>
+      <rect x="140" y="66" width="147" height="14" rx="4" fill="#6366f1" />
+      <text x="295" y="77" fill="#a5a8ff" font-size="12" font-family="ui-sans-serif,system-ui">1</text>
+    </g>
+    <g>
+      <text x="132" y="103" fill="#d4d4d4" font-size="12" text-anchor="end" font-family="ui-sans-serif,system-ui">Clean Code</text>
+      <rect x="140" y="92" width="147" height="14" rx="4" fill="#6366f1" />
+      <text x="295" y="103" fill="#a5a8ff" font-size="12" font-family="ui-sans-serif,system-ui">1</text>
+    </g>
+    <g>
+      <text x="132" y="129" fill="#d4d4d4" font-size="12" text-anchor="end" font-family="ui-sans-serif,system-ui">Development</text>
+      <rect x="140" y="118" width="147" height="14" rx="4" fill="#6366f1" />
+      <text x="295" y="129" fill="#a5a8ff" font-size="12" font-family="ui-sans-serif,system-ui">1</text>
+    </g>
+    <g>
+      <text x="132" y="155" fill="#d4d4d4" font-size="12" text-anchor="end" font-family="ui-sans-serif,system-ui">Travel</text>
+      <rect x="140" y="144" width="147" height="14" rx="4" fill="#6366f1" />
+      <text x="295" y="155" fill="#a5a8ff" font-size="12" font-family="ui-sans-serif,system-ui">1</text>
+    </g>
+  </svg>

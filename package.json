@@ -9,6 +9,7 @@
     "lint": "next lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,md,mdx,css,yaml,yml}\"",
     "check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,mdx,css,yaml,yml}\"",
+    "readme": "node scripts/build-readme.mjs",
     "sync:github-projects": "node scripts/sync-github-projects.mjs",
     "prepare": "husky"
   },
