@@ -7,14 +7,15 @@ that reads the same content directory. Built around a tiny custom CMS
 (Keystatic) that commits straight back to this repo.
 
 > Two ways in:
+>
 > - Web — [furkanunsalan.dev](https://furkanunsalan.dev)
 > - Terminal — `ssh -p 2222 furkanunsalan.dev`
 
 ## At a glance
 
-| Posts | Experiences | Tools | Custom projects |
-| ---: | ---: | ---: | ---: |
-| **5** | **9** | **11** | **2** |
+| Posts | Experiences |  Tools | Custom projects |
+| ----: | ----------: | -----: | --------------: |
+| **5** |       **9** | **11** |           **2** |
 
 _Auto-generated on 2026-05-14 from `content/`._
 
