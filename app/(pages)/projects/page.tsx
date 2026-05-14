@@ -15,9 +15,18 @@ export const revalidate = 3600;
 
 export default async function Projects() {
   const [repos, custom, visibility] = await Promise.all([
-    getGithubRepos().catch(() => []),
-    getCustomProjects().catch(() => []),
-    getGithubProjectVisibility().catch(() => ({ byName: new Map() })),
+    getGithubRepos().catch((e) => {
+      console.error("[/projects] getGithubRepos failed:", e);
+      return [];
+    }),
+    getCustomProjects().catch((e) => {
+      console.error("[/projects] getCustomProjects failed:", e);
+      return [];
+    }),
+    getGithubProjectVisibility().catch((e) => {
+      console.error("[/projects] getGithubProjectVisibility failed:", e);
+      return { byName: new Map() };
+    }),
   ]);
 
   const customCards: ProjectCardData[] = custom.map((p) => ({

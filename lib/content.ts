@@ -127,28 +127,44 @@ export async function getExperiences(): Promise<Experience[]> {
 }
 
 export async function getCustomProjects(): Promise<CustomProject[]> {
-  const slugs = await reader.collections.projects.list();
+  let slugs: string[] = [];
+  try {
+    slugs = await reader.collections.projects.list();
+  } catch (e) {
+    console.error("[getCustomProjects] list() failed:", e);
+    return [];
+  }
+  // Isolate per-entry errors — one entry that fails schema validation
+  // shouldn't blank the whole projects listing.
   const entries = await Promise.all(
     slugs.map(async (slug): Promise<CustomProject | null> => {
-      const entry = await reader.collections.projects.read(slug);
-      if (!entry) return null;
-      const image =
-        typeof entry.image === "string" && entry.image.length > 0
-          ? entry.image.startsWith("/")
-            ? entry.image
-            : `/projects/${entry.image}`
-          : undefined;
-      const project: CustomProject = {
-        slug,
-        name: entry.name,
-        description: entry.description,
-        metric: entry.metric,
-        link: entry.link ?? "",
-        order: entry.order ?? 100,
-        ...(entry.language ? { language: entry.language } : {}),
-        ...(image ? { image } : {}),
-      };
-      return project;
+      try {
+        const entry = await reader.collections.projects.read(slug);
+        if (!entry) {
+          console.error(`[getCustomProjects] read("${slug}") returned null`);
+          return null;
+        }
+        const image =
+          typeof entry.image === "string" && entry.image.length > 0
+            ? entry.image.startsWith("/")
+              ? entry.image
+              : `/projects/${entry.image}`
+            : undefined;
+        const project: CustomProject = {
+          slug,
+          name: entry.name,
+          description: entry.description,
+          metric: entry.metric,
+          link: entry.link ?? "",
+          order: entry.order ?? 100,
+          ...(entry.language ? { language: entry.language } : {}),
+          ...(image ? { image } : {}),
+        };
+        return project;
+      } catch (e) {
+        console.error(`[getCustomProjects] read("${slug}") failed:`, e);
+        return null;
+      }
     }),
   );
   return entries
