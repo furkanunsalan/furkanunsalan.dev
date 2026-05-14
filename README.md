@@ -96,11 +96,11 @@ API routes under `app/api/` proxy a few of these to the client where
 needed (`/api/github/contributions`, `/api/raindrop`, `/api/raindrop/stats`,
 `/api/tools`, and the Keystatic OAuth handler at `/api/keystatic/[...params]`).
 
-**Terminal twin.** `terminal/` is a Go SSH server (Charm Wish + Bubble Tea
-+ Lipgloss + Glamour) that reads the same `content/` directory and exposes
-posts, experiences, tools, projects, and bookmarks as a TUI. Same env
-vars (`GITHUB_TOKEN`, `RAINDROP_TOKEN`) as the web app. Listens on
-:2222.
+**Terminal twin.** `terminal/` is a Go SSH server built on Charm Wish,
+Bubble Tea, Lipgloss, and Glamour. It reads the same `content/` directory
+and exposes posts, experiences, tools, projects, and bookmarks as a TUI.
+Same env vars (`GITHUB_TOKEN`, `RAINDROP_TOKEN`) as the web app. Listens
+on :2222.
 
 **Build & deploy.** `output: "standalone"` so Next.js produces a
 self-contained server bundle. Husky pre-commit runs `prettier --write` +
