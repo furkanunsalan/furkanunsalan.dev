@@ -194,16 +194,15 @@ export default async function BlogPost({ params }: BlogPostProps) {
             )}
 
             {post.banner && (
-              <div className="image-skeleton relative mt-6 w-full aspect-[16/9] rounded-xl overflow-hidden ring-1 ring-white/[0.06] animate-fade-in delay-100">
-                <Image
-                  src={post.banner}
-                  alt={post.title}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 768px"
-                  className="object-cover"
-                />
-              </div>
+              <Image
+                src={post.banner}
+                alt={post.title}
+                width={0}
+                height={0}
+                priority
+                sizes="(max-width: 1024px) 100vw, 768px"
+                className="mt-6 max-h-[420px] w-auto h-auto max-w-full rounded-xl ring-1 ring-white/[0.06] animate-fade-in delay-100"
+              />
             )}
           </header>
 
