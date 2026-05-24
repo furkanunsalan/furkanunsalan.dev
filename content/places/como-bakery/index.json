@@ -1,0 +1,19 @@
+{
+  "name": "Como Bakery",
+  "lat": 41.04403,
+  "lng": 29.00187,
+  "address": "Köşeli Sokağı, Sinanpaşa Mahallesi, Akaretler, Beşiktaş",
+  "list": "Gezilecek Yerler",
+  "category": "",
+  "country": "Türkiye",
+  "city": "Beşiktaş",
+  "status": "want-to-go",
+  "sourceUrl": "https://www.google.com/maps/search/?api=1&query=41.04403,29.00187",
+  "addedAt": "2026-05-24T21:02:21.744Z",
+  "tags": [
+    "dessert",
+    "bakery",
+    "tiramisu"
+  ],
+  "notes": ""
+}

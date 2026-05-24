@@ -1,0 +1,18 @@
+{
+  "name": "Miss Pizza Şişhane",
+  "lat": 41.02862,
+  "lng": 28.97306,
+  "address": "Meşrutiyet Caddesi, Asmalı Mescit Mahallesi, Beyoğlu",
+  "list": "Gezilecek Yerler",
+  "category": "",
+  "country": "Türkiye",
+  "city": "Beyoğlu",
+  "status": "want-to-go",
+  "sourceUrl": "https://www.google.com/maps/search/?api=1&query=41.02862,28.97306",
+  "addedAt": "2026-05-24T21:02:21.744Z",
+  "tags": [
+    "food",
+    "pizza"
+  ],
+  "notes": ""
+}

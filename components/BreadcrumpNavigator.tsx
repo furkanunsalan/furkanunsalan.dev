@@ -10,6 +10,7 @@ import {
   Camera,
   Bookmark,
   PenLine,
+  MapPin,
 } from "lucide-react";
 
 const ICON_CLASS = "w-5 h-5";
@@ -27,6 +28,7 @@ const routes: { name: string; href: string; icon: React.ReactNode }[] = [
     icon: <FolderGit2 className={ICON_CLASS} />,
   },
   { name: "Photos", href: "/photos", icon: <Camera className={ICON_CLASS} /> },
+  { name: "Places", href: "/places", icon: <MapPin className={ICON_CLASS} /> },
   {
     name: "Bookmarks",
     href: "/bookmarks",

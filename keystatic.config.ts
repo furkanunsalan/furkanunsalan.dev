@@ -131,6 +131,70 @@ export default config({
         }),
       },
     }),
+    places: collection({
+      label: "Places",
+      slugField: "slug",
+      path: "content/places/*/",
+      format: { data: "json" },
+      schema: {
+        slug: fields.slug({
+          name: {
+            label: "Slug",
+            description: "URL fragment, e.g. galata-house",
+          },
+        }),
+        name: fields.text({ label: "Name" }),
+        lat: fields.number({
+          label: "Latitude",
+          description: "Decimal degrees, e.g. 41.0256",
+        }),
+        lng: fields.number({
+          label: "Longitude",
+          description: "Decimal degrees, e.g. 28.9744",
+        }),
+        address: fields.text({
+          label: "Address",
+          multiline: true,
+          description: "Free-form address. Fill from Nominatim or by hand.",
+        }),
+        list: fields.text({
+          label: "List",
+          description:
+            "Which curated list this belongs to (e.g. 'Cafes', 'Want to go').",
+        }),
+        category: fields.text({
+          label: "Category",
+          description: "e.g. cafe, restaurant, viewpoint",
+        }),
+        country: fields.text({ label: "Country" }),
+        city: fields.text({ label: "City" }),
+        status: fields.select({
+          label: "Status",
+          options: [
+            { label: "Want to go", value: "want-to-go" },
+            { label: "Been there", value: "been" },
+            { label: "Favorite", value: "favorite" },
+          ],
+          defaultValue: "want-to-go",
+        }),
+        tags: fields.array(fields.text({ label: "Tag" }), {
+          label: "Tags",
+          description:
+            "Free-form labels for filtering — e.g. coffee, pizza, museum, ankara.",
+          itemLabel: (props) => props.value,
+        }),
+        sourceUrl: fields.url({
+          label: "Source URL",
+          description: "Original Google Maps URL, kept for reference.",
+        }),
+        addedAt: fields.text({
+          label: "Added at",
+          description:
+            "ISO 8601 timestamp from the original Google Maps save. Used to sort the list.",
+        }),
+        notes: fields.text({ label: "Notes", multiline: true }),
+      },
+    }),
     tools: collection({
       label: "Tools",
       slugField: "name",

@@ -1,0 +1,19 @@
+{
+  "name": "Hüseyin Usta Lahmacun",
+  "lat": 40.25206,
+  "lng": 28.97669,
+  "address": "1. Hatun Sokak, Hamitler Mahallesi, Osmangazi, Bursa",
+  "list": "Gezilecek Yerler",
+  "category": "",
+  "country": "Türkiye",
+  "city": "Bursa",
+  "status": "want-to-go",
+  "sourceUrl": "https://www.google.com/maps/search/?api=1&query=40.25206,28.97669",
+  "addedAt": "2026-05-24T21:02:21.744Z",
+  "tags": [
+    "food",
+    "lahmacun",
+    "bursa"
+  ],
+  "notes": ""
+}

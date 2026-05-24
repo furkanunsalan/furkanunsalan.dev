@@ -1,0 +1,19 @@
+{
+  "name": "Ciğerci Apo",
+  "lat": 39.90914,
+  "lng": 32.81781,
+  "address": "Ziyabey Caddesi, Balgat Mahallesi, Çankaya, Ankara",
+  "list": "Gezilecek Yerler",
+  "category": "",
+  "country": "Türkiye",
+  "city": "Ankara",
+  "status": "want-to-go",
+  "sourceUrl": "https://www.google.com/maps/search/?api=1&query=39.90914,32.81781",
+  "addedAt": "2026-05-24T21:02:21.744Z",
+  "tags": [
+    "food",
+    "ankara",
+    "liver"
+  ],
+  "notes": ""
+}

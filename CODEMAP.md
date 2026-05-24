@@ -49,7 +49,8 @@ app/
 │   │       └── opengraph-image.tsx
 │   ├── experience/page.tsx # CompanyExperienceGroup list
 │   ├── photos/page.tsx     # Unsplash gallery (masonry)
-│   └── bookmarks/page.tsx  # Raindrop list with stats
+│   ├── bookmarks/page.tsx  # Raindrop list with stats
+│   └── places/page.tsx     # Curated places + Leaflet/OSM map
 │
 ├── api/
 │   ├── github/contributions/route.ts   # GraphQL contribution calendar
@@ -102,6 +103,7 @@ content/
 ├── projects/<slug>/index.mdoc        # Markdoc + frontmatter (name, description, metric, link, language, image)
 ├── experiences/<slug>/index.json     # role JSON (organization, title, dates, links, images)
 ├── tools/<slug>/index.json           # tool JSON (brand, what, category, comment, favorite, link)
+├── places/<slug>/index.json          # place JSON (name, lat/lng, address, list, category, visited, sourceUrl)
 └── settings/
     ├── home/index.json               # singleton: intro, timezone, socials, PGP id
     └── github-projects/index.json    # singleton: per-repo visible/pinned toggles
@@ -111,16 +113,16 @@ Every collection path matches a block in `keystatic.config.ts`. Image fields wri
 
 ## `lib/`
 
-| File                | Exports                                                                                                                                                               |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `content.ts`        | `reader` + `getPosts`, `getPostBySlug`, `getCustomProjects`, `getCustomProjectBySlug`, `getExperiences`, `getTools`, `getHomeSettings`, `getGithubProjectVisibility`. |
-| `github.ts`         | `getGithubRepos`, `getGithubRepo`, `getGithubReadme`, `getContributionCalendar`.                                                                                      |
-| `raindrop.ts`       | `getRaindropBookmarks`, `getRaindropCollections`, `getRaindropLatest`.                                                                                                |
-| `unsplash.ts`       | Default-export class wrapping the Unsplash user API.                                                                                                                  |
-| `og.tsx`            | `OG_SIZE`, `OG_CONTENT_TYPE`, `renderOgImage(...)` — shared OG template (AMOLED, indigo glows).                                                                       |
-| `slugify.ts`        | Normalize headings/titles to URL-safe slugs.                                                                                                                          |
-| `project-finder.ts` | Thin wrapper over `getGithubRepo`.                                                                                                                                    |
-| `utils.ts`          | `cn` (clsx + tailwind-merge).                                                                                                                                         |
+| File                | Exports                                                                                                                                                                            |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `content.ts`        | `reader` + `getPosts`, `getPostBySlug`, `getCustomProjects`, `getCustomProjectBySlug`, `getExperiences`, `getTools`, `getPlaces`, `getHomeSettings`, `getGithubProjectVisibility`. |
+| `github.ts`         | `getGithubRepos`, `getGithubRepo`, `getGithubReadme`, `getContributionCalendar`.                                                                                                   |
+| `raindrop.ts`       | `getRaindropBookmarks`, `getRaindropCollections`, `getRaindropLatest`.                                                                                                             |
+| `unsplash.ts`       | Default-export class wrapping the Unsplash user API.                                                                                                                               |
+| `og.tsx`            | `OG_SIZE`, `OG_CONTENT_TYPE`, `renderOgImage(...)` — shared OG template (AMOLED, indigo glows).                                                                                    |
+| `slugify.ts`        | Normalize headings/titles to URL-safe slugs.                                                                                                                                       |
+| `project-finder.ts` | Thin wrapper over `getGithubRepo`.                                                                                                                                                 |
+| `utils.ts`          | `cn` (clsx + tailwind-merge).                                                                                                                                                      |
 
 ## `terminal/`
 
@@ -142,12 +144,15 @@ Shares env-var names with the web app (`GITHUB_TOKEN`, `RAINDROP_TOKEN`). Listen
 
 ## Scripts & workflows
 
-| Path                                    | What                                                                 |
-| --------------------------------------- | -------------------------------------------------------------------- |
-| `scripts/build-readme.mjs`              | Regenerates `README.md` + SVG charts from `content/`.                |
-| `scripts/sync-github-projects.mjs`      | Fetches repos from GitHub, merges into the visibility singleton.     |
-| `.github/workflows/deploy.yml`          | Build Next.js → rsync `release/` to VPS → reload PM2 → health check. |
-| `.github/workflows/deploy-terminal.yml` | Cross-compile Go binary → ship to VPS → restart systemd unit.        |
+| Path                                    | What                                                                  |
+| --------------------------------------- | --------------------------------------------------------------------- |
+| `scripts/build-readme.mjs`              | Regenerates `README.md` + SVG charts from `content/`.                 |
+| `scripts/sync-github-projects.mjs`      | Fetches repos from GitHub, merges into the visibility singleton.      |
+| `scripts/import-takeout-places.mjs`     | Bulk-imports a Google Takeout Maps export into `content/places/`.     |
+| `scripts/import-placelist.mjs`          | Parses a Google Maps shared-list XHR response into `content/places/`. |
+| `scripts/add-place.mjs`                 | Single-URL place importer (Nominatim reverse-geocode, no API key).    |
+| `.github/workflows/deploy.yml`          | Build Next.js → rsync `release/` to VPS → reload PM2 → health check.  |
+| `.github/workflows/deploy-terminal.yml` | Cross-compile Go binary → ship to VPS → restart systemd unit.         |
 
 ## Routes at a glance
 
@@ -161,6 +166,7 @@ Shares env-var names with the web app (`GITHUB_TOKEN`, `RAINDROP_TOKEN`). Listen
 | `/experience`                | `app/(pages)/experience/page.tsx`                                         |
 | `/photos`                    | `app/(pages)/photos/page.tsx`                                             |
 | `/bookmarks`                 | `app/(pages)/bookmarks/page.tsx`                                          |
+| `/places`                    | `app/(pages)/places/page.tsx` (SSG + ISR, OSM tiles via Leaflet)          |
 | `/keystatic`, `/admin`       | Admin UI (`/admin` redirects to `/keystatic`)                             |
 | `/rss.xml`                   | `app/rss.xml/route.ts`                                                    |
 | `/opengraph-image`           | Site-wide OG fallback                                                     |

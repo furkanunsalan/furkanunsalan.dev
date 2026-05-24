@@ -1,0 +1,17 @@
+{
+  "name": "Welldone",
+  "lat": 41.00163,
+  "lng": 29.05539,
+  "address": "Çeçen Sokak, Acıbadem Mahallesi, Üsküdar",
+  "list": "Gezilecek Yerler",
+  "category": "",
+  "country": "Türkiye",
+  "city": "Üsküdar",
+  "status": "been",
+  "sourceUrl": "https://www.google.com/maps/search/?api=1&query=41.00163,29.05539",
+  "addedAt": "2026-05-24T21:02:21.744Z",
+  "tags": [
+    "food"
+  ],
+  "notes": ""
+}

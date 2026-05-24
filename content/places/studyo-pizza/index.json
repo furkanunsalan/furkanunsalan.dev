@@ -1,0 +1,19 @@
+{
+  "name": "Stüdyo Pizza",
+  "lat": 39.90065,
+  "lng": 32.85854,
+  "address": "Kuveyt Caddesi, Güvenevler Mahallesi, Çankaya, Ankara",
+  "list": "Gezilecek Yerler",
+  "category": "",
+  "country": "Türkiye",
+  "city": "Ankara",
+  "status": "want-to-go",
+  "sourceUrl": "https://www.google.com/maps/search/?api=1&query=39.90065,32.85854",
+  "addedAt": "2026-05-24T21:02:21.744Z",
+  "tags": [
+    "food",
+    "pizza",
+    "ankara"
+  ],
+  "notes": ""
+}

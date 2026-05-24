@@ -1,0 +1,139 @@
+/* AMOLED-tinted overrides for Leaflet's popup chrome. Scoped to .places-map
+   so they only apply inside this map instance. */
+
+.places-map .leaflet-popup-content-wrapper {
+  background: #000000;
+  color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.6);
+  padding: 0;
+}
+
+.places-map .leaflet-popup-tip {
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55);
+}
+
+.places-map .leaflet-popup-content {
+  margin: 0;
+  font: inherit;
+  line-height: 1.45;
+  width: 260px !important;
+}
+
+.places-map .leaflet-popup-close-button,
+.places-map .leaflet-popup-close-button:focus {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 16px;
+  padding: 8px 10px 0 0;
+  text-shadow: none;
+}
+
+.places-map .leaflet-popup-close-button:hover {
+  color: #ffffff;
+  background: transparent;
+}
+
+/* Reset the default <a> color inside the popup. We restyle our own link below. */
+.places-map .leaflet-container a.popup-action,
+.places-map .leaflet-container a.popup-action:hover {
+  background-color: transparent;
+}
+
+/* ---------- popup card ---------- */
+
+.places-map .popup-card {
+  padding: 12px 14px 12px;
+  font-family: inherit;
+}
+
+.places-map .popup-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 18px; /* keep clear of the close button */
+}
+
+.places-map .popup-name {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  /* allow wrapping but trim long single tokens */
+  overflow-wrap: anywhere;
+}
+
+.places-map .popup-address {
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.places-map .popup-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* "Open ↗" — compact text-button that brightens to accent on hover */
+.places-map .popup-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-decoration: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.places-map .popup-action:hover {
+  color: #ffffff;
+  background: rgba(99, 102, 241, 0.12); /* accent-primary @ 12% */
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+/* Status pill — picks up its border color from the per-status ring-* class
+   (e.g. ring-emerald-500) injected by Tailwind via box-shadow inset. We pull
+   that shadow color out via currentColor on the border. */
+.places-map .popup-status-chip {
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.03);
+  /* Tailwind's ring-* utilities don't paint a border by themselves on inline
+     elements without ring-1; force a thin border tinted by the chip's text
+     accent set via the matching ring-* class through a custom property below. */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Tint the chip border per status. Pairs with STATUS_RING in the TSX. */
+.places-map .popup-status-chip.ring-accent-primary {
+  border-color: rgba(99, 102, 241, 0.55);
+  color: #c7d2fe;
+}
+.places-map .popup-status-chip.ring-emerald-500 {
+  border-color: rgba(16, 185, 129, 0.55);
+  color: #6ee7b7;
+}
+.places-map .popup-status-chip.ring-rose-500 {
+  border-color: rgba(244, 63, 94, 0.55);
+  color: #fda4af;
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Tok BBQ",
+  "lat": 40.96597,
+  "lng": 29.06726,
+  "address": "Caddebostan İskele Sokağı, Caddebostan Mahallesi, Kadıköy",
+  "list": "Gezilecek Yerler",
+  "category": "",
+  "country": "Türkiye",
+  "city": "Kadıköy",
+  "status": "been",
+  "sourceUrl": "https://www.google.com/maps/search/?api=1&query=40.96597,29.06726",
+  "addedAt": "2026-05-24T21:02:21.744Z",
+  "tags": [
+    "burger",
+    "bbq"
+  ],
+  "notes": ""
+}

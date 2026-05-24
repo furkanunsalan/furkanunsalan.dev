@@ -1,0 +1,19 @@
+{
+  "name": "Valeria Coffee Dessert",
+  "lat": 40.98604,
+  "lng": 29.02544,
+  "address": "Moda Caddesi, Caferağa Mahallesi, Kadıköy",
+  "list": "Gezilecek Yerler",
+  "category": "",
+  "country": "Türkiye",
+  "city": "Kadıköy",
+  "status": "want-to-go",
+  "sourceUrl": "https://www.google.com/maps/search/?api=1&query=40.98604,29.02544",
+  "addedAt": "2026-05-24T21:02:21.744Z",
+  "tags": [
+    "dessert",
+    "coffee",
+    "brulee"
+  ],
+  "notes": ""
+}

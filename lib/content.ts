@@ -2,7 +2,13 @@ import { createReader } from "@keystatic/core/reader";
 import fs from "node:fs/promises";
 import path from "node:path";
 import keystaticConfig from "../keystatic.config";
-import type { CustomProject, Experience, Tool } from "@/types";
+import type {
+  CustomProject,
+  Experience,
+  Place,
+  PlaceStatus,
+  Tool,
+} from "@/types";
 import type { BlogPost } from "@/types";
 
 export const reader = createReader(process.cwd(), keystaticConfig);
@@ -286,6 +292,68 @@ export async function getGithubProjectVisibility(): Promise<GithubProjectVisibil
     });
   }
   return { byName };
+}
+
+function clean<T extends string | null | undefined>(v: T): string | undefined {
+  if (typeof v !== "string") return undefined;
+  const t = v.trim();
+  return t.length ? t : undefined;
+}
+
+export async function getPlaces(): Promise<Place[]> {
+  let slugs: string[] = [];
+  try {
+    slugs = await reader.collections.places.list();
+  } catch (e) {
+    console.error("[getPlaces] list() failed:", e);
+    return [];
+  }
+  const entries = await Promise.all(
+    slugs.map(async (slug): Promise<Place | null> => {
+      try {
+        const entry = await reader.collections.places.read(slug);
+        if (!entry) return null;
+        if (typeof entry.lat !== "number" || typeof entry.lng !== "number") {
+          return null;
+        }
+        const rawStatus = (entry as { status?: string }).status;
+        const status: PlaceStatus =
+          rawStatus === "been" || rawStatus === "favorite"
+            ? rawStatus
+            : "want-to-go";
+        return {
+          slug,
+          name: entry.name || slug,
+          lat: entry.lat,
+          lng: entry.lng,
+          address: clean(entry.address),
+          list: clean(entry.list),
+          category: clean(entry.category),
+          country: clean(entry.country),
+          city: clean(entry.city),
+          status,
+          sourceUrl: clean(entry.sourceUrl),
+          addedAt: clean((entry as { addedAt?: string }).addedAt),
+          tags: Array.isArray((entry as { tags?: unknown }).tags)
+            ? ((entry as { tags?: unknown }).tags as unknown[]).filter(
+                (t): t is string => typeof t === "string" && t.length > 0,
+              )
+            : [],
+        };
+      } catch (e) {
+        console.error(`[getPlaces] read("${slug}") failed:`, e);
+        return null;
+      }
+    }),
+  );
+  return entries
+    .filter((p): p is Place => p !== null)
+    .sort((a, b) => {
+      const ta = a.addedAt ? Date.parse(a.addedAt) : 0;
+      const tb = b.addedAt ? Date.parse(b.addedAt) : 0;
+      if (tb !== ta) return tb - ta;
+      return a.name.localeCompare(b.name);
+    });
 }
 
 export async function getTools(): Promise<Tool[]> {

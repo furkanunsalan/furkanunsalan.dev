@@ -63,6 +63,24 @@ export type CustomProject = {
   image?: string;
 };
 
+export type PlaceStatus = "want-to-go" | "been" | "favorite";
+
+export type Place = {
+  slug: string;
+  name: string;
+  lat: number;
+  lng: number;
+  address?: string;
+  list?: string;
+  category?: string;
+  country?: string;
+  city?: string;
+  status: PlaceStatus;
+  sourceUrl?: string;
+  addedAt?: string;
+  tags: string[];
+};
+
 export type ProjectCardData =
   | {
       kind: "github";
