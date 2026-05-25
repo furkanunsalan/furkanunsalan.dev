@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { UPLOADS_DIR, parseUploadRemote, sshRun } from "@/lib/uploads";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const ALLOWED_DIRS = new Set([
   "posts",

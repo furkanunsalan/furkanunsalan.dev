@@ -5,6 +5,7 @@ import { friendlyDbError } from "@/lib/db-errors";
 import { revalidateCollection } from "@/lib/revalidate";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type Kind = "category" | "list" | "tag";
 

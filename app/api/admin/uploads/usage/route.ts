@@ -5,6 +5,7 @@ import { UPLOADS_DIR, parseUploadRemote, listRemoteFiles } from "@/lib/uploads";
 import { UPLOAD_DIRS, type UploadDir, buildUsageMap } from "@/lib/uploadRefs";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 async function listLocalFiles(dir: UploadDir): Promise<string[]> {
   const full = path.join(UPLOADS_DIR, dir);

@@ -5,6 +5,7 @@ import { friendlyDbError } from "@/lib/db-errors";
 import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type Collection =
   | "posts"

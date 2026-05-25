@@ -6,6 +6,7 @@ import { revalidateCollection } from "@/lib/revalidate";
 import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type Collection =
   | "posts"

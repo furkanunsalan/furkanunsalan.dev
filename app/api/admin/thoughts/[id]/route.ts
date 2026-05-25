@@ -7,6 +7,7 @@ import { cleanStringArray } from "@/lib/validators";
 import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function parseId(raw: string): number | null {
   const n = Number(raw);

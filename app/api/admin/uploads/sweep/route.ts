@@ -10,6 +10,7 @@ import {
 import { UPLOAD_DIRS, type UploadDir, referencedByDir } from "@/lib/uploadRefs";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type DirReport = {
   kept: number;

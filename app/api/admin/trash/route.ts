@@ -4,6 +4,7 @@ import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type Collection =
   | "posts"
