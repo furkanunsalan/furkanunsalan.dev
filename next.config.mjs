@@ -1,50 +1,31 @@
-// During `next build`, Keystatic validates its GitHub-storage config at module
-// evaluation (page-data collection). If the OAuth env vars aren't set (first
-// deploy before secrets are in place), the build fails. Seed placeholders
-// during the production build phase ONLY — never during `next dev` or
-// runtime, otherwise Keystatic would use them as a real client_id and break
-// the OAuth flow.
-if (process.env.NEXT_PHASE === "phase-production-build") {
-  for (const k of [
-    "KEYSTATIC_GITHUB_CLIENT_ID",
-    "KEYSTATIC_GITHUB_CLIENT_SECRET",
-    "KEYSTATIC_SECRET",
-  ]) {
-    if (!process.env[k]) process.env[k] = "build-placeholder";
-  }
-}
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
-  // We sit behind nginx on the VPS; trust X-Forwarded-Host/Proto so
-  // request.url reflects the public domain instead of the bind address
-  // (otherwise things like Keystatic's OAuth redirect_uri get built with
-  // 127.0.0.1:3010 and GitHub rejects them).
   experimental: {
-    trustHostHeader: true,
+    // argon2 uses node-gyp-build to dynamic-require its `.node` binary out of
+    // a per-platform `prebuilds/` folder. Next's standalone tracer doesn't
+    // follow that dynamic require, so the prebuilds are dropped from the
+    // bundle and `verify()` throws at runtime. Pin them explicitly to the
+    // routes that import argon2.
+    outputFileTracingIncludes: {
+      "/api/admin/login": [
+        "./node_modules/argon2/prebuilds/**",
+        "./node_modules/argon2/argon2.cjs",
+        "./node_modules/argon2/package.json",
+      ],
+    },
   },
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**",
-      },
-    ],
-  },
-  // Keystatic hardcodes `/keystatic` as its basePath in the compiled UI
-  // bundle, so we can't actually mount it at /admin. Redirect /admin →
-  // /keystatic so users get a memorable entry URL while the CMS still
-  // operates from its native path.
-  async redirects() {
-    return [
-      { source: "/admin", destination: "/keystatic", permanent: false },
-      {
-        source: "/admin/:path*",
-        destination: "/keystatic/:path*",
-        permanent: false,
-      },
-    ];
+    // Disable the Next image optimizer entirely. The /_next/image endpoint
+    // is what makes wildcard `remotePatterns` an open HTTPS proxy / SSRF
+    // surface — by turning the optimizer off, <Image> renders the source
+    // URL directly from the browser. No server-side fetch, no host
+    // allowlist to maintain (Karakeep bookmarks would pull cover images
+    // from arbitrary URLs and break against any explicit list anyway).
+    //
+    // Trade-off: lose server-side resize/format conversion. Acceptable for
+    // a low-traffic personal site.
+    unoptimized: true,
   },
 };
 

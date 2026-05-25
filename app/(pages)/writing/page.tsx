@@ -2,6 +2,9 @@ import { Metadata } from "next";
 import BlogPosts from "@/components/BlogPosts";
 import { getPosts } from "@/lib/content";
 
+// DB-backed: avoid prerender at build time (CI has no access to the VPS pg).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Writing | Furkan Ünsalan",
   description:

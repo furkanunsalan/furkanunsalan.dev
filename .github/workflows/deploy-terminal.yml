@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - "terminal/**"
-      - "content/**"
       - ".github/workflows/deploy-terminal.yml"
   workflow_dispatch:
 
@@ -29,7 +28,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version: "1.25"
           cache: true
           cache-dependency-path: terminal/go.sum
 
@@ -102,6 +101,7 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           GH_PAT: ${{ secrets.GH_PAT }}
           RAINDROP_TOKEN: ${{ secrets.RAINDROP_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
           # Build env file locally then ship — keeps secrets out of remote shell history
@@ -109,7 +109,7 @@ jobs:
           HOST=0.0.0.0
           PORT=${TERM_PORT}
           HOST_KEY=${APP_DIR}/.ssh/term_ed25519
-          CONTENT_ROOT=${APP_DIR}
+          DATABASE_URL=${DATABASE_URL}
           GITHUB_TOKEN=${GH_PAT}
           GITHUB_USERNAME=furkanunsalan
           RAINDROP_TOKEN=${RAINDROP_TOKEN}
@@ -118,7 +118,7 @@ jobs:
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
             term.env "$VPS_USER@$VPS_HOST:$APP_DIR/term.env"
 
-      - name: Rsync binary + content
+      - name: Rsync binary
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -127,9 +127,6 @@ jobs:
           rsync -az --chmod=755 \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
             terminal/bin/term-linux "$VPS_USER@$VPS_HOST:$APP_DIR/bin/term"
-          rsync -az --delete \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
-            content "$VPS_USER@$VPS_HOST:$APP_DIR/"
 
       - name: Restart service
         env:

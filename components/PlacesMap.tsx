@@ -17,9 +17,10 @@ const PlacesMapView = dynamic(() => import("./PlacesMapView"), {
 
 interface Props {
   places: Place[];
+  lists: { name: string; icon: string }[];
 }
 
-export default function PlacesMap({ places }: Props) {
+export default function PlacesMap({ places, lists }: Props) {
   const valid = places.filter(
     (p) =>
       Number.isFinite(p.lat) &&
@@ -37,6 +38,7 @@ export default function PlacesMap({ places }: Props) {
     <div>
       <PlacesMapView
         places={valid}
+        lists={lists}
         center={[centerLat, centerLng]}
         zoom={valid.length > 1 ? 11 : 13}
       />

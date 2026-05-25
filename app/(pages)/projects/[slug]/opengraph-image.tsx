@@ -3,6 +3,7 @@ import { getGithubRepo } from "@/lib/github";
 import { OG_SIZE, OG_CONTENT_TYPE, renderOgImage } from "@/lib/og";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export const alt = "Furkan Ünsalan — Project";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;

@@ -1,21 +1,18 @@
 package data
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"io/fs"
-	"os"
-	"path/filepath"
-	"sort"
-	"strings"
+	"time"
 )
 
 type Post struct {
-	Slug    string
-	Title   string
-	Date    string
-	Tags    []string
-	Body    string
+	Slug  string
+	Title string
+	Date  string
+	Tags  []string
+	Body  string
 }
 
 type Link struct {
@@ -45,197 +42,128 @@ type Tool struct {
 	Link     *string `json:"link"`
 }
 
-// Root is the absolute path to the project root containing the content/ folder.
-var Root string
-
-func init() {
-	if r := os.Getenv("CONTENT_ROOT"); r != "" {
-		Root = r
-		return
-	}
-	Root = "."
-}
-
-func contentPath(parts ...string) string {
-	return filepath.Join(append([]string{Root, "content"}, parts...)...)
-}
+// 8 s gives a slow VPS plenty of room while still bounding any wedged query.
+const queryTimeout = 8 * time.Second
 
 // ----- Posts ---------------------------------------------------------------
 
-func LoadPosts() ([]Post, error) {
-	dir := contentPath("posts")
-	entries, err := os.ReadDir(dir)
+func LoadPosts(ctx context.Context) ([]Post, error) {
+	p, err := Pool(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	var posts []Post
-	for _, e := range entries {
-		if !e.IsDir() {
-			continue
-		}
-		slug := e.Name()
-		raw, err := os.ReadFile(filepath.Join(dir, slug, "index.mdoc"))
-		if err != nil {
-			if errIs(err, fs.ErrNotExist) {
-				continue
-			}
-			return nil, err
-		}
-		fm, body := splitFrontmatter(string(raw))
-		posts = append(posts, Post{
-			Slug:  slug,
-			Title: fm["title"],
-			Date:  fm["date"],
-			Tags:  parseList(fm["tags"]),
-			Body:  body,
-		})
+	qctx, cancel := context.WithTimeout(ctx, queryTimeout)
+	defer cancel()
+	rows, err := p.Query(qctx, `
+		select slug, title, date::text, coalesce(tags, '{}'::text[]), coalesce(content, '')
+		from posts
+		order by date desc
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("posts query: %w", err)
 	}
+	defer rows.Close()
 
-	sort.Slice(posts, func(i, j int) bool {
-		return posts[i].Date > posts[j].Date
-	})
-	return posts, nil
+	var out []Post
+	for rows.Next() {
+		var p Post
+		if err := rows.Scan(&p.Slug, &p.Title, &p.Date, &p.Tags, &p.Body); err != nil {
+			return nil, fmt.Errorf("posts scan: %w", err)
+		}
+		out = append(out, p)
+	}
+	return out, rows.Err()
 }
 
 // ----- Experiences ---------------------------------------------------------
 
-func LoadExperiences() ([]Experience, error) {
-	dir := contentPath("experiences")
-	entries, err := os.ReadDir(dir)
+func LoadExperiences(ctx context.Context) ([]Experience, error) {
+	p, err := Pool(ctx)
 	if err != nil {
 		return nil, err
 	}
+	qctx, cancel := context.WithTimeout(ctx, queryTimeout)
+	defer cancel()
+	rows, err := p.Query(qctx, `
+		select
+			id, "order", organization, title,
+			start_date::text,
+			end_date::text,
+			coalesce(comment, ''),
+			coalesce(links, '[]'::jsonb),
+			coalesce(images, '{}'::text[])
+		from experiences
+		order by "order" asc, start_date desc
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("experiences query: %w", err)
+	}
+	defer rows.Close()
 
 	var out []Experience
-	for _, e := range entries {
-		if !e.IsDir() {
-			continue
+	for rows.Next() {
+		var (
+			x        Experience
+			endDate  *string
+			linksRaw []byte
+		)
+		if err := rows.Scan(
+			&x.ID, &x.Order, &x.Organization, &x.Title,
+			&x.StartDate, &endDate, &x.Comment, &linksRaw, &x.Images,
+		); err != nil {
+			return nil, fmt.Errorf("experiences scan: %w", err)
 		}
-		raw, err := os.ReadFile(filepath.Join(dir, e.Name(), "index.json"))
-		if err != nil {
-			if errIs(err, fs.ErrNotExist) {
-				continue
+		x.EndDate = endDate
+		// links lives as jsonb; we read its raw bytes and decode here so the
+		// shape stays in sync with the {label,url} Go struct rather than the
+		// pg-side row format.
+		if len(linksRaw) > 0 {
+			if err := json.Unmarshal(linksRaw, &x.Links); err != nil {
+				return nil, fmt.Errorf("experiences links decode (%s): %w", x.ID, err)
 			}
-			return nil, err
-		}
-		var x Experience
-		if err := json.Unmarshal(raw, &x); err != nil {
-			return nil, fmt.Errorf("%s: %w", e.Name(), err)
 		}
 		out = append(out, x)
 	}
-
-	sort.SliceStable(out, func(i, j int) bool {
-		if out[i].Order != out[j].Order {
-			return out[i].Order < out[j].Order
-		}
-		return out[i].StartDate > out[j].StartDate
-	})
-	return out, nil
+	return out, rows.Err()
 }
 
 // ----- Tools ---------------------------------------------------------------
 
-func LoadTools() ([]Tool, error) {
-	dir := contentPath("tools")
-	entries, err := os.ReadDir(dir)
+func LoadTools(ctx context.Context) ([]Tool, error) {
+	p, err := Pool(ctx)
 	if err != nil {
 		return nil, err
 	}
+	qctx, cancel := context.WithTimeout(ctx, queryTimeout)
+	defer cancel()
+	rows, err := p.Query(qctx, `
+		select
+			name,
+			coalesce(brand, ''),
+			coalesce(what, ''),
+			category::text,
+			coalesce(comment, ''),
+			favorite,
+			link
+		from tools
+		order by name asc
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("tools query: %w", err)
+	}
+	defer rows.Close()
 
 	var out []Tool
-	for _, e := range entries {
-		if !e.IsDir() {
-			continue
+	for rows.Next() {
+		var (
+			t    Tool
+			link *string
+		)
+		if err := rows.Scan(&t.Name, &t.Brand, &t.What, &t.Category, &t.Comment, &t.Favorite, &link); err != nil {
+			return nil, fmt.Errorf("tools scan: %w", err)
 		}
-		raw, err := os.ReadFile(filepath.Join(dir, e.Name(), "index.json"))
-		if err != nil {
-			if errIs(err, fs.ErrNotExist) {
-				continue
-			}
-			return nil, err
-		}
-		var t Tool
-		if err := json.Unmarshal(raw, &t); err != nil {
-			return nil, fmt.Errorf("%s: %w", e.Name(), err)
-		}
+		t.Link = link
 		out = append(out, t)
 	}
-	return out, nil
-}
-
-// ----- Frontmatter helpers -------------------------------------------------
-
-// splitFrontmatter parses simple `key: value` YAML frontmatter between `---`
-// markers, plus a `tags:\n  - x\n  - y` list. It is intentionally tiny — a
-// real YAML parser is overkill for the schema Keystatic produces.
-func splitFrontmatter(s string) (map[string]string, string) {
-	out := map[string]string{}
-	if !strings.HasPrefix(s, "---") {
-		return out, s
-	}
-	rest := strings.TrimPrefix(s, "---\n")
-	end := strings.Index(rest, "\n---")
-	if end < 0 {
-		return out, s
-	}
-	header := rest[:end]
-	body := strings.TrimPrefix(rest[end+4:], "\n")
-
-	var currentList string
-	var listVals []string
-	for _, line := range strings.Split(header, "\n") {
-		if strings.HasPrefix(line, "  - ") {
-			listVals = append(listVals, strings.Trim(strings.TrimPrefix(line, "  - "), `"`))
-			continue
-		}
-		if currentList != "" {
-			out[currentList] = strings.Join(listVals, "\n")
-			currentList, listVals = "", nil
-		}
-		if i := strings.Index(line, ":"); i > 0 {
-			key := strings.TrimSpace(line[:i])
-			val := strings.TrimSpace(line[i+1:])
-			if val == "" {
-				currentList = key
-			} else {
-				out[key] = strings.Trim(val, `"`)
-			}
-		}
-	}
-	if currentList != "" {
-		out[currentList] = strings.Join(listVals, "\n")
-	}
-	return out, body
-}
-
-func parseList(s string) []string {
-	if s == "" {
-		return nil
-	}
-	parts := strings.Split(s, "\n")
-	out := make([]string, 0, len(parts))
-	for _, p := range parts {
-		p = strings.TrimSpace(p)
-		if p != "" {
-			out = append(out, p)
-		}
-	}
-	return out
-}
-
-func errIs(err, target error) bool {
-	for err != nil {
-		if err == target {
-			return true
-		}
-		type unwrapper interface{ Unwrap() error }
-		u, ok := err.(unwrapper)
-		if !ok {
-			return false
-		}
-		err = u.Unwrap()
-	}
-	return false
+	return out, rows.Err()
 }

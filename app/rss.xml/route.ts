@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import Markdoc from "@markdoc/markdoc";
 import { getPosts, getPostBySlug } from "@/lib/content";
 
+// DB-backed: rendered on demand. Route handlers are dynamic by default but
+// being explicit avoids any future static-rendering surprise.
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const posts = await getPosts();
   const baseUrl =

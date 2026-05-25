@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Markdoc, { Config, Schema, Tag } from "@markdoc/markdoc";
 import Image from "next/image";
 import React from "react";
-import { getPostBySlug, getPosts } from "@/lib/content";
+import { getPostBySlug } from "@/lib/content";
 import TableOfContents, { type Heading } from "@/components/TableOfContents";
 import PostBentoImages from "@/components/PostBentoImages";
 
@@ -132,10 +132,9 @@ function collapseImageRuns(node: RenderableNode): RenderableNode {
   return new Tag(tag.name, tag.attributes, out as Tag["children"]);
 }
 
-export async function generateStaticParams() {
-  const posts = await getPosts();
-  return posts.map((p) => ({ slug: p.slug }));
-}
+// DB-backed: rendered on demand. Skipping generateStaticParams means CI never
+// tries to call the VPS pg at build time.
+export const dynamic = "force-dynamic";
 
 export default async function BlogPost({ params }: BlogPostProps) {
   const post = await getPostBySlug(params.slug);

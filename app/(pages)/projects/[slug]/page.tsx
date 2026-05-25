@@ -6,17 +6,11 @@ import Image from "next/image";
 import { Metadata } from "next";
 import { Star, GitFork, ExternalLink, Sparkles } from "lucide-react";
 import { getGithubRepo, getGithubReadme } from "@/lib/github";
-import { getCustomProjectBySlug, getCustomProjects } from "@/lib/content";
+import { getCustomProjectBySlug } from "@/lib/content";
 
-export const revalidate = 3600;
-
-// Bake custom-project pages into the build so they don't depend on runtime FS
-// reads via Keystatic. GitHub-repo slugs aren't returned here and continue to
-// render dynamically (dynamicParams defaults to true).
-export async function generateStaticParams() {
-  const customProjects = await getCustomProjects().catch(() => []);
-  return customProjects.map((p) => ({ slug: p.slug }));
-}
+// DB-backed: rendered on demand. Skipping generateStaticParams means CI never
+// tries to call the VPS pg at build time.
+export const dynamic = "force-dynamic";
 
 const markdownOptions = {
   overrides: {

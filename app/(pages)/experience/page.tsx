@@ -4,6 +4,9 @@ import { Experience } from "@/types";
 import { Metadata } from "next";
 import { getExperiences } from "@/lib/content";
 
+// DB-backed: avoid prerender at build time (CI has no access to the VPS pg).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Experience | Furkan Ünsalan",
   description:

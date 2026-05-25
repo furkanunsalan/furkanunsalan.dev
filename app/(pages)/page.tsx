@@ -4,10 +4,11 @@ import HomeTools from "@/components/HomeTools";
 import LatestSection, { type LatestItem } from "@/components/LatestSection";
 import { getExperiences, getPosts } from "@/lib/content";
 import { getGithubRepos } from "@/lib/github";
-import { getRaindropLatest } from "@/lib/raindrop";
+import { BOOKMARK_LISTS, getKarakeepLatestFromLists } from "@/lib/karakeep";
 import unsplash from "@/lib/unsplash";
 
-export const revalidate = 3600;
+// DB-backed: avoid prerender at build time (CI has no access to the VPS pg).
+export const dynamic = "force-dynamic";
 
 async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   try {
@@ -23,7 +24,10 @@ export default async function Home() {
     safe(() => getExperiences(), []),
     safe(() => getPosts(), []),
     safe(() => getGithubRepos(), []),
-    safe(() => getRaindropLatest(), null),
+    safe(
+      () => getKarakeepLatestFromLists(BOOKMARK_LISTS.map((l) => l.id)),
+      null,
+    ),
     safe(() => unsplash.getPhotos(1) as Promise<any[]>, [] as any[]),
   ]);
 

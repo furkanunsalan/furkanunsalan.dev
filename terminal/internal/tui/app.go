@@ -69,9 +69,13 @@ type Model struct {
 }
 
 func New() Model {
-	posts, errP := data.LoadPosts()
-	exps, errE := data.LoadExperiences()
-	tools, errT := data.LoadTools()
+	// Bounded ctx — the terminal blocks on its first connect, so a hung pg
+	// shouldn't keep the SSH session waiting forever.
+	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
+	defer cancel()
+	posts, errP := data.LoadPosts(ctx)
+	exps, errE := data.LoadExperiences(ctx)
+	tools, errT := data.LoadTools(ctx)
 	var firstErr error
 	for _, e := range []error{errP, errE, errT} {
 		if e != nil && firstErr == nil {

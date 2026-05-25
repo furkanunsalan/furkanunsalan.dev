@@ -1,21 +1,24 @@
 # Working in this repo
 
-Personal site. Next.js 14 App Router + a small Go SSH terminal twin under `terminal/`. Both surfaces read the same `content/` directory (Markdoc + JSON, edited through Keystatic).
+Personal site. Next.js 14 App Router + a small Go SSH terminal twin under `terminal/`. Content lives in a Postgres database on the VPS; the site reads and writes it through `lib/db.ts` (Drizzle ORM over postgres-js). A custom admin under `/admin/*` (iron-session + argon2) is the only way to edit content.
 
 For a layout overview see [`CODEMAP.md`](CODEMAP.md).
 
 ## What to know before editing
 
-- **Source of truth is `content/`.** Pages don't fetch from a DB — they call `lib/content.ts` which wraps `@keystatic/core/reader`. Adding a new field means editing both `keystatic.config.ts` (the schema) AND `lib/content.ts` (the reader function that returns it to pages). Forgetting one is the typical bug.
-- **Standalone runtime FS is fragile.** Deploy ships `content/` to the VPS alongside `.next/standalone/`. Dynamic `[slug]` pages that rely on Keystatic at runtime can 404 in prod even when listing works. The cure is `generateStaticParams` — see `app/(pages)/writing/[slug]/page.tsx` and `projects/[slug]/page.tsx`. Mirror that pattern for any new content collection with detail pages.
-- **Keystatic prod storage is GitHub.** Edits in `/keystatic` commit straight to `main`, which triggers `deploy.yml`. So content changes go through a real build — no "update without redeploy" path.
-- **`createReader` is local-FS only.** It doesn't honor the `storage: github` config — it always reads from disk relative to `process.cwd()`. That's why the deploy workflow `cp -r content release/content` step exists.
+- **Source of truth is Postgres.** Pages call `lib/content.ts` which queries via Drizzle (`lib/db.ts`). Schema lives in `db/schema.ts`. Adding a new field means editing both the schema (then `npm run db:generate && npm run db:migrate`) AND the reader function in `lib/content.ts`. Forgetting one is the typical bug.
+- **All DB-backed public pages are `force-dynamic`.** The CI runner has no access to the VPS Postgres (bound to `127.0.0.1`), so prerender-at-build would fail. Each public page that reads from the DB has `export const dynamic = "force-dynamic"`. Adding a new content route → mirror that.
+- **Admin writes invalidate public caches via `lib/revalidate.ts`.** Every mutating route handler calls `revalidateCollection("posts", slug)` or similar — there's a central map of `collection → paths to revalidate`. When adding a new collection, extend that map; don't sprinkle `revalidatePath()` calls.
+- **Admin sits behind iron-session.** `middleware.ts` gates `/admin/*` + `/api/admin/*`, with `/admin/login` + `/api/admin/login` as the only public exceptions. `ADMIN_SESSION_SECRET` (≥32 chars) is mandatory at module-load; `lib/auth.ts` throws if missing.
+- **Uploads land outside the standalone bundle.** `UPLOADS_DIR` defaults to `<repo>/.uploads` in dev and `/root/furkanunsalan-uploads` in prod — never inside the rsync target so files survive deploys. `/api/img/[...path]` streams from there with a path-traversal-safe resolver.
 
 ## Conventions
 
-- **Server components by default.** Mark client components explicitly with `"use client"` (see `components/ProjectContainer.tsx`).
-- **ISR over fully dynamic.** Use `export const revalidate = 3600` plus `generateStaticParams` where slugs are known. Reserve `force-dynamic` for routes that genuinely need request-time data.
-- **Fail soft on third-party fetches in pages.** The home page wraps each call in a `safe()` helper so one dead upstream doesn't kill the route. Match that pattern when adding new providers.
+- **Server components by default.** Mark client components explicitly with `"use client"`.
+- **Public pages are dynamic.** Always `export const dynamic = "force-dynamic"` on pages/route handlers that read DB. Reserve ISR (`revalidate = N`) for routes that pull from external APIs you trust to throttle yourself.
+- **Fail soft on DB reads.** Every reader in `lib/content.ts` returns `[]` / `null` / safe defaults on query failure (logs to `console.error`). A Postgres blip should not 500 the whole site.
+- **`friendlyDbError(e, resource)` on every catch.** PostgresError messages contain SQL + params — never let them surface raw. Wrap every POST/PATCH/DELETE in `try { ... } catch (e) { const f = friendlyDbError(e, "..."); return NextResponse.json({ error: f.error }, { status: f.status }); }`.
+- **Centralized helpers.** Slug generation → `lib/slugify.ts` (`slugifyAscii`, `cleanUserSlug`). Excerpts → `lib/excerpt.ts`. Validation cleaners → `lib/validators.ts`. Add to these rather than re-implementing.
 - **AMOLED palette is in `tailwind.config.ts`.** Use `bg-zinc-950`/`bg-black` and the named tokens (`dark-*`, `light-*`, `accent-primary`) rather than ad-hoc hex.
 - **No comments unless the WHY is non-obvious.** Names should carry meaning. Existing files reflect this — keep that bar.
 - **Commit style is Conventional Commits.** Pre-commit hook runs `prettier --write && next build` — don't bypass with `--no-verify`; fix the type/lint error.
@@ -24,39 +27,49 @@ For a layout overview see [`CODEMAP.md`](CODEMAP.md).
 
 ```bash
 npm install
+
+# Open a tunnel to the VPS Postgres (one-time per session):
+ssh -fN -L 15432:127.0.0.1:5432 root@<vps>
+
 npm run dev          # http://localhost:3000
 ```
 
-Keystatic admin is at `/keystatic` (redirected from `/admin`). In dev, storage is local-filesystem, no auth.
+`.env.local` must contain at least `DATABASE_URL`, `ADMIN_SESSION_SECRET`, and `ADMIN_PASSWORD_HASH`. To rotate the password: `npm run admin:set-password -- "new password"` (writes the argon2 hash with `\$` escapes — dotenv-expand otherwise mangles the `$argon2id$…` prefix).
+
+Admin UI is at `/admin` (login → dashboard → per-collection lists/forms). Single-password auth; the hash is in env.
 
 For the terminal twin: `cd terminal && make run` (`ssh -p 2222 localhost`).
 
 ### Env vars (web)
 
-`.env.local` for development:
-
-| Var                                     | Used for                               |
-| --------------------------------------- | -------------------------------------- |
-| `GITHUB_TOKEN`                          | Repo list, contribution graph, READMEs |
-| `RAINDROP_TOKEN`                        | Bookmarks page                         |
-| `UNSPLASH_ACCESS_KEY`                   | Photos page                            |
-| `KEYSTATIC_GITHUB_CLIENT_ID`            | Admin OAuth (prod only)                |
-| `KEYSTATIC_GITHUB_CLIENT_SECRET`        | Admin OAuth (prod only)                |
-| `KEYSTATIC_SECRET`                      | Session signing (prod only)            |
-| `NEXT_PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` | Admin OAuth (prod only)                |
-| `NEXT_PUBLIC_SITE_URL`                  | Absolute URLs in OG/RSS                |
+| Var                    | Used for                                                                                |
+| ---------------------- | --------------------------------------------------------------------------------------- |
+| `DATABASE_URL`         | Postgres connection. Dev points at the SSH tunnel (`:15432`); prod at `127.0.0.1:5432`. |
+| `ADMIN_SESSION_SECRET` | iron-session cookie secret (≥32 chars; module-load throws if missing).                  |
+| `ADMIN_PASSWORD_HASH`  | argon2id PHC hash; **must escape `$` as `\$`** in env files.                            |
+| `UPLOADS_DIR`          | Absolute path for image uploads (outside the rsync target).                             |
+| `GITHUB_TOKEN`         | Repo list, contribution graph, READMEs.                                                 |
+| `RAINDROP_TOKEN`       | (Optional, legacy) Raindrop bookmarks page.                                             |
+| `KARAKEEP_API_KEY`     | Karakeep bookmarks page.                                                                |
+| `UNSPLASH_ACCESS_KEY`  | Photos page.                                                                            |
+| `NEXT_PUBLIC_SITE_URL` | Absolute URLs in OG/RSS.                                                                |
 
 ## Deploy
 
-Push to `main` → GitHub Actions builds and rsyncs to the VPS. `deploy.yml` for the Next.js side, `deploy-terminal.yml` for the Go binary. Both watch `main`; either runs concurrently per its own concurrency group.
+Push to `main` → GitHub Actions builds and rsyncs to the VPS. `deploy.yml` for the Next.js side, `deploy-terminal.yml` for the Go binary.
+
+`.env.production` on the VPS is excluded from rsync. After a deploy, PM2 reloads with `--update-env` and re-reads it.
+
+## DB ops
+
+- **Postgres** runs in a Docker container on the VPS (`furkanunsalan-pg`, `postgres:17-alpine`, bound to `127.0.0.1:5432`). Named volume `furkanunsalan-pg-data` survives container restarts.
+- **Daily backup** at 03:30 UTC via the systemd timer `furkanunsalan-pg-backup.timer` → `pg_dump -Fc -Z 6` → `/root/backups/furkanunsalan-pg/` with 14-day retention.
+- **Schema changes:** edit `db/schema.ts` → `npm run db:generate` (creates `db/migrations/NNNN_*.sql`) → open the tunnel → `npm run db:migrate`. Both dev and prod hit the same DB, so this updates both at once.
 
 ## Common tasks
 
-- **Add a new page route** — drop it under `app/(pages)/<route>/page.tsx`. The route group `(pages)` does not affect the URL.
-- **Add a content collection** — extend `keystatic.config.ts`, write a reader in `lib/content.ts`, scaffold an `app/(pages)/<thing>/[slug]/page.tsx` with `generateStaticParams` + `revalidate`.
+- **Add a new page route** — drop it under `app/(pages)/<route>/page.tsx`. The route group `(pages)` does not affect the URL. If it reads DB, add `export const dynamic = "force-dynamic"`.
+- **Add a content collection** — extend `db/schema.ts`, generate + apply migration, add a reader in `lib/content.ts`, add admin routes under `app/api/admin/<col>/` (POST/PATCH/DELETE wrapped in `friendlyDbError`), add an admin page under `app/admin/<col>/` (list + form + new + edit), wire the collection name into `lib/revalidate.ts`.
 - **Update OG image style** — `lib/og.tsx` is the single template; route-specific images (`opengraph-image.tsx`) call `renderOgImage(...)` with custom props.
-- **Regenerate the README** — `node scripts/build-readme.mjs` rewrites `README.md` + SVG charts from `content/`.
-- **Sync GitHub repos into Keystatic visibility singleton** — `npm run sync:github-projects` (preserves existing toggles).
-- **Bulk-import places from Google Takeout** — `npm run import:places -- <Takeout-path>`. Walks for `Saved Places.json` / `Labelled places.json` (GeoJSON) and `Saved/*.csv` lists; idempotent unless `--force`. CSV rows lose coordinates in Takeout — fix those in `/keystatic` or via the single-URL importer.
-- **Import a shared Google Maps list** — Takeout fallback for when the export fails. Open the public list URL in a browser → DevTools → Network → find the request whose response contains your list ID → save the response to a file → `npm run import:placelist -- <response-file>`. Strips the XSSI prefix, parses the nested array, writes one JSON per place. Idempotent unless `--force`.
-- **Import a single place from a Google Maps URL** — `npm run add:place -- "<google-maps-url>"`. Resolves short links, parses lat/lng + name, reverse-geocodes via OSM Nominatim (no API key). Writes a Keystatic JSON for review.
+- **Add a place via Maps URL** — `/admin/places/new`, paste the URL into the resolver panel. It follows short-link redirects, parses lat/lng, reverse-geocodes via OSM Nominatim. Detects existing-slug collisions and offers a jump-to-edit link.
+- **Sync GitHub repo visibility** — `/admin/settings/github`, click "Sync from GitHub". Reconciles via 1–3 bulk SQL statements in a transaction.

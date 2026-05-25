@@ -11,7 +11,8 @@ export const metadata: Metadata = {
     "Public open-source GitHub projects plus a few hand-curated builds.",
 };
 
-export const revalidate = 3600;
+// DB-backed: avoid prerender at build time (CI has no access to the VPS pg).
+export const dynamic = "force-dynamic";
 
 export default async function Projects() {
   const [repos, custom, visibility] = await Promise.all([

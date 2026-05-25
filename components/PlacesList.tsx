@@ -11,68 +11,73 @@ import {
   Search,
 } from "lucide-react";
 import type { Place, PlaceStatus } from "@/types";
+import { iconKey, type ListIconKey } from "@/lib/place-list-icons";
+import { PLACE_LIST_ICON_COMPONENTS } from "@/lib/place-list-icons-react";
 
 const PAGE_SIZE = 20;
 
-// Status badges are a black coin with a white icon and a vibrant accent ring.
-// The chip variant (filter buttons) tints bg+text+ring with the same accent.
+// Status drives the per-row icon ring color (matches the map pins).
 const STATUS_META: Record<
   PlaceStatus,
   {
     label: string;
-    badgeRing: string; // ring around the black coin in row badges + active chip
-    chipBg: string; // active chip background
-    chipText: string; // active chip text
+    ring: string;
+    chipBg: string;
+    chipText: string;
     Icon: typeof Bookmark;
   }
 > = {
   "want-to-go": {
     label: "Want to go",
-    badgeRing: "ring-accent-primary",
+    ring: "ring-accent-primary",
     chipBg: "bg-accent-primary/15",
     chipText: "text-accent-primary",
     Icon: Bookmark,
   },
   been: {
     label: "Been there",
-    badgeRing: "ring-emerald-500",
+    ring: "ring-emerald-500",
     chipBg: "bg-emerald-500/15",
     chipText: "text-emerald-400",
     Icon: Check,
   },
   favorite: {
     label: "Favorite",
-    badgeRing: "ring-rose-500",
+    ring: "ring-rose-500",
     chipBg: "bg-rose-500/15",
     chipText: "text-rose-400",
     Icon: Heart,
   },
 };
 
-type Filter = PlaceStatus | "all";
+type StatusFilter = PlaceStatus | "all";
+type ListFilter = string; // "" = all lists
+
+interface ListMeta {
+  name: string;
+  icon: string;
+}
 
 interface Props {
   places: Place[];
+  lists: ListMeta[];
 }
 
-export default function PlacesList({ places }: Props) {
-  const [filter, setFilter] = useState<Filter>("all");
+export default function PlacesList({ places, lists }: Props) {
+  const [activeList, setActiveList] = useState<ListFilter>("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
-  const allTags = useMemo(() => {
+  const listCounts = useMemo(() => {
     const m = new Map<string, number>();
-    for (const p of places) {
-      for (const t of p.tags) m.set(t, (m.get(t) || 0) + 1);
-    }
-    return Array.from(m.entries()).sort(
-      (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
-    );
+    for (const p of places) m.set(p.list || "", (m.get(p.list || "") || 0) + 1);
+    return m;
   }, [places]);
 
-  const counts = useMemo(() => {
-    const c: Record<Filter, number> = {
+  const statusCounts = useMemo(() => {
+    const c: Record<StatusFilter, number> = {
       all: places.length,
       "want-to-go": 0,
       been: 0,
@@ -82,10 +87,21 @@ export default function PlacesList({ places }: Props) {
     return c;
   }, [places]);
 
+  const iconByList = useMemo(() => {
+    const m = new Map<string, ListIconKey>();
+    for (const l of lists) m.set(l.name, iconKey(l.icon));
+    return m;
+  }, [lists]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return places.filter((p) => {
-      if (filter !== "all" && p.status !== filter) return false;
+      if (activeList === "__none__") {
+        if ((p.list || "") !== "") return false;
+      } else if (activeList) {
+        if ((p.list || "") !== activeList) return false;
+      }
+      if (statusFilter !== "all" && p.status !== statusFilter) return false;
       if (activeTag && !p.tags.includes(activeTag)) return false;
       if (!q) return true;
       return (
@@ -96,15 +112,19 @@ export default function PlacesList({ places }: Props) {
         p.tags.some((t) => t.toLowerCase().includes(q))
       );
     });
-  }, [places, filter, query, activeTag]);
+  }, [places, activeList, statusFilter, query, activeTag]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
   const start = (safePage - 1) * PAGE_SIZE;
   const visible = filtered.slice(start, start + PAGE_SIZE);
 
-  const onFilter = (next: Filter) => {
-    setFilter(next);
+  const onList = (l: ListFilter) => {
+    setActiveList(l);
+    setPage(1);
+  };
+  const onStatus = (s: StatusFilter) => {
+    setStatusFilter(s);
     setPage(1);
   };
   const onQuery = (s: string) => {
@@ -116,8 +136,44 @@ export default function PlacesList({ places }: Props) {
     setPage(1);
   };
 
+  const uncategorizedCount = listCounts.get("") ?? 0;
+
   return (
     <div>
+      {/* Top row — list filter chips with icons */}
+      <div className="flex flex-wrap items-center gap-1.5 mb-3">
+        <ListChip
+          active={activeList === ""}
+          onClick={() => onList("")}
+          label="All"
+          count={places.length}
+        />
+        {lists.map((l) => {
+          const ik = iconByList.get(l.name) ?? iconKey(l.icon);
+          const Icon = PLACE_LIST_ICON_COMPONENTS[ik];
+          const count = listCounts.get(l.name) ?? 0;
+          return (
+            <ListChip
+              key={l.name}
+              active={activeList === l.name}
+              onClick={() => onList(activeList === l.name ? "" : l.name)}
+              label={l.name}
+              count={count}
+              Icon={Icon}
+            />
+          );
+        })}
+        {uncategorizedCount > 0 && (
+          <ListChip
+            active={activeList === "__none__"}
+            onClick={() => onList(activeList === "__none__" ? "" : "__none__")}
+            label="Uncategorized"
+            count={uncategorizedCount}
+          />
+        )}
+      </div>
+
+      {/* Second row — search + status filters */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
         <div className="relative flex-1">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-light-fourth" />
@@ -131,21 +187,21 @@ export default function PlacesList({ places }: Props) {
         </div>
         <div className="flex flex-wrap gap-1.5">
           <FilterChip
-            active={filter === "all"}
-            onClick={() => onFilter("all")}
-            label="All"
-            count={counts.all}
+            active={statusFilter === "all"}
+            onClick={() => onStatus("all")}
+            label="All status"
+            count={statusCounts.all}
           />
           {(Object.keys(STATUS_META) as PlaceStatus[]).map((s) => {
             const m = STATUS_META[s];
             return (
               <FilterChip
                 key={s}
-                active={filter === s}
-                onClick={() => onFilter(s)}
+                active={statusFilter === s}
+                onClick={() => onStatus(s)}
                 label={m.label}
-                count={counts[s]}
-                accent={`${m.chipBg} ${m.chipText} ${m.badgeRing}/40`}
+                count={statusCounts[s]}
+                accent={`${m.chipBg} ${m.chipText} ${m.ring}/40`}
                 Icon={m.Icon}
               />
             );
@@ -153,35 +209,16 @@ export default function PlacesList({ places }: Props) {
         </div>
       </div>
 
-      {allTags.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 mb-4 text-[11px]">
-          {activeTag !== null && (
-            <button
-              type="button"
-              onClick={() => onTag(null)}
-              className="rounded-full px-2.5 py-0.5 ring-1 ring-white/[0.06] text-light-fourth hover:text-white hover:ring-white/20 transition-colors"
-            >
-              clear tag
-            </button>
-          )}
-          {allTags.map(([tag, n]) => {
-            const active = activeTag === tag;
-            return (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => onTag(active ? null : tag)}
-                className={`rounded-full px-2.5 py-0.5 ring-1 transition-colors ${
-                  active
-                    ? "bg-accent-primary/15 text-accent-primary ring-accent-primary/40"
-                    : "ring-white/[0.06] text-light-fourth hover:text-white hover:ring-white/20"
-                }`}
-              >
-                {tag}
-                <span className="opacity-60 ml-1">{n}</span>
-              </button>
-            );
-          })}
+      {activeTag !== null && (
+        <div className="mb-4 text-[11px] text-light-fourth inline-flex items-center gap-1.5">
+          filtered by tag
+          <button
+            type="button"
+            onClick={() => onTag(null)}
+            className="rounded-full px-2 py-0.5 ring-1 bg-accent-primary/15 text-accent-primary ring-accent-primary/40 hover:bg-accent-primary/25 transition-colors"
+          >
+            {activeTag} ✕
+          </button>
         </div>
       )}
 
@@ -193,15 +230,16 @@ export default function PlacesList({ places }: Props) {
         <ul className="divide-y divide-white/[0.04] ring-1 ring-white/[0.06] rounded-xl overflow-hidden bg-zinc-950">
           {visible.map((p) => {
             const meta = STATUS_META[p.status];
-            const { Icon } = meta;
+            const ik = iconByList.get(p.list || "") ?? iconKey(null);
+            const RowIcon = PLACE_LIST_ICON_COMPONENTS[ik];
             return (
               <li key={p.slug} className="px-4 py-3 flex items-start gap-3">
                 <span
                   aria-label={meta.label}
-                  title={meta.label}
-                  className={`mt-0.5 inline-flex items-center justify-center w-7 h-7 rounded-full bg-black ring-2 ${meta.badgeRing} text-white shrink-0`}
+                  title={`${meta.label}${p.list ? ` · ${p.list}` : ""}`}
+                  className={`mt-0.5 inline-flex items-center justify-center w-7 h-7 rounded-full bg-black ring-2 ${meta.ring} text-white shrink-0`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <RowIcon className="w-3.5 h-3.5" />
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm text-white truncate">{p.name}</div>
@@ -210,10 +248,10 @@ export default function PlacesList({ places }: Props) {
                       {[p.address, p.city].filter(Boolean).join(" · ")}
                     </div>
                   )}
-                  {(p.list || p.addedAt) && (
+                  {(p.category || p.addedAt) && (
                     <div className="mt-1 flex items-center gap-2 text-[10px] uppercase tracking-wider text-light-fourth/70">
-                      {p.list && <span>{p.list}</span>}
-                      {p.list && p.addedAt && <span aria-hidden>·</span>}
+                      {p.category && <span>{p.category}</span>}
+                      {p.category && p.addedAt && <span aria-hidden>·</span>}
                       {p.addedAt && (
                         <time dateTime={p.addedAt}>
                           {formatDate(p.addedAt)}
@@ -290,6 +328,36 @@ export default function PlacesList({ places }: Props) {
         </nav>
       )}
     </div>
+  );
+}
+
+function ListChip({
+  active,
+  onClick,
+  label,
+  count,
+  Icon,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count: number;
+  Icon?: typeof Bookmark;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs ring-1 transition-colors ${
+        active
+          ? "bg-accent-primary/15 text-accent-primary ring-accent-primary/40"
+          : "ring-white/[0.06] text-light-secondary hover:text-white hover:ring-white/20"
+      }`}
+    >
+      {Icon && <Icon className="w-3.5 h-3.5" />}
+      <span className="font-medium">{label}</span>
+      <span className="opacity-60">{count}</span>
+    </button>
   );
 }
 

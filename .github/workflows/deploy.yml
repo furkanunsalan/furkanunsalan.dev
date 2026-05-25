@@ -36,12 +36,15 @@ jobs:
           RAINDROP_TOKEN: ${{ secrets.RAINDROP_TOKEN }}
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-          KEYSTATIC_GITHUB_CLIENT_ID: ${{ secrets.KEYSTATIC_GITHUB_CLIENT_ID }}
-          KEYSTATIC_GITHUB_CLIENT_SECRET: ${{ secrets.KEYSTATIC_GITHUB_CLIENT_SECRET }}
-          KEYSTATIC_SECRET: ${{ secrets.KEYSTATIC_SECRET }}
-          KEYSTATIC_URL: https://furkanunsalan.dev
-          NEXT_PUBLIC_KEYSTATIC_GITHUB_APP_SLUG: ${{ secrets.KEYSTATIC_GITHUB_APP_SLUG }}
           NEXT_PUBLIC_SITE_URL: https://furkanunsalan.dev
+          # Module-load checks in lib/auth.ts + lib/db.ts throw if these env
+          # vars are missing, and page-data collection imports them via
+          # /api/admin/*. Real values come from .env.production at runtime
+          # via PM2 — these build-only literals are never baked into the
+          # bundle (no NEXT_PUBLIC_ prefix) and postgres-js doesn't open a
+          # connection until the first query.
+          ADMIN_SESSION_SECRET: build-phase-placeholder-not-used-at-runtime-________
+          DATABASE_URL: postgres://build:placeholder@127.0.0.1:5432/build_placeholder
         run: npm run build
 
       - name: Assemble release bundle
@@ -52,10 +55,6 @@ jobs:
           mkdir -p release/.next
           cp -r .next/static release/.next/static
           cp -r public release/public
-          # Keystatic reader reads MDoc/JSON from content/ at runtime
-          # (ISR revalidate). Standalone tracing misses these dynamic reads,
-          # so ship the source content alongside the server bundle.
-          cp -r content release/content
           # PM2 process descriptor — overwrite any stale config left on the
           # VPS from previous deploys (e.g. an Astro entrypoint).
           cp ecosystem.config.cjs release/ecosystem.config.cjs

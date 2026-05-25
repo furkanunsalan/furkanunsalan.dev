@@ -23,9 +23,8 @@ import (
 )
 
 func main() {
-	// Best-effort: load env from project root. Real deployments set env directly.
-	root := getenv("CONTENT_ROOT", ".")
-	_ = data.LoadDotenv(root + "/.env")
+	// Best-effort: load .env for local dev. Production reads env from systemd.
+	_ = data.LoadDotenv(".env")
 
 	host := getenv("HOST", "0.0.0.0")
 	port := getenv("PORT", "2222")
