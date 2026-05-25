@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 import { revalidateCollection } from "@/lib/revalidate";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -43,6 +44,11 @@ export async function PATCH(
   if (typeof body.content === "string") patch.content = body.content;
 
   try {
+    const [before] = await db
+      .select()
+      .from(schema.projects)
+      .where(eq(schema.projects.slug, params.slug))
+      .limit(1);
     const [row] = await db
       .update(schema.projects)
       .set(patch)
@@ -50,6 +56,14 @@ export async function PATCH(
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("projects", params.slug);
+    await recordAudit({
+      req,
+      action: "update",
+      resource: "project",
+      rowId: params.slug,
+      before: before as unknown as Record<string, unknown> | null,
+      after: row as unknown as Record<string, unknown>,
+    });
     return NextResponse.json({ row });
   } catch (e) {
     const f = friendlyDbError(e, "project");
@@ -58,16 +72,30 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: { slug: string } },
 ) {
   try {
+    const [before] = await db
+      .select()
+      .from(schema.projects)
+      .where(eq(schema.projects.slug, params.slug))
+      .limit(1);
     const [row] = await db
-      .delete(schema.projects)
+      .update(schema.projects)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(eq(schema.projects.slug, params.slug))
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("projects", params.slug);
+    await recordAudit({
+      req,
+      action: "delete",
+      resource: "project",
+      rowId: params.slug,
+      before: before as unknown as Record<string, unknown> | null,
+      after: { deletedAt: row.deletedAt },
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     const f = friendlyDbError(e, "project");

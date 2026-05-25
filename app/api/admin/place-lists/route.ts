@@ -4,6 +4,7 @@ import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 import { ICON_KEYS } from "@/lib/place-list-icons";
 import { revalidateCollection } from "@/lib/revalidate";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -33,6 +34,13 @@ export async function POST(req: Request) {
       .values({ name, icon, position })
       .returning();
     revalidateCollection("placeLists");
+    await recordAudit({
+      req,
+      action: "create",
+      resource: "placeList",
+      rowId: name,
+      after: row as unknown as Record<string, unknown>,
+    });
     return NextResponse.json({ row }, { status: 201 });
   } catch (e) {
     const f = friendlyDbError(e, "list");

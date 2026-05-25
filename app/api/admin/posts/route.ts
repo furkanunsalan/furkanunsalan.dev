@@ -5,6 +5,7 @@ import { friendlyDbError } from "@/lib/db-errors";
 import { slugifyAscii, cleanUserSlug } from "@/lib/slugify";
 import { excerptFromMarkdoc } from "@/lib/excerpt";
 import { revalidateCollection } from "@/lib/revalidate";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -42,9 +43,17 @@ export async function POST(req: Request) {
         banner: body.banner || null,
         content,
         excerpt: excerptFromMarkdoc(content),
+        draft: !!body.draft,
       })
       .returning();
     revalidateCollection("posts", slug);
+    await recordAudit({
+      req,
+      action: "create",
+      resource: "post",
+      rowId: slug,
+      after: row as unknown as Record<string, unknown>,
+    });
     return NextResponse.json({ row }, { status: 201 });
   } catch (e) {
     const f = friendlyDbError(e, "post");

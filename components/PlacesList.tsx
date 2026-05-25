@@ -61,9 +61,10 @@ interface ListMeta {
 interface Props {
   places: Place[];
   lists: ListMeta[];
+  onSelect?: (slug: string) => void;
 }
 
-export default function PlacesList({ places, lists }: Props) {
+export default function PlacesList({ places, lists, onSelect }: Props) {
   const [activeList, setActiveList] = useState<ListFilter>("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
@@ -232,12 +233,25 @@ export default function PlacesList({ places, lists }: Props) {
             const meta = STATUS_META[p.status];
             const ik = iconByList.get(p.list || "") ?? iconKey(null);
             const RowIcon = PLACE_LIST_ICON_COMPONENTS[ik];
+            const handleRowActivate = () => onSelect?.(p.slug);
             return (
-              <li key={p.slug} className="px-4 py-3 flex items-start gap-3">
+              <li
+                key={p.slug}
+                className="px-4 py-3 flex items-center gap-3 hover:bg-white/[0.02] transition-colors cursor-pointer"
+                role="button"
+                tabIndex={0}
+                onClick={handleRowActivate}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleRowActivate();
+                  }
+                }}
+              >
                 <span
                   aria-label={meta.label}
                   title={`${meta.label}${p.list ? ` · ${p.list}` : ""}`}
-                  className={`mt-0.5 inline-flex items-center justify-center w-7 h-7 rounded-full bg-black ring-2 ${meta.ring} text-white shrink-0`}
+                  className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-black ring-2 ${meta.ring} text-white shrink-0`}
                 >
                   <RowIcon className="w-3.5 h-3.5" />
                 </span>
@@ -265,7 +279,10 @@ export default function PlacesList({ places, lists }: Props) {
                         <button
                           key={t}
                           type="button"
-                          onClick={() => onTag(activeTag === t ? null : t)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTag(activeTag === t ? null : t);
+                          }}
                           className={`rounded-full px-2 py-0.5 text-[10px] ring-1 transition-colors ${
                             activeTag === t
                               ? "bg-accent-primary/15 text-accent-primary ring-accent-primary/40"
@@ -283,6 +300,7 @@ export default function PlacesList({ places, lists }: Props) {
                     href={p.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
                     className="text-light-fourth hover:text-white transition-colors shrink-0 self-center"
                     aria-label="Open in Google Maps"
                     title="Open in Google Maps"

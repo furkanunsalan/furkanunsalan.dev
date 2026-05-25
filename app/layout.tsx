@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import CommandPalette from "@/components/CommandPalette";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -45,7 +46,10 @@ export default function RootLayout({
           data-website-id="227d51b5-5f5f-42aa-a9eb-a38128095d7b"
         />
       </head>
-      <body className={`${inter.className} page-enter`}>{children}</body>
+      <body className={`${inter.className} page-enter`}>
+        {children}
+        <CommandPalette />
+      </body>
     </html>
   );
 }

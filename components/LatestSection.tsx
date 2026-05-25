@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
 export type LatestItem = {
-  type: "experience" | "writing" | "project" | "bookmark" | "photo";
+  type: "experience" | "thought" | "writing" | "project" | "bookmark" | "photo";
   title: string;
   href: string;
   date?: string;
@@ -11,6 +11,7 @@ export type LatestItem = {
 
 const TYPE_LABEL: Record<LatestItem["type"], string> = {
   experience: "EXP",
+  thought: "NOTE",
   writing: "POST",
   project: "REPO",
   bookmark: "SAVE",

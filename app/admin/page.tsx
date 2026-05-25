@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { sql } from "drizzle-orm";
+import { desc, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import {
   PenLine,
@@ -8,73 +8,184 @@ import {
   Wrench,
   MapPin,
   Settings,
-  Github,
   ArrowUpRight,
+  Check,
+  X,
 } from "lucide-react";
+import Sparkline from "@/components/admin/Sparkline";
+import UploadsSweepCard from "@/components/admin/UploadsSweepCard";
+import { runHealthChecks, type CheckResult } from "@/lib/health";
 
 export const dynamic = "force-dynamic";
 
+const ACTIVITY_DAYS = 30;
+
+type DayBucket = { d: string; n: number };
+
+function bucketize(rows: DayBucket[], days: number): number[] {
+  const map = new Map<string, number>();
+  for (const r of rows) map.set(r.d, r.n);
+  const out: number[] = [];
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setUTCDate(today.getUTCDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    out.push(map.get(key) ?? 0);
+  }
+  return out;
+}
+
+async function activityByDay(table: string, col: string): Promise<number[]> {
+  // No drizzle helper covers this cleanly across tables — keep it as a small
+  // ad-hoc query. table/col come from a fixed allowlist, never user input.
+  const rows = await db.execute<{ d: string; n: number }>(sql`
+    select to_char(date_trunc('day', ${sql.raw(col)})::date, 'YYYY-MM-DD') as d,
+           count(*)::int as n
+    from ${sql.raw(table)}
+    where ${sql.raw(col)} >= now() - interval '${sql.raw(String(ACTIVITY_DAYS))} days'
+    group by 1
+    order by 1
+  `);
+  return bucketize(rows as unknown as DayBucket[], ACTIVITY_DAYS);
+}
+
 async function countAll() {
-  const [posts, projects, experiences, tools, places, github, logins] =
-    await Promise.all([
-      db.select({ n: sql<number>`count(*)::int` }).from(schema.posts),
-      db.select({ n: sql<number>`count(*)::int` }).from(schema.projects),
-      db.select({ n: sql<number>`count(*)::int` }).from(schema.experiences),
-      db.select({ n: sql<number>`count(*)::int` }).from(schema.tools),
-      db.select({ n: sql<number>`count(*)::int` }).from(schema.places),
-      db
-        .select({ n: sql<number>`count(*)::int` })
-        .from(schema.githubProjectVisibility),
-      db
-        .select({
-          ok: sql<number>`count(*) filter (where ok) ::int`,
-          fail: sql<number>`count(*) filter (where not ok) ::int`,
-        })
-        .from(schema.adminLogins)
-        .where(sql`at > now() - interval '24 hours'`),
-    ]);
+  const [
+    posts,
+    projects,
+    experiences,
+    tools,
+    places,
+    placeLists,
+    github,
+    logins,
+    recentLogins,
+    actPosts,
+    actProjects,
+    actExperiences,
+    actTools,
+    actPlaces,
+    actGithub,
+  ] = await Promise.all([
+    db.select({ n: sql<number>`count(*)::int` }).from(schema.posts),
+    db.select({ n: sql<number>`count(*)::int` }).from(schema.projects),
+    db.select({ n: sql<number>`count(*)::int` }).from(schema.experiences),
+    db.select({ n: sql<number>`count(*)::int` }).from(schema.tools),
+    db.select({ n: sql<number>`count(*)::int` }).from(schema.places),
+    db.select({ n: sql<number>`count(*)::int` }).from(schema.placeLists),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.githubProjectVisibility),
+    db
+      .select({
+        ok: sql<number>`count(*) filter (where ok) ::int`,
+        fail: sql<number>`count(*) filter (where not ok) ::int`,
+      })
+      .from(schema.adminLogins)
+      .where(sql`at > now() - interval '24 hours'`),
+    db
+      .select()
+      .from(schema.adminLogins)
+      .orderBy(desc(schema.adminLogins.at))
+      .limit(5),
+    activityByDay("posts", "created_at"),
+    activityByDay("projects", "created_at"),
+    activityByDay("experiences", "created_at"),
+    activityByDay("tools", "created_at"),
+    activityByDay("places", "created_at"),
+    activityByDay("github_project_visibility", "updated_at"),
+  ]);
   return {
     posts: posts[0]?.n ?? 0,
     projects: projects[0]?.n ?? 0,
     experiences: experiences[0]?.n ?? 0,
     tools: tools[0]?.n ?? 0,
     places: places[0]?.n ?? 0,
+    placeLists: placeLists[0]?.n ?? 0,
     github: github[0]?.n ?? 0,
     logins: logins[0] ?? { ok: 0, fail: 0 },
+    recentLogins: recentLogins.map((r) => ({
+      id: r.id,
+      at: r.at.toISOString(),
+      ip: r.ip,
+      ok: r.ok,
+    })),
+    activity: {
+      posts: actPosts,
+      projects: actProjects,
+      experiences: actExperiences,
+      tools: actTools,
+      places: actPlaces,
+      github: actGithub,
+    },
   };
 }
 
-const TILES: {
+function zipSum(a: number[], b: number[]): number[] {
+  const len = Math.max(a.length, b.length);
+  const out: number[] = [];
+  for (let i = 0; i < len; i++) out.push((a[i] ?? 0) + (b[i] ?? 0));
+  return out;
+}
+
+type Counts = Awaited<ReturnType<typeof countAll>>;
+
+type Tile = {
   label: string;
   href: string;
-  key: keyof Awaited<ReturnType<typeof countAll>>;
   Icon: typeof PenLine;
-}[] = [
-  { label: "Posts", href: "/admin/posts", key: "posts", Icon: PenLine },
+  count: (c: Counts) => number;
+  secondary?: (c: Counts) => string | null;
+  series: (c: Counts) => number[];
+};
+
+const TILES: Tile[] = [
+  {
+    label: "Posts",
+    href: "/admin/posts",
+    Icon: PenLine,
+    count: (c) => c.posts,
+    series: (c) => c.activity.posts,
+  },
   {
     label: "Projects",
     href: "/admin/projects",
-    key: "projects",
     Icon: FolderGit2,
+    count: (c) => c.projects + c.github,
+    secondary: (c) => `${c.projects} custom · ${c.github} repos`,
+    series: (c) => zipSum(c.activity.projects, c.activity.github),
   },
   {
     label: "Experiences",
     href: "/admin/experiences",
-    key: "experiences",
     Icon: Briefcase,
+    count: (c) => c.experiences,
+    series: (c) => c.activity.experiences,
   },
-  { label: "Tools", href: "/admin/tools", key: "tools", Icon: Wrench },
-  { label: "Places", href: "/admin/places", key: "places", Icon: MapPin },
   {
-    label: "GitHub repos",
-    href: "/admin/settings/github",
-    key: "github",
-    Icon: Github,
+    label: "Tools",
+    href: "/admin/tools",
+    Icon: Wrench,
+    count: (c) => c.tools,
+    series: (c) => c.activity.tools,
+  },
+  {
+    label: "Places",
+    href: "/admin/places",
+    Icon: MapPin,
+    count: (c) => c.places,
+    secondary: (c) => `${c.placeLists} list${c.placeLists === 1 ? "" : "s"}`,
+    series: (c) => c.activity.places,
   },
 ];
 
 export default async function AdminDashboard() {
-  const c = await countAll();
+  const [c, health] = await Promise.all([
+    countAll(),
+    runHealthChecks().catch(() => [] as CheckResult[]),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -87,22 +198,37 @@ export default async function AdminDashboard() {
       </header>
 
       <section className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {TILES.map((t) => (
-          <Link
-            key={t.href}
-            href={t.href}
-            className="group rounded-xl ring-1 ring-white/[0.06] bg-zinc-950 p-4 hover:ring-white/20 transition-colors"
-          >
-            <div className="flex items-center justify-between">
-              <t.Icon className="w-4 h-4 text-light-fourth group-hover:text-white transition-colors" />
-              <ArrowUpRight className="w-3.5 h-3.5 text-light-fourth/60 group-hover:text-white transition-colors" />
-            </div>
-            <div className="mt-3 text-2xl font-semibold tabular-nums">
-              {c[t.key] as number}
-            </div>
-            <div className="mt-0.5 text-xs text-light-fourth">{t.label}</div>
-          </Link>
-        ))}
+        {TILES.map((t) => {
+          const series = t.series(c);
+          const secondary = t.secondary?.(c);
+          return (
+            <Link
+              key={t.href}
+              href={t.href}
+              className="group rounded-xl ring-1 ring-white/[0.06] bg-zinc-950 p-4 hover:ring-white/20 transition-colors relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between">
+                <t.Icon className="w-4 h-4 text-light-fourth group-hover:text-white transition-colors" />
+                <ArrowUpRight className="w-3.5 h-3.5 text-light-fourth/60 group-hover:text-white transition-colors" />
+              </div>
+              <div className="mt-3 text-2xl font-semibold tabular-nums">
+                {t.count(c)}
+              </div>
+              <div className="mt-0.5 text-xs text-light-fourth">{t.label}</div>
+              {secondary && (
+                <div className="mt-0.5 text-[10px] uppercase tracking-wider text-light-fourth/70">
+                  {secondary}
+                </div>
+              )}
+              <div
+                className="pointer-events-none absolute right-2 bottom-2 text-accent-primary/80 group-hover:text-accent-primary transition-colors"
+                title={`Last ${ACTIVITY_DAYS} days`}
+              >
+                <Sparkline values={series} />
+              </div>
+            </Link>
+          );
+        })}
 
         <Link
           href="/admin/settings/home"
@@ -119,11 +245,30 @@ export default async function AdminDashboard() {
         </Link>
       </section>
 
-      <section className="rounded-xl ring-1 ring-white/[0.06] bg-zinc-950 p-4">
-        <div className="text-xs uppercase tracking-widest text-light-fourth mb-2">
-          Logins (last 24h)
+      {health.length > 0 && (
+        <section>
+          <div className="mb-2 text-xs uppercase tracking-widest text-light-fourth">
+            System
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {health.map((h) => (
+              <HealthCard key={h.label} check={h} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <Link
+        href="/admin/logins"
+        className="block rounded-xl ring-1 ring-white/[0.06] bg-zinc-950 p-4 hover:ring-white/20 transition-colors"
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-xs uppercase tracking-widest text-light-fourth">
+            Logins (last 24h)
+          </span>
+          <ArrowUpRight className="w-3.5 h-3.5 text-light-fourth/60" />
         </div>
-        <div className="flex items-baseline gap-6 text-sm">
+        <div className="mt-2 flex items-baseline gap-6 text-sm">
           <span>
             <span className="text-emerald-400 font-semibold tabular-nums">
               {c.logins.ok}
@@ -137,7 +282,99 @@ export default async function AdminDashboard() {
             <span className="text-light-fourth">failed</span>
           </span>
         </div>
-      </section>
+        {c.recentLogins.length > 0 && (
+          <ul className="mt-3 divide-y divide-white/[0.04] border-t border-white/[0.06] pt-2">
+            {c.recentLogins.map((r) => (
+              <li
+                key={r.id}
+                className="py-1 flex items-center gap-2 text-xs text-light-fourth"
+              >
+                {r.ok ? (
+                  <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                ) : (
+                  <X className="w-3 h-3 text-rose-400 shrink-0" />
+                )}
+                <time
+                  dateTime={r.at}
+                  className="tabular-nums text-light-secondary"
+                >
+                  {formatLoginAt(r.at)}
+                </time>
+                <span className="ml-auto font-mono text-[10px] text-light-fourth/70 truncate max-w-[55%]">
+                  {r.ip ?? "—"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Link>
+
+      <UploadsSweepCard />
     </div>
+  );
+}
+
+function formatLoginAt(iso: string): string {
+  return new Date(iso).toLocaleString("en-GB", {
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+const DOT_COLOR: Record<CheckResult["status"], string> = {
+  ok: "bg-emerald-400",
+  warn: "bg-amber-400",
+  error: "bg-rose-400",
+  unknown: "bg-zinc-500",
+};
+
+function HealthCard({ check }: { check: CheckResult }) {
+  const dot = DOT_COLOR[check.status];
+  const isExternal = check.href?.startsWith("http");
+  const body = (
+    <>
+      <div className="flex items-center gap-2">
+        <span
+          className={`inline-block h-2 w-2 rounded-full ${dot} shrink-0`}
+          aria-hidden
+        />
+        <span className="text-[10px] uppercase tracking-widest text-light-fourth truncate">
+          {check.label}
+        </span>
+        {check.href && (
+          <ArrowUpRight className="ml-auto w-3 h-3 text-light-fourth/60" />
+        )}
+      </div>
+      <div className="mt-1.5 text-xs text-light-secondary break-words">
+        {check.value}
+      </div>
+    </>
+  );
+
+  const className = "rounded-xl ring-1 ring-white/[0.06] bg-zinc-950 p-3 block";
+  if (!check.href) {
+    return <div className={className}>{body}</div>;
+  }
+  if (isExternal) {
+    return (
+      <a
+        href={check.href}
+        target="_blank"
+        rel="noreferrer"
+        className={`${className} hover:ring-white/20 transition-colors`}
+      >
+        {body}
+      </a>
+    );
+  }
+  return (
+    <Link
+      href={check.href}
+      className={`${className} hover:ring-white/20 transition-colors`}
+    >
+      {body}
+    </Link>
   );
 }

@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { inArray } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { revalidateCollection } from "@/lib/revalidate";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
 // Fetch the live public repo list from GitHub and reconcile it with the
 // existing visibility rows: add new repos as visible/unpinned, preserve toggles
 // for known repos, drop rows whose repo no longer exists.
-export async function POST() {
+export async function POST(req: Request) {
   const user = process.env.GITHUB_USERNAME || "furkanunsalan";
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
@@ -80,5 +81,12 @@ export async function POST() {
   });
 
   revalidateCollection("github");
+  await recordAudit({
+    req,
+    action: "update",
+    resource: "github",
+    rowId: "sync",
+    after: { ...result, total: live.length },
+  });
   return NextResponse.json({ ok: true, ...result, total: live.length });
 }

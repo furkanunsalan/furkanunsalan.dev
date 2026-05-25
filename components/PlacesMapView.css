@@ -73,6 +73,16 @@
   line-height: 1.45;
 }
 
+.places-map .popup-notes {
+  margin: 10px 0 0;
+  padding: 2px 0 2px 12px;
+  border-left: 3px solid rgba(99, 102, 241, 0.55);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 .places-map .popup-actions {
   display: flex;
   align-items: center;

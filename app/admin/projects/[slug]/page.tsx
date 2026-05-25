@@ -19,7 +19,11 @@ export default async function EditProjectPage({
   if (!row) notFound();
   return (
     <div>
-      <PageHeader title={row.name} description={`/projects/${row.slug}`} />
+      <PageHeader
+        title={row.name}
+        description={`/projects/${row.slug}`}
+        back={{ href: "/admin/projects" }}
+      />
       <ProjectForm
         mode="edit"
         initial={{

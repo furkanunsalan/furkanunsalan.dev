@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 import { revalidateCollection } from "@/lib/revalidate";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -48,11 +49,24 @@ export async function PATCH(req: Request) {
     updatedAt: new Date(),
   };
   try {
+    const [before] = await db
+      .select()
+      .from(schema.homeSettings)
+      .where(eq(schema.homeSettings.id, 1))
+      .limit(1);
     await db
       .insert(schema.homeSettings)
       .values(values)
       .onConflictDoUpdate({ target: schema.homeSettings.id, set: values });
     revalidateCollection("home");
+    await recordAudit({
+      req,
+      action: "update",
+      resource: "home",
+      rowId: "1",
+      before: before as unknown as Record<string, unknown> | null,
+      after: values as unknown as Record<string, unknown>,
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     const f = friendlyDbError(e, "home settings");

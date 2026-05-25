@@ -23,6 +23,17 @@ body {
     outline-offset 200ms ease;
 }
 
+/* Hide native number-input spinners — admin uses tight inline numerics where the
+   default OS chevrons look chunky and unstyled. Typing still works. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 /* Custom utility class using Tailwind layer */
 @layer utilities {
   .text-balance {

@@ -1,0 +1,64 @@
+import { asc, sql } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+import { PageHeader } from "@/components/admin/form";
+import RestoreScroll from "@/components/admin/RestoreScroll";
+import RenameTool from "./RenameTool";
+
+export const dynamic = "force-dynamic";
+
+export default async function AdminRenamePage() {
+  let categories: string[] = [];
+  let lists: string[] = [];
+  let tags: string[] = [];
+
+  try {
+    const [catRows, listRows, placeTagRows, postTagRows, thoughtTagRows] =
+      await Promise.all([
+        db
+          .selectDistinct({ v: schema.places.category })
+          .from(schema.places)
+          .where(sql`${schema.places.category} <> ''`)
+          .orderBy(asc(schema.places.category)),
+        db
+          .select({ v: schema.placeLists.name })
+          .from(schema.placeLists)
+          .orderBy(
+            asc(schema.placeLists.position),
+            asc(schema.placeLists.name),
+          ),
+        db.execute<{ v: string }>(
+          sql`SELECT DISTINCT unnest(tags) AS v FROM places WHERE tags IS NOT NULL`,
+        ),
+        db.execute<{ v: string }>(
+          sql`SELECT DISTINCT unnest(tags) AS v FROM posts WHERE tags IS NOT NULL`,
+        ),
+        db.execute<{ v: string }>(
+          sql`SELECT DISTINCT unnest(tags) AS v FROM thoughts WHERE tags IS NOT NULL`,
+        ),
+      ]);
+
+    categories = catRows.map((r) => r.v).filter(Boolean);
+    lists = listRows.map((r) => r.v);
+    const tagSet = new Set<string>();
+    for (const r of placeTagRows as unknown as { v: string }[])
+      if (r.v) tagSet.add(r.v);
+    for (const r of postTagRows as unknown as { v: string }[])
+      if (r.v) tagSet.add(r.v);
+    for (const r of thoughtTagRows as unknown as { v: string }[])
+      if (r.v) tagSet.add(r.v);
+    tags = Array.from(tagSet).sort((a, b) => a.localeCompare(b));
+  } catch (e) {
+    console.error("admin/rename: failed to load distinct values", e);
+  }
+
+  return (
+    <div>
+      <PageHeader
+        title="Rename"
+        description="Rename a category, list, or tag everywhere it's used. One SQL UPDATE per column — no manual bulk edits."
+      />
+      <RestoreScroll storageKey="admin:rename:scroll" />
+      <RenameTool categories={categories} lists={lists} tags={tags} />
+    </div>
+  );
+}

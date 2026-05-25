@@ -1,8 +1,10 @@
-import Link from "next/link";
-import { asc } from "drizzle-orm";
+import { asc, isNull } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { PageHeader } from "@/components/admin/form";
-import { Plus, Wrench, Star } from "lucide-react";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import RestoreScroll from "@/components/admin/RestoreScroll";
+import ToolsAdminTabs from "./ToolsAdminTabs";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +12,12 @@ export default async function AdminToolsList() {
   const rows = await db
     .select()
     .from(schema.tools)
+    .where(isNull(schema.tools.deletedAt))
     .orderBy(asc(schema.tools.name));
 
   return (
     <div>
+      <RestoreScroll storageKey="admin:tools:scroll" />
       <PageHeader
         title="Tools"
         description={`${rows.length} entries.`}
@@ -27,37 +31,15 @@ export default async function AdminToolsList() {
           </Link>
         }
       />
-      <ul className="divide-y divide-white/[0.04] ring-1 ring-white/[0.06] rounded-xl overflow-hidden bg-zinc-950">
-        {rows.length === 0 && (
-          <li className="px-4 py-6 text-sm text-light-fourth text-center">
-            No tools yet.
-          </li>
-        )}
-        {rows.map((t) => (
-          <li key={t.name}>
-            <Link
-              href={`/admin/tools/${encodeURIComponent(t.name)}`}
-              className="block px-4 py-3 hover:bg-white/[0.03] transition-colors"
-            >
-              <div className="flex items-start gap-3">
-                <Wrench className="w-4 h-4 text-light-fourth mt-0.5 shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm text-white truncate">
-                    {t.brand}{" "}
-                    <span className="text-light-fourth">— {t.what}</span>
-                  </div>
-                  <div className="text-[10px] text-light-fourth/70 mt-0.5 uppercase tracking-wider">
-                    {t.category}
-                  </div>
-                </div>
-                {t.favorite && (
-                  <Star className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                )}
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <ToolsAdminTabs
+        rows={rows.map((r) => ({
+          name: r.name,
+          brand: r.brand,
+          what: r.what,
+          category: r.category,
+          favorite: r.favorite,
+        }))}
+      />
     </div>
   );
 }

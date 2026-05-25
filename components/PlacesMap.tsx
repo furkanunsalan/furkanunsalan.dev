@@ -18,9 +18,16 @@ const PlacesMapView = dynamic(() => import("./PlacesMapView"), {
 interface Props {
   places: Place[];
   lists: { name: string; icon: string }[];
+  selectedSlug?: string | null;
+  selectionNonce?: number;
 }
 
-export default function PlacesMap({ places, lists }: Props) {
+export default function PlacesMap({
+  places,
+  lists,
+  selectedSlug,
+  selectionNonce,
+}: Props) {
   const valid = places.filter(
     (p) =>
       Number.isFinite(p.lat) &&
@@ -41,6 +48,8 @@ export default function PlacesMap({ places, lists }: Props) {
         lists={lists}
         center={[centerLat, centerLng]}
         zoom={valid.length > 1 ? 11 : 13}
+        selectedSlug={selectedSlug ?? null}
+        selectionNonce={selectionNonce ?? 0}
       />
       {/* Attribution moved out of the map (zoom/attribution widgets are hidden
           for a cleaner look) — kept here so OSM + CARTO usage stays compliant. */}

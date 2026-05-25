@@ -23,8 +23,10 @@ const EMPTY: PlaceFormValue = {
 
 export default function NewPlaceClient({
   lists,
+  categories,
 }: {
   lists: { name: string; icon: string }[];
+  categories: string[];
 }) {
   const [initial, setInitial] = useState<PlaceFormValue>(EMPTY);
   // Bumped each time the URL panel resolves — used as PlaceForm key so its
@@ -39,7 +41,13 @@ export default function NewPlaceClient({
   return (
     <>
       <ResolveUrlPanel onResolved={applyResolved} />
-      <PlaceForm key={version} mode="new" initial={initial} lists={lists} />
+      <PlaceForm
+        key={version}
+        mode="new"
+        initial={initial}
+        lists={lists}
+        categories={categories}
+      />
     </>
   );
 }

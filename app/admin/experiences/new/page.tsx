@@ -4,7 +4,10 @@ import { PageHeader } from "@/components/admin/form";
 export default function NewExperiencePage() {
   return (
     <div>
-      <PageHeader title="New experience" />
+      <PageHeader
+        title="New experience"
+        back={{ href: "/admin/experiences" }}
+      />
       <ExperienceForm
         mode="new"
         initial={{

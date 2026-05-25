@@ -22,6 +22,7 @@ export default async function EditExperiencePage({
       <PageHeader
         title={`${row.title} @ ${row.organization}`}
         description={row.id}
+        back={{ href: "/admin/experiences" }}
       />
       <ExperienceForm
         mode="edit"

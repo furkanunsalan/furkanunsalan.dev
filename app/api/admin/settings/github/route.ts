@@ -3,6 +3,7 @@ import { asc } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 import { revalidateCollection } from "@/lib/revalidate";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -56,6 +57,13 @@ export async function PATCH(req: Request) {
       }
     });
     revalidateCollection("github");
+    await recordAudit({
+      req,
+      action: "update",
+      resource: "github",
+      rowId: "visibility",
+      after: { rows: body.rows.length },
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     const f = friendlyDbError(e, "repo visibility");

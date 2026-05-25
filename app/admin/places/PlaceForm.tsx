@@ -9,6 +9,7 @@ import {
   TextArea,
   Select,
   TagInput,
+  ComboInput,
   SaveBar,
 } from "@/components/admin/form";
 
@@ -33,10 +34,12 @@ export default function PlaceForm({
   initial,
   mode,
   lists,
+  categories = [],
 }: {
   initial: PlaceFormValue;
   mode: "new" | "edit";
   lists: { name: string; icon: string }[];
+  categories?: string[];
 }) {
   const router = useRouter();
   const [v, setV] = useState<PlaceFormValue>(initial);
@@ -202,8 +205,15 @@ export default function PlaceForm({
         </Field>
       </div>
 
-      <Field label="Category" hint="e.g. cafe, restaurant, museum">
-        <TextInput value={v.category} onChange={(s) => upd("category", s)} />
+      <Field
+        label="Category"
+        hint="e.g. cafe, restaurant, museum — picks up existing values"
+      >
+        <ComboInput
+          value={v.category}
+          onChange={(s) => upd("category", s)}
+          options={categories}
+        />
       </Field>
 
       <Field label="Tags" hint="Up to 3">

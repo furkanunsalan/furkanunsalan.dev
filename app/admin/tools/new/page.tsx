@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/admin/form";
 export default function NewToolPage() {
   return (
     <div>
-      <PageHeader title="New tool" />
+      <PageHeader title="New tool" back={{ href: "/admin/tools" }} />
       <ToolForm
         mode="new"
         initial={{

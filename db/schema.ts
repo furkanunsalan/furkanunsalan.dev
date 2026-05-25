@@ -50,6 +50,8 @@ export const posts = pgTable("posts", {
   banner: text("banner"),
   content: text("content").notNull().default(""),
   excerpt: text("excerpt"),
+  draft: boolean("draft").notNull().default(false),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -70,6 +72,7 @@ export const projects = pgTable("projects", {
   order: integer("order").notNull().default(100),
   image: text("image"),
   content: text("content").notNull().default(""),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -94,6 +97,7 @@ export const experiences = pgTable("experiences", {
   comment: text("comment").notNull().default(""),
   links: jsonb("links").$type<ExperienceLink[]>().notNull().default([]),
   images: text("images").array().notNull().default([]),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -112,6 +116,7 @@ export const tools = pgTable("tools", {
   comment: text("comment").notNull().default(""),
   favorite: boolean("favorite").notNull().default(false),
   link: text("link"),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -137,6 +142,7 @@ export const places = pgTable("places", {
   addedAt: timestamp("added_at", { withTimezone: true }),
   tags: text("tags").array().notNull().default([]),
   notes: text("notes").notNull().default(""),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -204,6 +210,23 @@ export const placeLists = pgTable("place_lists", {
     .defaultNow(),
 });
 
+// ---- thoughts (short-form, image-friendly stream) -----------------------
+
+export const thoughts = pgTable("thoughts", {
+  id: serial("id").primaryKey(),
+  body: text("body").notNull().default(""),
+  images: text("images").array().notNull().default([]),
+  tags: text("tags").array().notNull().default([]),
+  draft: boolean("draft").notNull().default(false),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // ---- admin audit (optional, used by login throttle) ----------------------
 
 export const adminLogins = pgTable("admin_logins", {
@@ -211,4 +234,18 @@ export const adminLogins = pgTable("admin_logins", {
   at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
   ip: text("ip"),
   ok: boolean("ok").notNull(),
+});
+
+// Append-only activity log written by every mutating admin route. `before`
+// and `after` capture small JSON snapshots so post-hoc auditing has enough
+// context without needing the full row history.
+export const auditEvents = pgTable("audit_events", {
+  id: serial("id").primaryKey(),
+  at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  action: text("action").notNull(),
+  resource: text("resource").notNull(),
+  rowId: text("row_id").notNull(),
+  ip: text("ip"),
+  before: jsonb("before").$type<Record<string, unknown> | null>(),
+  after: jsonb("after").$type<Record<string, unknown> | null>(),
 });

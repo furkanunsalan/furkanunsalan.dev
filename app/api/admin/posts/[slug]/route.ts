@@ -4,6 +4,7 @@ import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 import { excerptFromMarkdoc } from "@/lib/excerpt";
 import { revalidateCollection } from "@/lib/revalidate";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -45,8 +46,14 @@ export async function PATCH(
     patch.content = body.content;
     patch.excerpt = excerptFromMarkdoc(body.content);
   }
+  if (typeof body.draft === "boolean") patch.draft = body.draft;
 
   try {
+    const [before] = await db
+      .select()
+      .from(schema.posts)
+      .where(eq(schema.posts.slug, params.slug))
+      .limit(1);
     const [row] = await db
       .update(schema.posts)
       .set(patch)
@@ -54,6 +61,14 @@ export async function PATCH(
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("posts", params.slug);
+    await recordAudit({
+      req,
+      action: "update",
+      resource: "post",
+      rowId: params.slug,
+      before: before as unknown as Record<string, unknown> | null,
+      after: row as unknown as Record<string, unknown>,
+    });
     return NextResponse.json({ row });
   } catch (e) {
     const f = friendlyDbError(e, "post");
@@ -62,16 +77,30 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: { slug: string } },
 ) {
   try {
+    const [before] = await db
+      .select()
+      .from(schema.posts)
+      .where(eq(schema.posts.slug, params.slug))
+      .limit(1);
     const [row] = await db
-      .delete(schema.posts)
+      .update(schema.posts)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(eq(schema.posts.slug, params.slug))
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("posts", params.slug);
+    await recordAudit({
+      req,
+      action: "delete",
+      resource: "post",
+      rowId: params.slug,
+      before: before as unknown as Record<string, unknown> | null,
+      after: { deletedAt: row.deletedAt },
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     const f = friendlyDbError(e, "post");

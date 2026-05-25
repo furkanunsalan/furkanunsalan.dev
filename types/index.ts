@@ -36,6 +36,7 @@ export type BlogPost = {
   tags: string[];
   banner?: string;
   excerpt?: string;
+  readingTime?: string;
 };
 
 export type BlogPostData = {
@@ -79,6 +80,15 @@ export type Place = {
   sourceUrl?: string;
   addedAt?: string;
   tags: string[];
+  notes?: string;
+};
+
+export type Thought = {
+  id: number;
+  body: string;
+  images: string[];
+  tags: string[];
+  createdAt: string;
 };
 
 export type ProjectCardData =

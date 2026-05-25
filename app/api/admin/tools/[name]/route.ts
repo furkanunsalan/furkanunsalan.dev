@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 import { revalidateCollection } from "@/lib/revalidate";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -43,6 +44,11 @@ export async function PATCH(
   if (body.link === null) patch.link = null;
 
   try {
+    const [before] = await db
+      .select()
+      .from(schema.tools)
+      .where(eq(schema.tools.name, params.name))
+      .limit(1);
     const [row] = await db
       .update(schema.tools)
       .set(patch)
@@ -50,6 +56,14 @@ export async function PATCH(
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("tools");
+    await recordAudit({
+      req,
+      action: "update",
+      resource: "tool",
+      rowId: params.name,
+      before: before as unknown as Record<string, unknown> | null,
+      after: row as unknown as Record<string, unknown>,
+    });
     return NextResponse.json({ row });
   } catch (e) {
     const f = friendlyDbError(e, "tool");
@@ -58,16 +72,30 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: { name: string } },
 ) {
   try {
+    const [before] = await db
+      .select()
+      .from(schema.tools)
+      .where(eq(schema.tools.name, params.name))
+      .limit(1);
     const [row] = await db
-      .delete(schema.tools)
+      .update(schema.tools)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(eq(schema.tools.name, params.name))
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("tools");
+    await recordAudit({
+      req,
+      action: "delete",
+      resource: "tool",
+      rowId: params.name,
+      before: before as unknown as Record<string, unknown> | null,
+      after: { deletedAt: row.deletedAt },
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     const f = friendlyDbError(e, "tool");

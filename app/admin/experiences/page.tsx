@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { asc } from "drizzle-orm";
+import { asc, isNull } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { PageHeader } from "@/components/admin/form";
 import { Plus, Briefcase } from "lucide-react";
+import RestoreScroll from "@/components/admin/RestoreScroll";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +11,12 @@ export default async function AdminExperiencesList() {
   const rows = await db
     .select()
     .from(schema.experiences)
+    .where(isNull(schema.experiences.deletedAt))
     .orderBy(asc(schema.experiences.order));
 
   return (
     <div>
+      <RestoreScroll storageKey="admin:experiences:scroll" />
       <PageHeader
         title="Experiences"
         description={`${rows.length} entries. Sorted by order field.`}

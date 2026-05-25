@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { getIronSession } from "iron-session";
+import Link from "next/link";
+import { Home } from "lucide-react";
 import { sessionOptions, type AdminSession } from "@/lib/auth";
 import AdminNav from "@/components/AdminNav";
 import LogoutButton from "@/components/LogoutButton";
+import ViewLink from "@/components/admin/ViewLink";
+import CommandPalette from "@/components/CommandPalette";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
@@ -31,11 +35,18 @@ export default async function AdminLayout({
             <span className="text-sm font-semibold tracking-tight">
               furkanunsalan.dev
             </span>
-            <span className="text-[10px] uppercase tracking-widest text-light-fourth">
-              admin
-            </span>
           </div>
-          <LogoutButton />
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-light-secondary hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-colors"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span>Home</span>
+            </Link>
+            <ViewLink />
+            <LogoutButton />
+          </div>
         </div>
       </header>
 
@@ -45,6 +56,7 @@ export default async function AdminLayout({
         </aside>
         <main className="min-w-0">{children}</main>
       </div>
+      <CommandPalette />
     </div>
   );
 }

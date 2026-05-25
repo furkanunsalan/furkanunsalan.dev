@@ -4,6 +4,7 @@ import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 import { ICON_KEYS } from "@/lib/place-list-icons";
 import { revalidateCollection } from "@/lib/revalidate";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,11 @@ export async function PATCH(
     patch.icon = body.icon;
   if (typeof body.position === "number") patch.position = body.position;
   try {
+    const [before] = await db
+      .select()
+      .from(schema.placeLists)
+      .where(eq(schema.placeLists.name, params.name))
+      .limit(1);
     const [row] = await db
       .update(schema.placeLists)
       .set(patch)
@@ -31,6 +37,14 @@ export async function PATCH(
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("placeLists");
+    await recordAudit({
+      req,
+      action: "update",
+      resource: "placeList",
+      rowId: params.name,
+      before: before as unknown as Record<string, unknown> | null,
+      after: row as unknown as Record<string, unknown>,
+    });
     return NextResponse.json({ row });
   } catch (e) {
     const f = friendlyDbError(e, "list");
@@ -39,10 +53,15 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: { name: string } },
 ) {
   try {
+    const [before] = await db
+      .select()
+      .from(schema.placeLists)
+      .where(eq(schema.placeLists.name, params.name))
+      .limit(1);
     // Detach members first — places.list is a loose string, no FK to enforce.
     await db
       .update(schema.places)
@@ -54,6 +73,13 @@ export async function DELETE(
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("placeLists");
+    await recordAudit({
+      req,
+      action: "delete",
+      resource: "placeList",
+      rowId: params.name,
+      before: before as unknown as Record<string, unknown> | null,
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     const f = friendlyDbError(e, "list");

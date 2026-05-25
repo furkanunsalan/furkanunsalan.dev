@@ -15,6 +15,27 @@
       "when": 1779663122177,
       "tag": "0001_place_lists",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779730159463,
+      "tag": "0002_whole_black_tarantula",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779731484621,
+      "tag": "0003_lethal_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779734502712,
+      "tag": "0004_nasty_senator_kelly",
+      "breakpoints": true
     }
   ]
 }

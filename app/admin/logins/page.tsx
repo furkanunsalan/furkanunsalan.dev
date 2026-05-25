@@ -1,0 +1,100 @@
+import { desc, sql } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+import { PageHeader } from "@/components/admin/form";
+import { Check, X } from "lucide-react";
+
+export const dynamic = "force-dynamic";
+
+const LIMIT = 200;
+
+export default async function AdminLoginsPage() {
+  const [rows, totals] = await Promise.all([
+    db
+      .select()
+      .from(schema.adminLogins)
+      .orderBy(desc(schema.adminLogins.at))
+      .limit(LIMIT),
+    db
+      .select({
+        ok: sql<number>`count(*) filter (where ok) ::int`,
+        fail: sql<number>`count(*) filter (where not ok) ::int`,
+      })
+      .from(schema.adminLogins)
+      .where(sql`at > now() - interval '24 hours'`),
+  ]);
+  const t = totals[0] ?? { ok: 0, fail: 0 };
+
+  return (
+    <div>
+      <PageHeader
+        title="Login attempts"
+        description={`Last ${rows.length} attempts. Logged on every /api/admin/login hit.`}
+      />
+
+      <div className="mb-4 flex items-baseline gap-6 text-sm rounded-xl ring-1 ring-white/[0.06] bg-zinc-950 px-4 py-3">
+        <span className="text-xs uppercase tracking-widest text-light-fourth">
+          Last 24h
+        </span>
+        <span>
+          <span className="text-emerald-400 font-semibold tabular-nums">
+            {t.ok}
+          </span>{" "}
+          <span className="text-light-fourth">ok</span>
+        </span>
+        <span>
+          <span className="text-rose-400 font-semibold tabular-nums">
+            {t.fail}
+          </span>{" "}
+          <span className="text-light-fourth">failed</span>
+        </span>
+      </div>
+
+      <ul className="divide-y divide-white/[0.04] ring-1 ring-white/[0.06] rounded-xl overflow-hidden bg-zinc-950">
+        {rows.length === 0 && (
+          <li className="px-4 py-6 text-sm text-light-fourth text-center">
+            No attempts yet.
+          </li>
+        )}
+        {rows.map((r) => (
+          <li
+            key={r.id}
+            className="px-4 py-2.5 flex items-center gap-3 text-sm"
+          >
+            {r.ok ? (
+              <span
+                className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30 shrink-0"
+                title="ok"
+              >
+                <Check className="w-3.5 h-3.5" />
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-500/15 text-rose-400 ring-1 ring-rose-500/30 shrink-0"
+                title="failed"
+              >
+                <X className="w-3.5 h-3.5" />
+              </span>
+            )}
+            <span className="text-light-secondary tabular-nums">
+              {formatAt(r.at)}
+            </span>
+            <span className="text-light-fourth text-xs ml-auto font-mono">
+              {r.ip ?? "—"}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function formatAt(d: Date): string {
+  return d.toLocaleString("en-GB", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}

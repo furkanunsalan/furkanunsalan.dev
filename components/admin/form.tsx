@@ -1,7 +1,8 @@
 "use client";
 
-import { X, Plus } from "lucide-react";
-import { useCallback, useId, useRef, useState } from "react";
+import Link from "next/link";
+import { X, Plus, ChevronDown } from "lucide-react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 // ---- shared style tokens ----
 const FIELD_CLASS =
@@ -58,6 +59,96 @@ export function TextInput({
       required={required}
       className={FIELD_CLASS}
     />
+  );
+}
+
+// Free-text input with a chevron that toggles a dropdown of existing values.
+// Typing alone does NOT surface suggestions — the user has to deliberately open
+// the picker, which keeps quick text entry friction-free.
+export function ComboInput({
+  value,
+  onChange,
+  options,
+  placeholder,
+  id,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder?: string;
+  id?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative" ref={rootRef}>
+      <div className="flex items-stretch w-full bg-black ring-1 ring-white/[0.08] focus-within:ring-accent-primary/60 rounded-lg overflow-hidden">
+        <input
+          id={id}
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete="off"
+          className="flex-1 bg-transparent outline-none px-3 py-2 text-sm text-white placeholder:text-light-fourth"
+        />
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          disabled={options.length === 0}
+          className="px-2 text-light-fourth hover:text-white border-l border-white/[0.06] disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="pick existing"
+          title={
+            options.length === 0 ? "No existing values yet" : "Pick existing"
+          }
+        >
+          <ChevronDown className="w-3.5 h-3.5" />
+        </button>
+      </div>
+      {open && options.length > 0 && (
+        <div className="absolute z-30 left-0 right-0 mt-1 rounded-lg ring-1 ring-white/10 bg-zinc-950 shadow-2xl max-h-64 overflow-y-auto py-1">
+          {options.map((o) => {
+            const active = o === value;
+            return (
+              <button
+                key={o}
+                type="button"
+                onClick={() => {
+                  onChange(o);
+                  setOpen(false);
+                }}
+                className={`w-full text-left px-3 py-1.5 text-sm transition-colors ${
+                  active
+                    ? "bg-accent-primary/15 text-accent-primary"
+                    : "text-light-secondary hover:bg-white/[0.04] hover:text-white"
+                }`}
+              >
+                {o}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -310,7 +401,7 @@ export function ImageArrayInput({
 }: {
   value: string[];
   onChange: (v: string[]) => void;
-  dir: "posts" | "projects" | "experiences" | "places" | "misc";
+  dir: "posts" | "projects" | "experiences" | "places" | "thoughts" | "misc";
 }) {
   return (
     <div className="space-y-2">
@@ -365,7 +456,7 @@ export function ImageInput({
   value?: string;
   onChange?: (v: string | undefined) => void;
   onUpload?: (url: string) => void;
-  dir: "posts" | "projects" | "experiences" | "places" | "misc";
+  dir: "posts" | "projects" | "experiences" | "places" | "thoughts" | "misc";
   label?: string;
 }) {
   const id = useId();
@@ -509,20 +600,50 @@ export function PageHeader({
   title,
   description,
   action,
+  back,
 }: {
   title: string;
   description?: string;
   action?: React.ReactNode;
+  back?: { href: string; label?: string };
 }) {
   return (
     <header className="mb-6 flex items-end justify-between gap-4">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
+          {back && <BackLink href={back.href} label={back.label} />}
+          <h1 className="text-xl font-semibold tracking-tight truncate">
+            {title}
+          </h1>
+        </div>
         {description && (
           <p className="mt-1 text-xs text-light-fourth">{description}</p>
         )}
       </div>
       {action}
     </header>
+  );
+}
+
+function BackLink({ href, label }: { href: string; label?: string }) {
+  return (
+    <Link
+      href={href}
+      aria-label={label || "Back"}
+      className="inline-flex items-center justify-center w-7 h-7 rounded-md ring-1 ring-white/[0.08] text-light-secondary hover:text-white hover:ring-white/20 transition-colors shrink-0"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="14"
+        height="14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+    </Link>
   );
 }

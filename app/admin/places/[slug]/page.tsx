@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import PlaceForm from "../PlaceForm";
 import { PageHeader } from "@/components/admin/form";
@@ -11,7 +11,7 @@ export default async function EditPlacePage({
 }: {
   params: { slug: string };
 }) {
-  const [[row], lists] = await Promise.all([
+  const [[row], lists, catRows] = await Promise.all([
     db
       .select()
       .from(schema.places)
@@ -21,15 +21,26 @@ export default async function EditPlacePage({
       .select({ name: schema.placeLists.name, icon: schema.placeLists.icon })
       .from(schema.placeLists)
       .orderBy(asc(schema.placeLists.position), asc(schema.placeLists.name)),
+    db
+      .selectDistinct({ category: schema.places.category })
+      .from(schema.places)
+      .where(sql`${schema.places.category} <> ''`)
+      .orderBy(asc(schema.places.category)),
   ]);
   if (!row) notFound();
+  const categories = catRows.map((r) => r.category);
 
   return (
     <div>
-      <PageHeader title={row.name} description={`/places — ${row.slug}`} />
+      <PageHeader
+        title={row.name}
+        description={`/places — ${row.slug}`}
+        back={{ href: "/admin/places" }}
+      />
       <PlaceForm
         mode="edit"
         lists={lists}
+        categories={categories}
         initial={{
           slug: row.slug,
           name: row.name,

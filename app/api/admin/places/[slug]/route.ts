@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 import { revalidateCollection } from "@/lib/revalidate";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -54,6 +55,11 @@ export async function PATCH(
   if (body.addedAt) patch.addedAt = new Date(body.addedAt);
 
   try {
+    const [before] = await db
+      .select()
+      .from(schema.places)
+      .where(eq(schema.places.slug, params.slug))
+      .limit(1);
     const [row] = await db
       .update(schema.places)
       .set(patch)
@@ -61,6 +67,14 @@ export async function PATCH(
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("places");
+    await recordAudit({
+      req,
+      action: "update",
+      resource: "place",
+      rowId: params.slug,
+      before: before as unknown as Record<string, unknown> | null,
+      after: row as unknown as Record<string, unknown>,
+    });
     return NextResponse.json({ row });
   } catch (e) {
     const f = friendlyDbError(e, "place");
@@ -69,16 +83,30 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: { slug: string } },
 ) {
   try {
+    const [before] = await db
+      .select()
+      .from(schema.places)
+      .where(eq(schema.places.slug, params.slug))
+      .limit(1);
     const [row] = await db
-      .delete(schema.places)
+      .update(schema.places)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(eq(schema.places.slug, params.slug))
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("places");
+    await recordAudit({
+      req,
+      action: "delete",
+      resource: "place",
+      rowId: params.slug,
+      before: before as unknown as Record<string, unknown> | null,
+      after: { deletedAt: row.deletedAt },
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     const f = friendlyDbError(e, "place");

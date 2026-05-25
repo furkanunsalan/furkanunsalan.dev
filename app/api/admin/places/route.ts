@@ -4,6 +4,7 @@ import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 import { slugifyAscii, cleanUserSlug } from "@/lib/slugify";
 import { revalidateCollection } from "@/lib/revalidate";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -58,6 +59,13 @@ export async function POST(req: Request) {
       })
       .returning();
     revalidateCollection("places");
+    await recordAudit({
+      req,
+      action: "create",
+      resource: "place",
+      rowId: slug,
+      after: row as unknown as Record<string, unknown>,
+    });
     return NextResponse.json({ row }, { status: 201 });
   } catch (e) {
     const f = friendlyDbError(e, "place");

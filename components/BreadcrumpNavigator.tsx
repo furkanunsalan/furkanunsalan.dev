@@ -35,7 +35,7 @@ const routes: { name: string; href: string; icon: React.ReactNode }[] = [
     icon: <Bookmark className={ICON_CLASS} />,
   },
   {
-    name: "Writing",
+    name: "Thoughts",
     href: "/writing",
     icon: <PenLine className={ICON_CLASS} />,
   },

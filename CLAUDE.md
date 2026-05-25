@@ -27,14 +27,12 @@ For a layout overview see [`CODEMAP.md`](CODEMAP.md).
 
 ```bash
 npm install
-
-# Open a tunnel to the VPS Postgres (one-time per session):
-ssh -fN -L 15432:127.0.0.1:5432 root@<vps>
-
 npm run dev          # http://localhost:3000
 ```
 
-`.env.local` must contain at least `DATABASE_URL` and `ADMIN_SESSION_SECRET`. `ADMIN_PASSWORD_HASH` lives in `.env.pm2.secrets` (sidecar file PM2's `ecosystem.config.cjs` loads but Next's `@next/env` does NOT — its dotenv-expand silently drops every `$` in the argon2 PHC hash from any auto-loaded `.env.*`, which clobbers the value at request time). To rotate: `npm run admin:set-password -- "new password"` writes to `.env.pm2.secrets`. For prod, `scp .env.pm2.secrets <vps>:/root/furkanunsalan.dev/` then `pm2 restart furkanunsalan --update-env`.
+`npm run dev` runs a `predev` step (`scripts/dev-tunnel.mjs`) that opens an SSH tunnel from `127.0.0.1:$DB_TUNNEL_PORT` (default `3333`) to the VPS Postgres if it isn't already open. The script is idempotent — if the port is already listening it reuses the existing tunnel.
+
+`.env.local` must contain at least `DATABASE_URL`, `ADMIN_SESSION_SECRET`, `VPS_SSH_TARGET` (e.g. `root@your-vps`), and optionally `DB_TUNNEL_PORT` (default `3333`). `ADMIN_PASSWORD_HASH` lives in `.env.pm2.secrets` (sidecar file PM2's `ecosystem.config.cjs` loads but Next's `@next/env` does NOT — its dotenv-expand silently drops every `$` in the argon2 PHC hash from any auto-loaded `.env.*`, which clobbers the value at request time). To rotate: `npm run admin:set-password -- "new password"` writes to `.env.pm2.secrets`. For prod, `scp .env.pm2.secrets <vps>:/root/furkanunsalan.dev/` then `pm2 restart furkanunsalan --update-env`.
 
 Admin UI is at `/admin` (login → dashboard → per-collection lists/forms). Single-password auth; the hash is in env.
 
@@ -42,17 +40,21 @@ For the terminal twin: `cd terminal && make run` (`ssh -p 2222 localhost`).
 
 ### Env vars (web)
 
-| Var                    | Used for                                                                                |
-| ---------------------- | --------------------------------------------------------------------------------------- |
-| `DATABASE_URL`         | Postgres connection. Dev points at the SSH tunnel (`:15432`); prod at `127.0.0.1:5432`. |
-| `ADMIN_SESSION_SECRET` | iron-session cookie secret (≥32 chars; module-load throws if missing).                  |
-| `ADMIN_PASSWORD_HASH`  | argon2id PHC hash; lives in `.env.pm2.secrets` only (NOT `.env.local`/`.env.production`). |
-| `UPLOADS_DIR`          | Absolute path for image uploads (outside the rsync target).                             |
-| `GITHUB_TOKEN`         | Repo list, contribution graph, READMEs.                                                 |
-| `RAINDROP_TOKEN`       | (Optional, legacy) Raindrop bookmarks page.                                             |
-| `KARAKEEP_API_KEY`     | Karakeep bookmarks page.                                                                |
-| `UNSPLASH_ACCESS_KEY`  | Photos page.                                                                            |
-| `NEXT_PUBLIC_SITE_URL` | Absolute URLs in OG/RSS.                                                                |
+| Var                    | Used for                                                                                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`         | Postgres connection. Dev points at the SSH tunnel (`:3333` by default); prod at `127.0.0.1:5432`.                                                                                     |
+| `VPS_SSH_TARGET`       | Dev-only. SSH target for the auto-tunnel (e.g. `root@45.143.4.115`).                                                                                                                  |
+| `DB_TUNNEL_PORT`       | Dev-only. Local port for the SSH tunnel (default `3333`).                                                                                                                             |
+| `ADMIN_SESSION_SECRET` | iron-session cookie secret (≥32 chars; module-load throws if missing).                                                                                                                |
+| `ADMIN_PASSWORD_HASH`  | argon2id PHC hash; lives in `.env.pm2.secrets` only (NOT `.env.local`/`.env.production`).                                                                                             |
+| `UPLOADS_DIR`          | Absolute path for image uploads (outside the rsync target).                                                                                                                           |
+| `UPLOAD_REMOTE`        | Dev-only. `user@host:/abs/dir` — when set, `saveUpload` streams the file over `ssh` instead of writing to local `UPLOADS_DIR`. Use to push uploads straight to prod while developing. |
+| `UPLOAD_PROXY_URL`     | Dev-only. e.g. `https://furkanunsalan.dev` — when `/api/img` can't find a file locally it fetches from this origin so prod-uploaded images preview on `localhost`.                    |
+| `GITHUB_TOKEN`         | Repo list, contribution graph, READMEs.                                                                                                                                               |
+| `RAINDROP_TOKEN`       | (Optional, legacy) Raindrop bookmarks page.                                                                                                                                           |
+| `KARAKEEP_API_KEY`     | Karakeep bookmarks page.                                                                                                                                                              |
+| `UNSPLASH_ACCESS_KEY`  | Photos page.                                                                                                                                                                          |
+| `NEXT_PUBLIC_SITE_URL` | Absolute URLs in OG/RSS.                                                                                                                                                              |
 
 ## Deploy
 
@@ -72,4 +74,4 @@ Push to `main` → GitHub Actions builds and rsyncs to the VPS. `deploy.yml` for
 - **Add a content collection** — extend `db/schema.ts`, generate + apply migration, add a reader in `lib/content.ts`, add admin routes under `app/api/admin/<col>/` (POST/PATCH/DELETE wrapped in `friendlyDbError`), add an admin page under `app/admin/<col>/` (list + form + new + edit), wire the collection name into `lib/revalidate.ts`.
 - **Update OG image style** — `lib/og.tsx` is the single template; route-specific images (`opengraph-image.tsx`) call `renderOgImage(...)` with custom props.
 - **Add a place via Maps URL** — `/admin/places/new`, paste the URL into the resolver panel. It follows short-link redirects, parses lat/lng, reverse-geocodes via OSM Nominatim. Detects existing-slug collisions and offers a jump-to-edit link.
-- **Sync GitHub repo visibility** — `/admin/settings/github`, click "Sync from GitHub". Reconciles via 1–3 bulk SQL statements in a transaction.
+- **Sync GitHub repo visibility** — `/admin/projects` (scroll to the GitHub repos section), click "Sync from GitHub". Reconciles via 1–3 bulk SQL statements in a transaction.

@@ -1,6 +1,6 @@
 import "server-only";
 import Markdoc from "@markdoc/markdoc";
-import { asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import type {
   BlogPost,
@@ -8,6 +8,7 @@ import type {
   Experience,
   Place,
   PlaceStatus,
+  Thought,
   Tool,
 } from "@/types";
 
@@ -40,6 +41,7 @@ export async function getPosts(): Promise<BlogPost[]> {
     rows = await db
       .select()
       .from(schema.posts)
+      .where(and(eq(schema.posts.draft, false), isNull(schema.posts.deletedAt)))
       .orderBy(desc(schema.posts.date));
   } catch (e) {
     console.error("[getPosts] query failed:", e);
@@ -55,6 +57,10 @@ export async function getPosts(): Promise<BlogPost[]> {
     const banner = bannerUrl(r.slug, r.banner);
     if (banner) post.banner = banner;
     if (r.excerpt) post.excerpt = r.excerpt;
+    const words = (r.content || "").split(/\s+/).filter(Boolean).length;
+    if (words > 0) {
+      post.readingTime = `${Math.max(1, Math.ceil(words / 200))} min read`;
+    }
     return post;
   });
 }
@@ -63,7 +69,7 @@ export async function getPostBySlug(slug: string) {
   const [r] = await db
     .select()
     .from(schema.posts)
-    .where(eq(schema.posts.slug, slug))
+    .where(and(eq(schema.posts.slug, slug), isNull(schema.posts.deletedAt)))
     .limit(1);
   if (!r) return null;
   const node = Markdoc.parse(r.content || "");
@@ -89,7 +95,7 @@ export async function getPostMetaBySlug(
       date: schema.posts.date,
     })
     .from(schema.posts)
-    .where(eq(schema.posts.slug, slug))
+    .where(and(eq(schema.posts.slug, slug), isNull(schema.posts.deletedAt)))
     .limit(1);
   return r ? { slug: r.slug, title: r.title, date: String(r.date) } : null;
 }
@@ -99,7 +105,10 @@ export async function getPostMetaBySlug(
 export async function getExperiences(): Promise<Experience[]> {
   let rows: (typeof schema.experiences.$inferSelect)[] = [];
   try {
-    rows = await db.select().from(schema.experiences);
+    rows = await db
+      .select()
+      .from(schema.experiences)
+      .where(isNull(schema.experiences.deletedAt));
   } catch (e) {
     console.error("[getExperiences] query failed:", e);
     return [];
@@ -151,6 +160,7 @@ export async function getCustomProjects(): Promise<CustomProject[]> {
     rows = await db
       .select()
       .from(schema.projects)
+      .where(isNull(schema.projects.deletedAt))
       .orderBy(asc(schema.projects.order));
   } catch (e) {
     console.error("[getCustomProjects] query failed:", e);
@@ -176,7 +186,9 @@ export async function getCustomProjectBySlug(slug: string) {
   const [r] = await db
     .select()
     .from(schema.projects)
-    .where(eq(schema.projects.slug, slug))
+    .where(
+      and(eq(schema.projects.slug, slug), isNull(schema.projects.deletedAt)),
+    )
     .limit(1);
   if (!r) return null;
   const node = Markdoc.parse(r.content || "");
@@ -313,6 +325,7 @@ export async function getPlaces(): Promise<Place[]> {
     rows = await db
       .select()
       .from(schema.places)
+      .where(isNull(schema.places.deletedAt))
       .orderBy(desc(schema.places.addedAt), asc(schema.places.name));
   } catch (e) {
     console.error("[getPlaces] query failed:", e);
@@ -332,6 +345,7 @@ export async function getPlaces(): Promise<Place[]> {
     sourceUrl: r.sourceUrl || undefined,
     addedAt: r.addedAt ? r.addedAt.toISOString() : undefined,
     tags: r.tags || [],
+    notes: r.notes || undefined,
   }));
 }
 
@@ -361,7 +375,11 @@ export async function getPlaceLists(): Promise<PlaceListMeta[]> {
 export async function getTools(): Promise<Tool[]> {
   let rows: (typeof schema.tools.$inferSelect)[] = [];
   try {
-    rows = await db.select().from(schema.tools).orderBy(asc(schema.tools.name));
+    rows = await db
+      .select()
+      .from(schema.tools)
+      .where(isNull(schema.tools.deletedAt))
+      .orderBy(asc(schema.tools.name));
   } catch (e) {
     console.error("[getTools] query failed:", e);
     return [];
@@ -376,4 +394,62 @@ export async function getTools(): Promise<Tool[]> {
     favorite: r.favorite,
     link: r.link ?? undefined,
   }));
+}
+
+// ---- thoughts ---------------------------------------------------------
+
+export async function getThoughts({ limit }: { limit?: number } = {}): Promise<
+  Thought[]
+> {
+  let rows: (typeof schema.thoughts.$inferSelect)[] = [];
+  try {
+    const q = db
+      .select()
+      .from(schema.thoughts)
+      .where(
+        and(
+          eq(schema.thoughts.draft, false),
+          isNull(schema.thoughts.deletedAt),
+        ),
+      )
+      .orderBy(desc(schema.thoughts.createdAt));
+    rows = typeof limit === "number" ? await q.limit(limit) : await q;
+  } catch (e) {
+    console.error("[getThoughts] query failed:", e);
+    return [];
+  }
+  return rows.map((r) => ({
+    id: r.id,
+    body: r.body || "",
+    images: r.images || [],
+    tags: r.tags || [],
+    createdAt: r.createdAt.toISOString(),
+  }));
+}
+
+export async function getLatestThought(): Promise<Thought | null> {
+  try {
+    const [r] = await db
+      .select()
+      .from(schema.thoughts)
+      .where(
+        and(
+          eq(schema.thoughts.draft, false),
+          isNull(schema.thoughts.deletedAt),
+        ),
+      )
+      .orderBy(desc(schema.thoughts.createdAt))
+      .limit(1);
+    if (!r) return null;
+    return {
+      id: r.id,
+      body: r.body || "",
+      images: r.images || [],
+      tags: r.tags || [],
+      createdAt: r.createdAt.toISOString(),
+    };
+  } catch (e) {
+    console.error("[getLatestThought] query failed:", e);
+    return null;
+  }
 }

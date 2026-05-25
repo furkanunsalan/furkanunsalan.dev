@@ -2,7 +2,7 @@ import GithubCommitHistory from "@/components/GithubCommitHistory";
 import HomeIntro from "@/components/HomeIntro";
 import HomeTools from "@/components/HomeTools";
 import LatestSection, { type LatestItem } from "@/components/LatestSection";
-import { getExperiences, getPosts } from "@/lib/content";
+import { getExperiences, getLatestThought, getPosts } from "@/lib/content";
 import { getGithubRepos } from "@/lib/github";
 import { BOOKMARK_LISTS, getKarakeepLatestFromLists } from "@/lib/karakeep";
 import unsplash from "@/lib/unsplash";
@@ -20,16 +20,18 @@ async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 }
 
 export default async function Home() {
-  const [experiences, posts, repos, bookmark, photos] = await Promise.all([
-    safe(() => getExperiences(), []),
-    safe(() => getPosts(), []),
-    safe(() => getGithubRepos(), []),
-    safe(
-      () => getKarakeepLatestFromLists(BOOKMARK_LISTS.map((l) => l.id)),
-      null,
-    ),
-    safe(() => unsplash.getPhotos(1) as Promise<any[]>, [] as any[]),
-  ]);
+  const [experiences, thought, posts, repos, bookmark, photos] =
+    await Promise.all([
+      safe(() => getExperiences(), []),
+      safe(() => getLatestThought(), null),
+      safe(() => getPosts(), []),
+      safe(() => getGithubRepos(), []),
+      safe(
+        () => getKarakeepLatestFromLists(BOOKMARK_LISTS.map((l) => l.id)),
+        null,
+      ),
+      safe(() => unsplash.getPhotos(1) as Promise<any[]>, [] as any[]),
+    ]);
 
   const latestExperience = [...experiences].sort((a, b) => {
     if (a.order !== b.order) return a.order - b.order;
@@ -58,14 +60,45 @@ export default async function Home() {
     });
   }
 
+  // Posts + thoughts now share one public feed at /writing — surface whichever
+  // is newer as a single "Latest" row pointing into that feed.
+  const writingCandidates: Array<{
+    kind: "post" | "thought";
+    date: string;
+    item: LatestItem;
+  }> = [];
   if (latestPost) {
-    items.push({
-      type: "writing",
-      title: latestPost.title,
-      href: `/writing/${latestPost.slug}`,
+    writingCandidates.push({
+      kind: "post",
       date: latestPost.date,
+      item: {
+        type: "writing",
+        title: latestPost.title,
+        href: `/writing/${latestPost.slug}`,
+        date: latestPost.date,
+      },
     });
   }
+  if (thought) {
+    const preview = thought.body.replace(/\s+/g, " ").trim();
+    writingCandidates.push({
+      kind: "thought",
+      date: thought.createdAt,
+      item: {
+        type: "thought",
+        title:
+          preview.length > 100
+            ? `${preview.slice(0, 100)}…`
+            : preview || `Thought #${thought.id}`,
+        href: `/writing#t-${thought.id}`,
+        date: thought.createdAt,
+      },
+    });
+  }
+  writingCandidates.sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+  if (writingCandidates[0]) items.push(writingCandidates[0].item);
 
   if (latestProject) {
     items.push({

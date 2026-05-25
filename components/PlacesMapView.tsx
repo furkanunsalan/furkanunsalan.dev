@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useEffect, useMemo, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { ArrowUpRight } from "lucide-react";
 import "leaflet/dist/leaflet.css";
@@ -60,9 +60,19 @@ interface Props {
   lists: { name: string; icon: string }[];
   center: [number, number];
   zoom: number;
+  selectedSlug: string | null;
+  selectionNonce: number;
 }
 
-export default function PlacesMapView({ places, lists, center, zoom }: Props) {
+export default function PlacesMapView({
+  places,
+  lists,
+  center,
+  zoom,
+  selectedSlug,
+  selectionNonce,
+}: Props) {
+  const markerRefs = useRef<Map<string, L.Marker>>(new Map());
   // Build a name → iconKey lookup from the available lists.
   const iconByList = useMemo(() => {
     const m = new Map<string, ListIconKey>();
@@ -94,11 +104,45 @@ export default function PlacesMapView({ places, lists, center, zoom }: Props) {
       attributionControl={false}
       className="places-map h-[480px] w-full rounded-xl overflow-hidden z-0"
     >
+      <SelectionDriver
+        places={places}
+        selectedSlug={selectedSlug}
+        selectionNonce={selectionNonce}
+        markerRefs={markerRefs}
+      />
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         subdomains="abcd"
         maxZoom={19}
       />
+      <PlaceMarkers
+        places={places}
+        iconByList={iconByList}
+        iconCache={iconCache}
+        markerRefs={markerRefs}
+      />
+    </MapContainer>
+  );
+}
+
+// Wraps the marker rendering so we can call useMap() and attach a click
+// handler that recenters the map on the clicked pin — same behavior as
+// selecting a row in the list. Leaflet still opens the popup on click by
+// default, so we only need to fly here.
+function PlaceMarkers({
+  places,
+  iconByList,
+  iconCache,
+  markerRefs,
+}: {
+  places: Place[];
+  iconByList: Map<string, ListIconKey>;
+  iconCache: (status: PlaceStatus, ik: ListIconKey) => L.DivIcon;
+  markerRefs: React.MutableRefObject<Map<string, L.Marker>>;
+}) {
+  const map = useMap();
+  return (
+    <>
       {places.map((p) => {
         const ik = iconByList.get(p.list || "") ?? iconKey(null);
         const IconComp = PLACE_LIST_ICON_COMPONENTS[ik];
@@ -107,8 +151,18 @@ export default function PlacesMapView({ places, lists, center, zoom }: Props) {
             key={p.slug}
             position={[p.lat, p.lng]}
             icon={iconCache(p.status, ik)}
+            eventHandlers={{
+              click: () => {
+                const desiredZoom = Math.max(map.getZoom(), 15);
+                map.flyTo([p.lat, p.lng], desiredZoom, { duration: 0.6 });
+              },
+            }}
+            ref={(m) => {
+              if (m) markerRefs.current.set(p.slug, m);
+              else markerRefs.current.delete(p.slug);
+            }}
           >
-            <Popup>
+            <Popup autoPan={false}>
               <div className="popup-card">
                 <div className="popup-head">
                   <span
@@ -120,6 +174,7 @@ export default function PlacesMapView({ places, lists, center, zoom }: Props) {
                   <div className="popup-name min-w-0">{p.name}</div>
                 </div>
                 {p.address && <p className="popup-address">{p.address}</p>}
+                {p.notes && <p className="popup-notes">{p.notes}</p>}
                 <div className="popup-actions">
                   {p.sourceUrl && (
                     <a
@@ -143,6 +198,40 @@ export default function PlacesMapView({ places, lists, center, zoom }: Props) {
           </Marker>
         );
       })}
-    </MapContainer>
+    </>
   );
+}
+
+// Drives map view + popup state from props passed in from outside the
+// MapContainer. Lives inside MapContainer so it can call useMap(). Re-fires
+// whenever selectionNonce bumps — even when the same slug is clicked twice.
+function SelectionDriver({
+  places,
+  selectedSlug,
+  selectionNonce,
+  markerRefs,
+}: {
+  places: Place[];
+  selectedSlug: string | null;
+  selectionNonce: number;
+  markerRefs: React.MutableRefObject<Map<string, L.Marker>>;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (!selectedSlug) return;
+    const target = places.find((p) => p.slug === selectedSlug);
+    if (!target) return;
+    const desiredZoom = Math.max(map.getZoom(), 15);
+    map.getContainer().scrollIntoView({ behavior: "smooth", block: "center" });
+    map.flyTo([target.lat, target.lng], desiredZoom, { duration: 0.6 });
+    const openOnDone = () => {
+      markerRefs.current.get(selectedSlug)?.openPopup();
+    };
+    map.once("moveend", openOnDone);
+    return () => {
+      map.off("moveend", openOnDone);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSlug, selectionNonce]);
+  return null;
 }

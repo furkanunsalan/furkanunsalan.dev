@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getPlaces, getPlaceLists } from "@/lib/content";
-import PlacesMap from "@/components/PlacesMap";
-import PlacesList from "@/components/PlacesList";
+import PlacesSection from "@/components/PlacesSection";
 
 export const metadata: Metadata = {
   title: "Places | Furkan Ünsalan",
@@ -23,12 +22,7 @@ export default async function PlacesPage() {
           <code className="text-accent-primary">/admin/places/new</code>.
         </div>
       ) : (
-        <>
-          <PlacesMap places={places} lists={lists} />
-          <div className="mt-10">
-            <PlacesList places={places} lists={lists} />
-          </div>
-        </>
+        <PlacesSection places={places} lists={lists} />
       )}
     </div>
   );

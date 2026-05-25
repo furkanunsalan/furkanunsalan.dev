@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/admin/form";
 export default function NewProjectPage() {
   return (
     <div>
-      <PageHeader title="New project" />
+      <PageHeader title="New project" back={{ href: "/admin/projects" }} />
       <ProjectForm
         mode="new"
         initial={{

@@ -4,6 +4,7 @@ import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 import { revalidateCollection } from "@/lib/revalidate";
 import { cleanLinks, cleanStringArray } from "@/lib/validators";
+import { recordAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
@@ -43,6 +44,11 @@ export async function PATCH(
   if (Array.isArray(body.images)) patch.images = cleanStringArray(body.images);
 
   try {
+    const [before] = await db
+      .select()
+      .from(schema.experiences)
+      .where(eq(schema.experiences.id, params.id))
+      .limit(1);
     const [row] = await db
       .update(schema.experiences)
       .set(patch)
@@ -50,6 +56,14 @@ export async function PATCH(
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("experiences");
+    await recordAudit({
+      req,
+      action: "update",
+      resource: "experience",
+      rowId: params.id,
+      before: before as unknown as Record<string, unknown> | null,
+      after: row as unknown as Record<string, unknown>,
+    });
     return NextResponse.json({ row });
   } catch (e) {
     const f = friendlyDbError(e, "experience");
@@ -58,16 +72,30 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: { id: string } },
 ) {
   try {
+    const [before] = await db
+      .select()
+      .from(schema.experiences)
+      .where(eq(schema.experiences.id, params.id))
+      .limit(1);
     const [row] = await db
-      .delete(schema.experiences)
+      .update(schema.experiences)
+      .set({ deletedAt: new Date(), updatedAt: new Date() })
       .where(eq(schema.experiences.id, params.id))
       .returning();
     if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
     revalidateCollection("experiences");
+    await recordAudit({
+      req,
+      action: "delete",
+      resource: "experience",
+      rowId: params.id,
+      before: before as unknown as Record<string, unknown> | null,
+      after: { deletedAt: row.deletedAt },
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     const f = friendlyDbError(e, "experience");

@@ -9,10 +9,16 @@ import {
   Briefcase,
   Wrench,
   MapPin,
+  MessageSquare,
   Settings,
-  Github,
   LayoutDashboard,
-  List,
+  ShieldCheck,
+  ImageIcon,
+  Replace,
+  Trash2,
+  Database,
+  Archive,
+  Activity,
 } from "lucide-react";
 
 const ICON = "w-4 h-4";
@@ -25,6 +31,12 @@ const SECTIONS: {
 }[] = [
   { label: "Dashboard", href: "/admin", Icon: LayoutDashboard },
   { label: "Posts", href: "/admin/posts", Icon: PenLine, group: "Content" },
+  {
+    label: "Thoughts",
+    href: "/admin/thoughts",
+    Icon: MessageSquare,
+    group: "Content",
+  },
   {
     label: "Projects",
     href: "/admin/projects",
@@ -40,22 +52,32 @@ const SECTIONS: {
   { label: "Tools", href: "/admin/tools", Icon: Wrench, group: "Content" },
   { label: "Places", href: "/admin/places", Icon: MapPin, group: "Content" },
   {
+    label: "Uploads",
+    href: "/admin/uploads",
+    Icon: ImageIcon,
+    group: "Content",
+  },
+  {
     label: "Home page",
     href: "/admin/settings/home",
     Icon: Settings,
     group: "Settings",
   },
+  { label: "Rename", href: "/admin/rename", Icon: Replace, group: "Settings" },
+  { label: "Database", href: "/admin/db", Icon: Database, group: "System" },
+  { label: "Backup", href: "/admin/backup", Icon: Archive, group: "System" },
   {
-    label: "Place lists",
-    href: "/admin/settings/place-lists",
-    Icon: List,
-    group: "Settings",
+    label: "Activity",
+    href: "/admin/activity",
+    Icon: Activity,
+    group: "System",
   },
+  { label: "Trash", href: "/admin/trash", Icon: Trash2, group: "System" },
   {
-    label: "GitHub repos",
-    href: "/admin/settings/github",
-    Icon: Github,
-    group: "Settings",
+    label: "Login attempts",
+    href: "/admin/logins",
+    Icon: ShieldCheck,
+    group: "System",
   },
 ];
 
