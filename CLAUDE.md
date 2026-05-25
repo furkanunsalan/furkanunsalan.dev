@@ -34,7 +34,7 @@ ssh -fN -L 15432:127.0.0.1:5432 root@<vps>
 npm run dev          # http://localhost:3000
 ```
 
-`.env.local` must contain at least `DATABASE_URL`, `ADMIN_SESSION_SECRET`, and `ADMIN_PASSWORD_HASH`. To rotate the password: `npm run admin:set-password -- "new password"` (writes the argon2 hash with `\$` escapes — dotenv-expand otherwise mangles the `$argon2id$…` prefix).
+`.env.local` must contain at least `DATABASE_URL` and `ADMIN_SESSION_SECRET`. `ADMIN_PASSWORD_HASH` lives in `.env.pm2.secrets` (sidecar file PM2's `ecosystem.config.cjs` loads but Next's `@next/env` does NOT — its dotenv-expand silently drops every `$` in the argon2 PHC hash from any auto-loaded `.env.*`, which clobbers the value at request time). To rotate: `npm run admin:set-password -- "new password"` writes to `.env.pm2.secrets`. For prod, `scp .env.pm2.secrets <vps>:/root/furkanunsalan.dev/` then `pm2 restart furkanunsalan --update-env`.
 
 Admin UI is at `/admin` (login → dashboard → per-collection lists/forms). Single-password auth; the hash is in env.
 
@@ -46,7 +46,7 @@ For the terminal twin: `cd terminal && make run` (`ssh -p 2222 localhost`).
 | ---------------------- | --------------------------------------------------------------------------------------- |
 | `DATABASE_URL`         | Postgres connection. Dev points at the SSH tunnel (`:15432`); prod at `127.0.0.1:5432`. |
 | `ADMIN_SESSION_SECRET` | iron-session cookie secret (≥32 chars; module-load throws if missing).                  |
-| `ADMIN_PASSWORD_HASH`  | argon2id PHC hash; **must escape `$` as `\$`** in env files.                            |
+| `ADMIN_PASSWORD_HASH`  | argon2id PHC hash; lives in `.env.pm2.secrets` only (NOT `.env.local`/`.env.production`). |
 | `UPLOADS_DIR`          | Absolute path for image uploads (outside the rsync target).                             |
 | `GITHUB_TOKEN`         | Repo list, contribution graph, READMEs.                                                 |
 | `RAINDROP_TOKEN`       | (Optional, legacy) Raindrop bookmarks page.                                             |
@@ -58,7 +58,7 @@ For the terminal twin: `cd terminal && make run` (`ssh -p 2222 localhost`).
 
 Push to `main` → GitHub Actions builds and rsyncs to the VPS. `deploy.yml` for the Next.js side, `deploy-terminal.yml` for the Go binary.
 
-`.env.production` on the VPS is excluded from rsync. After a deploy, PM2 reloads with `--update-env` and re-reads it.
+`.env.production` and `.env.pm2.secrets` on the VPS are excluded from rsync. After a deploy, PM2 reloads with `--update-env` and re-reads both via `ecosystem.config.cjs`.
 
 ## DB ops
 

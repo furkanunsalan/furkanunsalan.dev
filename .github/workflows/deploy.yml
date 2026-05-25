@@ -75,6 +75,7 @@ jobs:
           set -euo pipefail
           rsync -az --delete \
             --exclude='.env.production' \
+            --exclude='.env.pm2.secrets' \
             --exclude='node_modules/.cache' \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
             release/ "$VPS_USER@$VPS_HOST:$APP_DIR/"
