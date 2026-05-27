@@ -23,12 +23,14 @@ import {
 
 const ICON = "w-4 h-4";
 
-const SECTIONS: {
+export type AdminNavSection = {
   label: string;
   href: string;
   Icon: typeof Home;
   group?: string;
-}[] = [
+};
+
+export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
   { label: "Dashboard", href: "/admin", Icon: LayoutDashboard },
   { label: "Posts", href: "/admin/posts", Icon: PenLine, group: "Content" },
   {
@@ -81,14 +83,18 @@ const SECTIONS: {
   },
 ];
 
-export default function AdminNav() {
+export default function AdminNav({
+  onNavigate,
+}: {
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname() || "";
 
   let lastGroup: string | undefined;
   return (
     <nav className="text-sm">
       <ul className="space-y-0.5">
-        {SECTIONS.map((s) => {
+        {ADMIN_NAV_SECTIONS.map((s) => {
           const isActive =
             s.href === "/admin"
               ? pathname === "/admin"
@@ -104,6 +110,7 @@ export default function AdminNav() {
               )}
               <Link
                 href={s.href}
+                onClick={onNavigate}
                 className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${
                   isActive
                     ? "bg-accent-primary/12 text-accent-primary ring-1 ring-accent-primary/30"

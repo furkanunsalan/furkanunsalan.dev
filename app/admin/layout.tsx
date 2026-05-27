@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Home } from "lucide-react";
 import { sessionOptions, type AdminSession } from "@/lib/auth";
 import AdminNav from "@/components/AdminNav";
+import AdminMobileNav from "@/components/AdminMobileNav";
 import LogoutButton from "@/components/LogoutButton";
 import ViewLink from "@/components/admin/ViewLink";
 import CommandPalette from "@/components/CommandPalette";
@@ -31,7 +32,8 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-black text-white">
       <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-black/80 backdrop-blur">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <AdminMobileNav />
             <span className="text-sm font-semibold tracking-tight">
               furkanunsalan.dev
             </span>
@@ -50,8 +52,8 @@ export default async function AdminLayout({
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6">
-        <aside className="md:sticky md:top-16 md:self-start">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 md:grid md:grid-cols-[200px_1fr] md:gap-6">
+        <aside className="hidden md:block md:sticky md:top-16 md:self-start">
           <AdminNav />
         </aside>
         <main className="min-w-0">{children}</main>
