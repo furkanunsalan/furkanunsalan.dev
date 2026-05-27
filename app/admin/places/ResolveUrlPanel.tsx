@@ -1,25 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Link2, LoaderCircle, Wand2 } from "lucide-react";
 import type { PlaceFormValue } from "./PlaceForm";
 
 type Props = {
   onResolved: (patch: Partial<PlaceFormValue>) => void;
+  defaultUrl?: string;
+  autoResolve?: boolean;
 };
 
 type Existing = { slug: string; name: string };
 
-export default function ResolveUrlPanel({ onResolved }: Props) {
-  const [url, setUrl] = useState("");
+export default function ResolveUrlPanel({
+  onResolved,
+  defaultUrl = "",
+  autoResolve = false,
+}: Props) {
+  const [url, setUrl] = useState(defaultUrl);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [existing, setExisting] = useState<Existing | null>(null);
+  const autoFiredRef = useRef(false);
 
-  async function resolve() {
-    const u = url.trim();
+  async function resolve(forcedUrl?: string) {
+    const u = (forcedUrl ?? url).trim();
     if (!u || pending) return;
     setPending(true);
     setError(null);
@@ -64,6 +71,14 @@ export default function ResolveUrlPanel({ onResolved }: Props) {
     }
   }
 
+  useEffect(() => {
+    if (autoResolve && defaultUrl && !autoFiredRef.current) {
+      autoFiredRef.current = true;
+      resolve(defaultUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoResolve, defaultUrl]);
+
   return (
     <div className="rounded-xl ring-1 ring-white/[0.06] bg-zinc-950 p-4 mb-6">
       <div className="flex items-center gap-2 mb-2 text-xs text-light-fourth">
@@ -81,7 +96,7 @@ export default function ResolveUrlPanel({ onResolved }: Props) {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                resolve();
+                void resolve();
               }
             }}
             placeholder="https://maps.app.goo.gl/… or https://www.google.com/maps/place/…"
@@ -90,7 +105,7 @@ export default function ResolveUrlPanel({ onResolved }: Props) {
         </div>
         <button
           type="button"
-          onClick={resolve}
+          onClick={() => resolve()}
           disabled={pending || !url.trim()}
           className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-accent-primary/15 text-accent-primary ring-1 ring-accent-primary/40 hover:bg-accent-primary/25 disabled:opacity-50 transition-colors"
         >

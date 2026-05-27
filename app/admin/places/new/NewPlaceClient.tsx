@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import PlaceForm, { type PlaceFormValue } from "../PlaceForm";
 import ResolveUrlPanel from "../ResolveUrlPanel";
 
@@ -32,6 +33,7 @@ export default function NewPlaceClient({
   // Bumped each time the URL panel resolves — used as PlaceForm key so its
   // internal state re-initializes with the prefilled values.
   const [version, setVersion] = useState(0);
+  const presetUrl = useSearchParams().get("url") ?? "";
 
   function applyResolved(patch: Partial<PlaceFormValue>) {
     setInitial((cur) => ({ ...cur, ...patch }));
@@ -40,7 +42,11 @@ export default function NewPlaceClient({
 
   return (
     <>
-      <ResolveUrlPanel onResolved={applyResolved} />
+      <ResolveUrlPanel
+        onResolved={applyResolved}
+        defaultUrl={presetUrl}
+        autoResolve={Boolean(presetUrl)}
+      />
       <PlaceForm
         key={version}
         mode="new"

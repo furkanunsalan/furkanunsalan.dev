@@ -126,6 +126,28 @@ async function reverseGeocode(
   }
 }
 
+type NominatimForward = { lat: string; lon: string } & NominatimResponse;
+
+// Google Maps' mobile-share URLs land on /maps?q=<name+address>&ftid=...
+// with no @lat,lng anywhere. As a fallback, forward-geocode the q= string
+// via Nominatim to recover coordinates.
+async function forwardGeocode(q: string): Promise<NominatimForward | null> {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=jsonv2&limit=1&addressdetails=1`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "furkanunsalan.dev/admin (contact: me@furkanunsalan.dev)",
+        "Accept-Language": "en",
+      },
+    });
+    if (!res.ok) return null;
+    const arr = (await res.json()) as NominatimForward[];
+    return Array.isArray(arr) && arr.length > 0 ? arr[0] : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function resolvePlaceUrl(
   rawUrl: string,
 ): Promise<ResolvedPlace | ResolveError> {
@@ -158,22 +180,44 @@ export async function resolvePlaceUrl(
     };
   }
 
+  let lat: number;
+  let lng: number;
+  let qFallbackName = "";
+
   const ll = extractLatLngFromUrl(resolved);
-  if (!ll) {
-    return {
-      ok: false,
-      status: 422,
-      error:
-        "Couldn't pull lat/lng out of the URL. Open the place in maps.google.com and copy the full URL (the one containing @lat,lng).",
-    };
+  if (ll) {
+    [lat, lng] = ll;
+  } else {
+    // Mobile-share URLs (?q=name+address&ftid=...) carry no coords. Forward-
+    // geocode the q= string via Nominatim instead.
+    let q: string | null = null;
+    try {
+      q = new URL(resolved).searchParams.get("q");
+    } catch {
+      /* malformed */
+    }
+    const fwd = q ? await forwardGeocode(q) : null;
+    if (!fwd) {
+      const looksLikeMobileShare = /[?&](ftid|g_st)=/.test(resolved);
+      return {
+        ok: false,
+        status: 422,
+        error: looksLikeMobileShare
+          ? "This looks like a Google Maps mobile share link — those omit the coordinates. Open the place on maps.google.com (desktop) and copy that URL instead."
+          : "Couldn't pull lat/lng out of the URL. Open the place in maps.google.com and copy the full URL (the one containing @lat,lng).",
+      };
+    }
+    lat = parseFloat(fwd.lat);
+    lng = parseFloat(fwd.lon);
+    if (q) qFallbackName = q.split(",")[0].trim();
   }
-  const [lat, lng] = ll;
 
   const nameFromUrl = extractNameFromUrl(resolved);
   const geo = await reverseGeocode(lat, lng);
   const addr = geo?.address || {};
   const name =
     nameFromUrl ||
+    qFallbackName ||
     geo?.name ||
     addr.amenity ||
     addr.tourism ||
