@@ -31,23 +31,21 @@ export default async function AdminLayout({
   return (
     <div className="min-h-screen bg-black text-white">
       <header className="sticky top-0 z-20 border-b border-white/[0.06] bg-black/80 backdrop-blur">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AdminMobileNav />
-            <span className="text-sm font-semibold tracking-tight">
-              furkanunsalan.dev
-            </span>
-          </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-center md:justify-between gap-2">
+          <span className="hidden md:inline text-sm font-semibold tracking-tight">
+            furkanunsalan.dev
+          </span>
           <div className="flex items-center gap-2">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-light-secondary hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-light-secondary hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-colors whitespace-nowrap"
             >
               <Home className="w-3.5 h-3.5" />
               <span>Home</span>
             </Link>
             <ViewLink />
             <LogoutButton />
+            <AdminMobileNav />
           </div>
         </div>
       </header>

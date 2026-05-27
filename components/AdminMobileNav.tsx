@@ -63,14 +63,11 @@ export default function AdminMobileNav() {
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <aside
-              className={`absolute inset-y-0 left-0 w-[78%] max-w-xs bg-black border-r border-white/[0.06] shadow-2xl transition-transform duration-200 ${
-                open ? "translate-x-0" : "-translate-x-full"
+              className={`absolute inset-y-0 right-0 w-[78%] max-w-xs bg-black border-l border-white/[0.06] shadow-2xl transition-transform duration-200 ${
+                open ? "translate-x-0" : "translate-x-full"
               }`}
             >
-              <div className="h-12 px-4 flex items-center justify-between border-b border-white/[0.06]">
-                <span className="text-sm font-semibold tracking-tight">
-                  furkanunsalan.dev
-                </span>
+              <div className="h-12 px-4 flex items-center justify-start border-b border-white/[0.06]">
                 <button
                   type="button"
                   aria-label="Close menu"

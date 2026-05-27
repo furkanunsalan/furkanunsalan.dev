@@ -136,7 +136,10 @@ export default function PlaceListsEditor({ initial }: { initial: Row[] }) {
           {rows.map((r) => {
             const IconComp = PLACE_LIST_ICON_COMPONENTS[iconKey(r.icon)];
             return (
-              <li key={r.name} className="px-4 py-3 flex items-center gap-3">
+              <li
+                key={r.name}
+                className="px-4 py-3 flex flex-wrap items-center gap-3"
+              >
                 <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.04] ring-1 ring-white/[0.06] shrink-0">
                   <IconComp className="w-4 h-4 text-white" />
                 </span>
@@ -147,7 +150,7 @@ export default function PlaceListsEditor({ initial }: { initial: Row[] }) {
                     {r.position}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
                   <IconPicker
                     value={iconKey(r.icon)}
                     onChange={(k) => updateRow(r.name, { icon: k })}
