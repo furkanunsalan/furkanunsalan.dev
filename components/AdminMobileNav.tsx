@@ -85,7 +85,7 @@ export default function AdminMobileNav() {
               </div>
             </aside>
           </div>,
-          document.body
+          document.body,
         )}
     </>
   );

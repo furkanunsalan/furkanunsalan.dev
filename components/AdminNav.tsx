@@ -83,11 +83,7 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
   },
 ];
 
-export default function AdminNav({
-  onNavigate,
-}: {
-  onNavigate?: () => void;
-}) {
+export default function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname() || "";
 
   let lastGroup: string | undefined;
