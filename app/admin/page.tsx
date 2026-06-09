@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { desc, sql } from "drizzle-orm";
+import { desc, isNull, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import {
   PenLine,
+  MessageSquare,
   FolderGit2,
   Briefcase,
   Wrench,
   MapPin,
   Settings,
   ArrowUpRight,
+  Plus,
   Check,
   X,
 } from "lucide-react";
@@ -54,6 +56,7 @@ async function activityByDay(table: string, col: string): Promise<number[]> {
 async function countAll() {
   const [
     posts,
+    thoughts,
     projects,
     experiences,
     tools,
@@ -63,6 +66,7 @@ async function countAll() {
     logins,
     recentLogins,
     actPosts,
+    actThoughts,
     actProjects,
     actExperiences,
     actTools,
@@ -70,6 +74,7 @@ async function countAll() {
     actGithub,
   ] = await Promise.all([
     db.select({ n: sql<number>`count(*)::int` }).from(schema.posts),
+    db.select({ n: sql<number>`count(*)::int` }).from(schema.thoughts),
     db.select({ n: sql<number>`count(*)::int` }).from(schema.projects),
     db.select({ n: sql<number>`count(*)::int` }).from(schema.experiences),
     db.select({ n: sql<number>`count(*)::int` }).from(schema.tools),
@@ -91,6 +96,7 @@ async function countAll() {
       .orderBy(desc(schema.adminLogins.at))
       .limit(5),
     activityByDay("posts", "created_at"),
+    activityByDay("thoughts", "created_at"),
     activityByDay("projects", "created_at"),
     activityByDay("experiences", "created_at"),
     activityByDay("tools", "created_at"),
@@ -99,6 +105,7 @@ async function countAll() {
   ]);
   return {
     posts: posts[0]?.n ?? 0,
+    thoughts: thoughts[0]?.n ?? 0,
     projects: projects[0]?.n ?? 0,
     experiences: experiences[0]?.n ?? 0,
     tools: tools[0]?.n ?? 0,
@@ -114,6 +121,7 @@ async function countAll() {
     })),
     activity: {
       posts: actPosts,
+      thoughts: actThoughts,
       projects: actProjects,
       experiences: actExperiences,
       tools: actTools,
@@ -121,6 +129,92 @@ async function countAll() {
       github: actGithub,
     },
   };
+}
+
+// Latest posts + thoughts interleaved into one stream, each linking to its
+// own admin editor. This is the dashboard's merged "writing" surface.
+type RecentWritingItem =
+  | {
+      kind: "post";
+      key: string;
+      href: string;
+      title: string;
+      date: string;
+      draft: boolean;
+    }
+  | {
+      kind: "thought";
+      key: string;
+      href: string;
+      title: string;
+      date: string;
+      draft: boolean;
+    };
+
+function thoughtPreview(body: string, imageCount: number): string {
+  const t = (body || "").replace(/\s+/g, " ").trim();
+  if (t) return t.length > 80 ? t.slice(0, 79).trimEnd() + "…" : t;
+  return imageCount > 0
+    ? `${imageCount} image${imageCount === 1 ? "" : "s"}`
+    : "(empty)";
+}
+
+async function recentWriting(limit = 8): Promise<RecentWritingItem[]> {
+  try {
+    const [postRows, thoughtRows] = await Promise.all([
+      db
+        .select({
+          slug: schema.posts.slug,
+          title: schema.posts.title,
+          date: schema.posts.date,
+          draft: schema.posts.draft,
+        })
+        .from(schema.posts)
+        .where(isNull(schema.posts.deletedAt))
+        .orderBy(desc(schema.posts.date))
+        .limit(limit),
+      db
+        .select({
+          id: schema.thoughts.id,
+          body: schema.thoughts.body,
+          images: schema.thoughts.images,
+          draft: schema.thoughts.draft,
+          createdAt: schema.thoughts.createdAt,
+        })
+        .from(schema.thoughts)
+        .where(isNull(schema.thoughts.deletedAt))
+        .orderBy(desc(schema.thoughts.createdAt))
+        .limit(limit),
+    ]);
+
+    const items: RecentWritingItem[] = [
+      ...postRows.map(
+        (p): RecentWritingItem => ({
+          kind: "post",
+          key: `p-${p.slug}`,
+          href: `/admin/posts/${encodeURIComponent(p.slug)}`,
+          title: p.title,
+          date: String(p.date),
+          draft: p.draft,
+        }),
+      ),
+      ...thoughtRows.map(
+        (t): RecentWritingItem => ({
+          kind: "thought",
+          key: `t-${t.id}`,
+          href: `/admin/thoughts/${t.id}`,
+          title: thoughtPreview(t.body, (t.images || []).length),
+          date: t.createdAt.toISOString(),
+          draft: t.draft,
+        }),
+      ),
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    return items.slice(0, limit);
+  } catch (e) {
+    console.error("[recentWriting] query failed:", e);
+    return [];
+  }
 }
 
 function zipSum(a: number[], b: number[]): number[] {
@@ -143,11 +237,13 @@ type Tile = {
 
 const TILES: Tile[] = [
   {
-    label: "Posts",
+    label: "Writing",
     href: "/admin/posts",
     Icon: PenLine,
-    count: (c) => c.posts,
-    series: (c) => c.activity.posts,
+    count: (c) => c.posts + c.thoughts,
+    secondary: (c) =>
+      `${c.posts} essay${c.posts === 1 ? "" : "s"} · ${c.thoughts} thought${c.thoughts === 1 ? "" : "s"}`,
+    series: (c) => zipSum(c.activity.posts, c.activity.thoughts),
   },
   {
     label: "Projects",
@@ -182,8 +278,9 @@ const TILES: Tile[] = [
 ];
 
 export default async function AdminDashboard() {
-  const [c, health] = await Promise.all([
+  const [c, writing, health] = await Promise.all([
     countAll(),
+    recentWriting(),
     runHealthChecks().catch(() => [] as CheckResult[]),
   ]);
 
@@ -243,6 +340,63 @@ export default async function AdminDashboard() {
             Intro, socials, timezone
           </div>
         </Link>
+      </section>
+
+      <section>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <span className="text-xs uppercase tracking-widest text-light-fourth">
+            Recent writing
+          </span>
+          <div className="flex items-center gap-1.5">
+            <Link
+              href="/admin/posts/new"
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] ring-1 ring-white/[0.08] text-light-secondary hover:text-white hover:ring-white/20 transition-colors"
+            >
+              <Plus className="w-3 h-3" /> Post
+            </Link>
+            <Link
+              href="/admin/thoughts/new"
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] ring-1 ring-white/[0.08] text-light-secondary hover:text-white hover:ring-white/20 transition-colors"
+            >
+              <Plus className="w-3 h-3" /> Thought
+            </Link>
+          </div>
+        </div>
+        <ul className="divide-y divide-white/[0.04] ring-1 ring-white/[0.06] rounded-xl overflow-hidden bg-zinc-950">
+          {writing.length === 0 && (
+            <li className="px-4 py-6 text-sm text-light-fourth text-center">
+              Nothing written yet.
+            </li>
+          )}
+          {writing.map((w) => (
+            <li key={w.key}>
+              <Link
+                href={w.href}
+                className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.03] transition-colors"
+              >
+                {w.kind === "post" ? (
+                  <PenLine className="w-3.5 h-3.5 text-accent-primary shrink-0" />
+                ) : (
+                  <MessageSquare className="w-3.5 h-3.5 text-light-fourth shrink-0" />
+                )}
+                <span className="min-w-0 flex-1 truncate text-sm text-white">
+                  {w.title}
+                </span>
+                {w.draft && (
+                  <span className="shrink-0 inline-flex items-center rounded-full px-2 py-[3px] text-[10px] leading-none uppercase tracking-wider ring-1 ring-amber-400/40 bg-amber-400/10 text-amber-300">
+                    draft
+                  </span>
+                )}
+                <span className="shrink-0 text-[10px] uppercase tracking-wider text-light-fourth/70">
+                  {w.kind === "post" ? "Essay" : "Thought"}
+                </span>
+                <time className="shrink-0 w-20 text-right text-xs text-light-fourth tabular-nums">
+                  {w.date.slice(0, 10)}
+                </time>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {health.length > 0 && (
