@@ -11,6 +11,7 @@ import {
   Toggle,
   SaveBar,
 } from "@/components/admin/form";
+import { compressImageFile } from "@/lib/image-compress";
 
 function ThoughtHeader({
   title,
@@ -100,8 +101,9 @@ function BodyEditor({
     onChange(next);
   }
 
-  async function uploadOne(file: File, token: string, name: string) {
+  async function uploadOne(rawFile: File, token: string, name: string) {
     try {
+      const file = await compressImageFile(rawFile);
       const form = new FormData();
       form.append("file", file);
       form.append("dir", "thoughts");
@@ -337,7 +339,7 @@ export default function ThoughtForm({
 
       <Field
         label="Gallery images"
-        hint="Shown as a grid below the body. Inline body images are separate."
+        hint="Shown as a grid below the body, in this order — use the arrows to reorder. Inline body images are separate."
       >
         <ImageArrayInput
           dir="thoughts"

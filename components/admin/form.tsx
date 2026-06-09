@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { X, Plus, ChevronDown } from "lucide-react";
+import { X, Plus, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { compressImageFile } from "@/lib/image-compress";
 
 // ---- shared style tokens ----
 const FIELD_CLASS =
@@ -403,6 +404,13 @@ export function ImageArrayInput({
   onChange: (v: string[]) => void;
   dir: "posts" | "projects" | "experiences" | "places" | "thoughts" | "misc";
 }) {
+  const move = (from: number, to: number) => {
+    if (to < 0 || to >= value.length) return;
+    const next = [...value];
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    onChange(next);
+  };
   return (
     <div className="space-y-2">
       {value.map((url, i) => (
@@ -412,6 +420,7 @@ export function ImageArrayInput({
             <img
               src={url}
               alt=""
+              loading="lazy"
               className="w-10 h-10 rounded-md object-cover bg-zinc-900 ring-1 ring-white/[0.06]"
             />
           )}
@@ -425,6 +434,30 @@ export function ImageArrayInput({
             placeholder="/path/to/image.png or /api/img/..."
             className={`${FIELD_CLASS} flex-1`}
           />
+          {value.length > 1 && (
+            <div className="flex flex-col">
+              <button
+                type="button"
+                onClick={() => move(i, i - 1)}
+                disabled={i === 0}
+                className="rounded-md p-0.5 text-light-fourth hover:text-white hover:bg-white/[0.06] disabled:opacity-30 disabled:hover:bg-transparent"
+                aria-label="move up"
+                title="Move earlier"
+              >
+                <ArrowUp className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => move(i, i + 1)}
+                disabled={i === value.length - 1}
+                className="rounded-md p-0.5 text-light-fourth hover:text-white hover:bg-white/[0.06] disabled:opacity-30 disabled:hover:bg-transparent"
+                aria-label="move down"
+                title="Move later"
+              >
+                <ArrowDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => onChange(value.filter((_, j) => j !== i))}
@@ -465,11 +498,12 @@ export function ImageInput({
   const [error, setError] = useState<string | null>(null);
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const picked = e.target.files?.[0];
+    if (!picked) return;
     setPending(true);
     setError(null);
     try {
+      const file = await compressImageFile(picked);
       const form = new FormData();
       form.append("file", file);
       form.append("dir", dir);
@@ -500,6 +534,7 @@ export function ImageInput({
           <img
             src={value}
             alt=""
+            loading="lazy"
             className="h-16 w-auto rounded-md object-cover bg-zinc-900 ring-1 ring-white/[0.06]"
           />
           <button

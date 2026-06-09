@@ -30,5 +30,14 @@
 }
 /* Fade the photo in as soon as it has a real source painted */
 .photo-figure .photo-img {
-  animation: fade-in 500ms ease-out both;
+  opacity: 0;
+  transition: opacity 600ms ease-out;
+}
+.photo-figure[data-loaded="true"] .photo-img {
+  opacity: 1;
+}
+/* Stop and hide the shimmer once the photo is fully loaded */
+.photo-figure[data-loaded="true"]::before {
+  animation: none;
+  opacity: 0;
 }

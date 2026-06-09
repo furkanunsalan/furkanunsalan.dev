@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Markdown from "markdown-to-jsx";
 import Markdoc from "@markdoc/markdoc";
 import React from "react";
-import Image from "next/image";
+import SmartImage from "@/components/SmartImage";
 import { Metadata } from "next";
 import { Star, GitFork, ExternalLink, Sparkles } from "lucide-react";
 import { getGithubRepo, getGithubReadme } from "@/lib/github";
@@ -99,8 +99,8 @@ export default async function ProjectPage({
         </header>
 
         {custom.image && (
-          <div className="image-skeleton relative w-full aspect-[16/9] overflow-hidden rounded-xl border border-white/[0.06] mb-8 animate-fade-in delay-100">
-            <Image
+          <div className="relative w-full aspect-[16/9] overflow-hidden rounded-xl border border-white/[0.06] mb-8 animate-fade-in delay-100">
+            <SmartImage
               src={custom.image}
               alt={custom.name}
               fill

@@ -187,6 +187,22 @@ input[type="number"] {
   .media-zoom:hover > * {
     transform: scale(1.04);
   }
+  /* Standalone shimmer fill — used by <SmartImage> as a load-gated overlay
+     that fades out once the real image reports `onLoad`. Reuses the
+     skeleton-shimmer keyframes. */
+  .image-shimmer {
+    background-color: #18181b; /* zinc-900 */
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  }
+
   /* Persistent shimmer skeleton that lives behind an image until it paints */
   .image-skeleton {
     background-color: #18181b; /* zinc-900 */

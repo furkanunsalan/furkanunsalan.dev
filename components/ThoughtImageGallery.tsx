@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import SmartImage from "@/components/SmartImage";
 
 export default function ThoughtImageGallery({
   images,
@@ -53,7 +54,13 @@ export default function ThoughtImageGallery({
       className={`relative block bg-black overflow-hidden cursor-zoom-in w-full ${extraClass}`}
       aria-label={`Open image ${i + 1} of ${images.length}`}
     >
-      <Image src={src} alt="" fill sizes={sizes} className="object-cover" />
+      <SmartImage
+        src={src}
+        alt=""
+        fill
+        sizes={sizes}
+        className="object-cover"
+      />
       {overlay}
     </button>
   );

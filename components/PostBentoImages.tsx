@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import SmartImage from "@/components/SmartImage";
 
 type ImgChild = { src: string; alt?: string };
 
@@ -22,10 +23,10 @@ function Row({
     const img = images[0];
     return (
       <div
-        className="image-skeleton relative w-full aspect-[16/9] overflow-hidden rounded-xl cursor-zoom-in border border-white/[0.06] transition-all duration-300 hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
+        className="relative w-full aspect-[16/9] overflow-hidden rounded-xl cursor-zoom-in border border-white/[0.06] transition-all duration-300 hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
         onClick={() => onOpen(img.src)}
       >
-        <Image
+        <SmartImage
           src={img.src}
           alt={img.alt || ""}
           fill
@@ -42,10 +43,10 @@ function Row({
         {images.map((img, i) => (
           <div
             key={i}
-            className="image-skeleton relative aspect-square overflow-hidden rounded-xl cursor-zoom-in border border-white/[0.06] transition-all duration-300 hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
+            className="relative aspect-square overflow-hidden rounded-xl cursor-zoom-in border border-white/[0.06] transition-all duration-300 hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
             onClick={() => onOpen(img.src)}
           >
-            <Image
+            <SmartImage
               src={img.src}
               alt={img.alt || ""}
               fill
@@ -63,10 +64,10 @@ function Row({
   return (
     <div className="grid grid-cols-2 grid-rows-2 gap-2 aspect-[16/10]">
       <div
-        className="image-skeleton relative row-span-2 overflow-hidden rounded-xl cursor-zoom-in border border-white/[0.06] transition-all duration-300 hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
+        className="relative row-span-2 overflow-hidden rounded-xl cursor-zoom-in border border-white/[0.06] transition-all duration-300 hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
         onClick={() => onOpen(hero.src)}
       >
-        <Image
+        <SmartImage
           src={hero.src}
           alt={hero.alt || ""}
           fill
@@ -77,10 +78,10 @@ function Row({
       {[a, b].map((img, i) => (
         <div
           key={i}
-          className="image-skeleton relative overflow-hidden rounded-xl cursor-zoom-in border border-white/[0.06] transition-all duration-300 hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
+          className="relative overflow-hidden rounded-xl cursor-zoom-in border border-white/[0.06] transition-all duration-300 hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
           onClick={() => onOpen(img.src)}
         >
-          <Image
+          <SmartImage
             src={img.src}
             alt={img.alt || ""}
             fill

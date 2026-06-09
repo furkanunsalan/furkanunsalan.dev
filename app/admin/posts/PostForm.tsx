@@ -17,6 +17,7 @@ import { X } from "lucide-react";
 import { diffLines, hasRealChanges, type DiffLine } from "./lib/diff";
 import { lintMarkdown, offsetForLine, type LintIssue } from "./lib/lint";
 import { excerptFromMarkdoc } from "@/lib/excerpt";
+import { compressImageFile } from "@/lib/image-compress";
 
 function PostHeader({
   title,
@@ -127,8 +128,9 @@ function ContentEditor({
     onChange(next);
   }
 
-  async function uploadOne(file: File, token: string, name: string) {
+  async function uploadOne(rawFile: File, token: string, name: string) {
     try {
+      const file = await compressImageFile(rawFile);
       const form = new FormData();
       form.append("file", file);
       form.append("dir", "posts");
@@ -429,11 +431,17 @@ function OgPreviewDrawer({
             alt="OG preview"
             width={1200}
             height={630}
+            loading="lazy"
             className="block w-full h-auto"
           />
         </div>
         <div className="rounded-xl overflow-hidden ring-1 ring-white/[0.08] bg-white/[0.02]">
-          <img src={src} alt="" className="block w-full h-auto" />
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            className="block w-full h-auto"
+          />
           <div className="px-3 py-2">
             <div className="text-[11px] text-light-fourth lowercase">
               furkanunsalan.dev

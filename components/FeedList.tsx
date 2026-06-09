@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import React from "react";
 import Markdoc from "@markdoc/markdoc";
 import {
@@ -14,6 +13,7 @@ import {
 } from "lucide-react";
 import type { BlogPost, Thought } from "@/types";
 import ThoughtImageGallery from "@/components/ThoughtImageGallery";
+import SmartImage from "@/components/SmartImage";
 
 export type FeedItem =
   | { kind: "post"; id: string; date: string; data: BlogPost }
@@ -222,8 +222,8 @@ function PostRow({ post }: { post: BlogPost }) {
 
         <div className="flex gap-3">
           {post.banner && (
-            <div className="image-skeleton relative shrink-0 w-24 h-16 sm:w-32 sm:h-20 rounded-md overflow-hidden ring-1 ring-white/[0.06] group-hover:ring-accent-primary/40 transition-[box-shadow] duration-300">
-              <Image
+            <div className="relative shrink-0 w-24 h-16 sm:w-32 sm:h-20 rounded-md overflow-hidden ring-1 ring-white/[0.06] group-hover:ring-accent-primary/40 transition-[box-shadow] duration-300">
+              <SmartImage
                 src={post.banner}
                 alt=""
                 fill

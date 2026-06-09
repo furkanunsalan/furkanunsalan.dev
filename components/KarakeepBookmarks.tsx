@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import type { KarakeepBookmark } from "@/lib/karakeep";
 import { ExternalLink } from "lucide-react";
-import Image from "next/image";
+import SmartImage from "@/components/SmartImage";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatsCard from "@/components/StatsCard";
 
@@ -230,8 +230,8 @@ export default function KarakeepBookmarks({ lists }: KarakeepBookmarksProps) {
                 className="flex flex-row h-full"
               >
                 {bookmark.cover && (
-                  <div className="image-skeleton relative aspect-video w-2/5 flex-shrink-0 overflow-hidden media-zoom">
-                    <Image
+                  <div className="relative aspect-video w-2/5 flex-shrink-0 overflow-hidden media-zoom">
+                    <SmartImage
                       src={bookmark.cover}
                       alt={bookmark.title}
                       fill
