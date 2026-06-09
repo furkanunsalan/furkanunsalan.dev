@@ -13,7 +13,7 @@ const COLLECTION_PATHS: Record<string, readonly string[]> = {
   placeLists: ["/places"],
   home: ["/"],
   github: ["/projects"],
-  thoughts: ["/writing", "/"],
+  thoughts: ["/writing", "/", "/rss.xml"],
 };
 
 // Per-collection optional dynamic-detail path. Only collections with public
