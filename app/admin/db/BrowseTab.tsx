@@ -1,11 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Pencil } from "lucide-react";
 
 type Cell = unknown;
 type Row = Record<string, Cell>;
-type Column = { name: string; type: string };
+type Column = {
+  name: string;
+  type: string;
+  nullable?: boolean;
+  pk?: boolean;
+};
 
 const PAGE_SIZE = 50;
 
@@ -277,15 +282,84 @@ export default function BrowseTab() {
           </div>
         )}
 
-        {drawerRow && (
-          <RowDrawer row={drawerRow} onClose={() => setDrawerRow(null)} />
+        {drawerRow && active && (
+          <RowDrawer
+            row={drawerRow}
+            columns={columns}
+            table={active}
+            onClose={() => setDrawerRow(null)}
+            onSaved={(updated) => {
+              setRows((prev) =>
+                prev.map((r) => (r === drawerRow ? updated : r)),
+              );
+              setDrawerRow(updated);
+            }}
+          />
         )}
       </section>
     </div>
   );
 }
 
-function RowDrawer({ row, onClose }: { row: Row; onClose: () => void }) {
+// Represent a cell value as the string the editor shows. Objects/arrays are
+// JSON-encoded so they round-trip through the textarea controls.
+function toEditString(v: Cell): string {
+  if (v === null || v === undefined) return "";
+  if (typeof v === "object") {
+    try {
+      return JSON.stringify(v);
+    } catch {
+      return String(v);
+    }
+  }
+  return String(v);
+}
+
+type EditState = { text: string; isNull: boolean };
+
+function RowDrawer({
+  row,
+  columns,
+  table,
+  onClose,
+  onSaved,
+}: {
+  row: Row;
+  columns: Column[];
+  table: string;
+  onClose: () => void;
+  onSaved: (updated: Row) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const pkCols = useMemo(
+    () => columns.filter((c) => c.pk).map((c) => c.name),
+    [columns],
+  );
+
+  const initial = useMemo(() => {
+    const m: Record<string, EditState> = {};
+    for (const c of columns) {
+      const v = row[c.name];
+      m[c.name] = {
+        text: toEditString(v),
+        isNull: v === null || v === undefined,
+      };
+    }
+    return m;
+  }, [row, columns]);
+
+  const [edits, setEdits] = useState<Record<string, EditState>>(initial);
+
+  // Reset the form whenever the underlying row changes (e.g. after a save).
+  useEffect(() => {
+    setEdits(initial);
+    setEditing(false);
+    setError(null);
+  }, [initial]);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -293,6 +367,56 @@ function RowDrawer({ row, onClose }: { row: Row; onClose: () => void }) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  const setField = (name: string, next: Partial<EditState>) =>
+    setEdits((cur) => ({ ...cur, [name]: { ...cur[name], ...next } }));
+
+  async function save() {
+    if (saving) return;
+    if (pkCols.length === 0) {
+      setError("table has no primary key — editing is disabled");
+      return;
+    }
+    const patch: Record<string, string | null> = {};
+    for (const c of columns) {
+      if (c.pk) continue;
+      const cur = edits[c.name];
+      const init = initial[c.name];
+      if (!cur) continue;
+      if (cur.isNull !== init.isNull || cur.text !== init.text) {
+        patch[c.name] = cur.isNull ? null : cur.text;
+      }
+    }
+    if (Object.keys(patch).length === 0) {
+      setError("no changes");
+      return;
+    }
+    const pk: Record<string, string> = {};
+    for (const col of pkCols) pk[col] = toEditString(row[col]);
+
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/db/rows", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ table, pk, patch }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(j.error || `error ${res.status}`);
+        return;
+      }
+      onSaved(j.row as Row);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const isLong = (type: string) =>
+    type === "text" || type === "ARRAY" || type === "jsonb" || type === "json";
 
   return (
     <div
@@ -305,20 +429,148 @@ function RowDrawer({ row, onClose }: { row: Row; onClose: () => void }) {
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/[0.06] bg-zinc-950/95 backdrop-blur px-4 py-3">
           <span className="text-xs uppercase tracking-widest text-light-fourth">
-            Row
+            Row ·{" "}
+            <span className="font-mono text-light-secondary">{table}</span>
           </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1 text-light-fourth hover:text-white hover:bg-white/[0.06]"
-            aria-label="close"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            {!editing && (
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs ring-1 ring-white/[0.08] text-light-secondary hover:text-white hover:ring-white/20"
+              >
+                <Pencil className="w-3.5 h-3.5" /> Edit
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md p-1 text-light-fourth hover:text-white hover:bg-white/[0.06]"
+              aria-label="close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-        <pre className="p-4 text-[11.5px] font-mono whitespace-pre-wrap break-words text-light-secondary">
-          {JSON.stringify(row, null, 2)}
-        </pre>
+
+        {!editing ? (
+          <pre className="p-4 text-[11.5px] font-mono whitespace-pre-wrap break-words text-light-secondary">
+            {JSON.stringify(row, null, 2)}
+          </pre>
+        ) : (
+          <div className="p-4 space-y-4">
+            <p className="text-[11px] text-light-fourth">
+              Manual override — writes straight to{" "}
+              <span className="font-mono">{table}</span>. Primary keys are
+              read-only. Arrays / JSON take JSON text.
+            </p>
+            {columns.map((c) => {
+              const e = edits[c.name];
+              if (!e) return null;
+              const locked = !!c.pk;
+              return (
+                <div key={c.name} className="space-y-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-xs text-light-secondary">
+                      {c.name}
+                      <span className="ml-1 text-light-fourth/60 font-mono">
+                        {c.type}
+                        {c.pk ? " · pk" : ""}
+                      </span>
+                    </label>
+                    {!locked && c.nullable && (
+                      <label className="flex items-center gap-1 text-[11px] text-light-fourth cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={e.isNull}
+                          onChange={(ev) =>
+                            setField(c.name, { isNull: ev.target.checked })
+                          }
+                        />
+                        null
+                      </label>
+                    )}
+                  </div>
+                  {c.type === "boolean" && !locked ? (
+                    <select
+                      value={e.text === "true" ? "true" : "false"}
+                      disabled={e.isNull}
+                      onChange={(ev) =>
+                        setField(c.name, {
+                          text: ev.target.value,
+                          isNull: false,
+                        })
+                      }
+                      className="w-full bg-black ring-1 ring-white/[0.08] focus:ring-accent-primary/60 outline-none rounded-lg px-3 py-2 text-sm text-white disabled:opacity-40"
+                    >
+                      <option value="true">true</option>
+                      <option value="false">false</option>
+                    </select>
+                  ) : isLong(c.type) && !locked ? (
+                    <textarea
+                      value={e.isNull ? "" : e.text}
+                      disabled={locked || e.isNull}
+                      onChange={(ev) =>
+                        setField(c.name, {
+                          text: ev.target.value,
+                          isNull: false,
+                        })
+                      }
+                      rows={3}
+                      className="w-full bg-black ring-1 ring-white/[0.08] focus:ring-accent-primary/60 outline-none rounded-lg px-3 py-2 text-[12.5px] font-mono text-white resize-y disabled:opacity-40"
+                    />
+                  ) : (
+                    <input
+                      value={
+                        locked
+                          ? toEditString(row[c.name])
+                          : e.isNull
+                            ? ""
+                            : e.text
+                      }
+                      disabled={locked || e.isNull}
+                      onChange={(ev) =>
+                        setField(c.name, {
+                          text: ev.target.value,
+                          isNull: false,
+                        })
+                      }
+                      placeholder={e.isNull ? "null" : ""}
+                      className="w-full bg-black ring-1 ring-white/[0.08] focus:ring-accent-primary/60 outline-none rounded-lg px-3 py-2 text-sm font-mono text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                    />
+                  )}
+                </div>
+              );
+            })}
+
+            <div className="sticky bottom-0 -mx-4 mt-6 border-t border-white/[0.06] bg-zinc-950/95 backdrop-blur px-4 py-3 flex items-center gap-3">
+              {error && (
+                <span className="text-xs text-rose-400 mr-auto">{error}</span>
+              )}
+              {!error && <span className="mr-auto" />}
+              <button
+                type="button"
+                onClick={() => {
+                  setEdits(initial);
+                  setEditing(false);
+                  setError(null);
+                }}
+                disabled={saving}
+                className="rounded-lg px-3 py-1.5 text-xs ring-1 ring-white/[0.08] text-light-secondary hover:text-white hover:ring-white/20 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={save}
+                disabled={saving}
+                className="rounded-lg px-3 py-1.5 text-xs bg-accent-primary/15 text-accent-primary ring-1 ring-accent-primary/40 hover:bg-accent-primary/25 disabled:opacity-50"
+              >
+                {saving ? "Saving…" : "Save changes"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
