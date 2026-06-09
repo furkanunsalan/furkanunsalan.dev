@@ -24,7 +24,13 @@ export const REF_COLLECTIONS = [
 ] as const;
 export type RefCollection = (typeof REF_COLLECTIONS)[number];
 
-export type RefField = "content" | "banner" | "image" | "images" | "body";
+export type RefField =
+  | "content"
+  | "banner"
+  | "image"
+  | "images"
+  | "logo"
+  | "body";
 
 // Reference-extraction regex. Anchored to /api/img/<dir>/<filename> so we
 // don't accidentally match a stray substring. Filenames are restricted to
@@ -72,7 +78,12 @@ export async function referencedByDir(): Promise<
         image: schema.projects.image,
       })
       .from(schema.projects),
-    db.select({ images: schema.experiences.images }).from(schema.experiences),
+    db
+      .select({
+        images: schema.experiences.images,
+        logo: schema.experiences.logo,
+      })
+      .from(schema.experiences),
     db
       .select({ body: schema.thoughts.body, images: schema.thoughts.images })
       .from(schema.thoughts),
@@ -94,6 +105,7 @@ export async function referencedByDir(): Promise<
     for (const u of e.images || []) {
       for (const d of UPLOAD_DIRS) collectRefs(u, d, out[d]);
     }
+    for (const d of UPLOAD_DIRS) collectRefs(e.logo, d, out[d]);
   }
   for (const t of thoughts) {
     for (const d of UPLOAD_DIRS) {
@@ -163,6 +175,7 @@ async function collectRowSources(): Promise<RowSource[]> {
         organization: schema.experiences.organization,
         title: schema.experiences.title,
         images: schema.experiences.images,
+        logo: schema.experiences.logo,
       })
       .from(schema.experiences),
     db
@@ -191,13 +204,17 @@ async function collectRowSources(): Promise<RowSource[]> {
     }
   }
   for (const e of experiences) {
-    const imgs = e.images || [];
-    if (imgs.length) {
+    const fields: RowSource["fields"] = (e.images || []).map((u) => ({
+      field: "images" as const,
+      text: u,
+    }));
+    if (e.logo) fields.push({ field: "logo", text: e.logo });
+    if (fields.length) {
       out.push({
         collection: "experiences",
         id: e.id,
         title: `${e.organization} — ${e.title}`,
-        fields: imgs.map((u) => ({ field: "images" as const, text: u })),
+        fields,
       });
     }
   }
