@@ -15,6 +15,17 @@ type FeedEntry = {
   tags: string[];
 };
 
+// Escape the five XML predefined entities for bare-text nodes (titles live in
+// CDATA, but category values and the channel header are raw text).
+function escapeXml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 // Strip Markdoc/markdown noise down to a short plain-text title for a thought,
 // which has no title of its own. Falls back to an image-count label.
 function thoughtTitle(body: string, imageCount: number): string {
@@ -83,7 +94,7 @@ export async function GET() {
   const rssXml = `<?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
     <channel>
-        <title>Writings & thoughts RSS feed by Furkan Ünsalan</title>
+        <title>Writings &amp; thoughts RSS feed by Furkan Ünsalan</title>
         <link>${baseUrl}/writing</link>
         <description>Stay up to date with my latest writings and thoughts</description>
         <lastBuildDate>${currentDate}</lastBuildDate>
@@ -100,7 +111,7 @@ export async function GET() {
             <guid isPermaLink="false">${entry.guid}</guid>
             <pubDate>${entry.pubDate}</pubDate>
             <content:encoded><![CDATA[${entry.content}]]></content:encoded>
-            ${entry.tags.map((tag: string) => `<category>${tag}</category>`).join("") || ""}
+            ${entry.tags.map((tag: string) => `<category>${escapeXml(tag)}</category>`).join("") || ""}
         </item>`,
           )
           .join("")}
