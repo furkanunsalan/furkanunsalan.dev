@@ -1,0 +1,1 @@
+ALTER TABLE "experiences" ADD COLUMN "logo" text;

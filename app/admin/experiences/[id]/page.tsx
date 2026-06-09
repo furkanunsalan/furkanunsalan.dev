@@ -34,6 +34,7 @@ export default async function EditExperiencePage({
           startDate: String(row.startDate),
           endDate: row.endDate ? String(row.endDate) : "",
           comment: row.comment,
+          logo: row.logo ?? "",
           links: row.links,
           images: row.images,
         }}

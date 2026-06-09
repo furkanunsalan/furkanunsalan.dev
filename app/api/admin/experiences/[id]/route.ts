@@ -40,6 +40,7 @@ export async function PATCH(
   if (typeof body.endDate === "string" || body.endDate === null)
     patch.endDate = body.endDate || null;
   if (typeof body.comment === "string") patch.comment = body.comment;
+  if (typeof body.logo === "string") patch.logo = body.logo.trim() || null;
   if (Array.isArray(body.links)) patch.links = cleanLinks(body.links);
   if (Array.isArray(body.images)) patch.images = cleanStringArray(body.images);
 

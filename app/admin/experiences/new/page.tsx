@@ -18,6 +18,7 @@ export default function NewExperiencePage() {
           startDate: new Date().toISOString().slice(0, 10),
           endDate: "",
           comment: "",
+          logo: "",
           links: [],
           images: [],
         }}

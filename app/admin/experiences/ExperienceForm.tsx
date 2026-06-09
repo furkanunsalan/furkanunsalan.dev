@@ -9,6 +9,7 @@ import {
   TextArea,
   LinkArrayInput,
   ImageArrayInput,
+  ImageInput,
   SaveBar,
   type LabelUrl,
 } from "@/components/admin/form";
@@ -21,6 +22,7 @@ export type ExperienceFormValue = {
   startDate: string;
   endDate: string;
   comment: string;
+  logo: string;
   links: LabelUrl[];
   images: string[];
 };
@@ -169,6 +171,17 @@ export default function ExperienceForm({
           value={v.comment}
           onChange={(s) => upd("comment", s)}
           rows={4}
+        />
+      </Field>
+
+      <Field
+        label="Company logo"
+        hint="Shown next to the organization name on /experience. Square works best."
+      >
+        <ImageInput
+          dir="experiences"
+          value={v.logo || undefined}
+          onChange={(url) => upd("logo", url || "")}
         />
       </Field>
 

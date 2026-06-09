@@ -46,6 +46,7 @@ export async function POST(req: Request) {
         startDate,
         endDate: body.endDate || null,
         comment: body.comment ?? "",
+        logo: typeof body.logo === "string" ? body.logo.trim() || null : null,
         links: cleanLinks(body.links),
         images: cleanStringArray(body.images),
       })

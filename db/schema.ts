@@ -95,6 +95,8 @@ export const experiences = pgTable("experiences", {
   startDate: date("start_date").notNull(),
   endDate: date("end_date"),
   comment: text("comment").notNull().default(""),
+  // Company logo shown next to the organization name on /experience. Optional.
+  logo: text("logo"),
   links: jsonb("links").$type<ExperienceLink[]>().notNull().default([]),
   images: text("images").array().notNull().default([]),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),

@@ -145,6 +145,7 @@ export async function getExperiences(): Promise<Experience[]> {
     start_date: fmt(r.startDate as unknown as string),
     end_date: r.endDate ? fmt(r.endDate as unknown as string) : undefined,
     comment: r.comment,
+    logo: r.logo ? experienceImageUrl(r.logo) : undefined,
     links: (r.links || [])
       .filter((l) => !!l.url)
       .map((l) => ({ label: l.label, url: l.url })),

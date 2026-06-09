@@ -17,6 +17,7 @@ export type Experience = {
   start_date: string;
   end_date?: string;
   comment: string;
+  logo?: string;
   links?: { label: string; url: string }[];
   images?: string[];
 };

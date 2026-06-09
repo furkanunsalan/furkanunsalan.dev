@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import type { Experience } from "@/types";
 import Image from "next/image";
+import SmartImage from "@/components/SmartImage";
 
 export default function ExperienceContainer({
   work,
@@ -50,14 +51,29 @@ export default function ExperienceContainer({
           isPreviousRole ? "mb-4" : "mb-8"
         } ${!isPreviousRole && !hasPreviousRoles ? "border-b border-white/[0.06] pb-6" : ""}`}
       >
-        <p className="text-sm text-light-fourth mt-1">
-          {work.start_date} - {work.end_date || "Current"}
-        </p>
-        <h3 className="text-lg font-semibold text-white">{work.title}</h3>
-        {!isPreviousRole && (
-          <p className="text-light-fourth mb-4">{work.organization}</p>
-        )}
-        <p className="mt-2 mb-4 font-light whitespace-pre-line text-light-secondary/90">
+        <div className="flex items-start gap-3">
+          {!isPreviousRole && work.logo && (
+            <div className="relative mt-1 shrink-0 w-11 h-11 rounded-md overflow-hidden ring-1 ring-white/[0.08] bg-white/[0.04]">
+              <Image
+                src={work.logo}
+                alt={`${work.organization} logo`}
+                fill
+                sizes="44px"
+                className="object-contain p-1"
+              />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-sm text-light-fourth mt-1">
+              {work.start_date} - {work.end_date || "Current"}
+            </p>
+            <h3 className="text-lg font-semibold text-white">{work.title}</h3>
+            {!isPreviousRole && (
+              <p className="text-light-fourth">{work.organization}</p>
+            )}
+          </div>
+        </div>
+        <p className="mt-3 mb-4 font-light whitespace-pre-line text-light-secondary/90">
           {work.comment}
         </p>
         {work.links && work.links.length > 0 && (
@@ -84,13 +100,14 @@ export default function ExperienceContainer({
               {work.images.map((img, index) => (
                 <div
                   key={index}
-                  className="image-skeleton relative h-32 overflow-hidden rounded-lg cursor-pointer transition-all duration-300 border border-white/[0.06] hover:scale-[1.02] hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
+                  className="relative h-32 overflow-hidden rounded-lg cursor-pointer transition-all duration-300 border border-white/[0.06] hover:scale-[1.02] hover:border-accent-primary/60 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)]"
                   onClick={() => openLightbox(img)}
                 >
-                  <Image
+                  <SmartImage
                     src={img}
                     alt={`${work.organization} - ${work.title} image ${index + 1}`}
                     fill
+                    sizes="(max-width: 768px) 50vw, 240px"
                     className="object-cover"
                   />
                 </div>
