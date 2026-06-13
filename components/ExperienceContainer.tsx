@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { Experience } from "@/types";
 import Image from "next/image";
 import SmartImage from "@/components/SmartImage";
@@ -14,6 +15,9 @@ export default function ExperienceContainer({
   durationLabel?: string;
 }) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  // Portal target only exists on the client.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // Function to open the lightbox
   const openLightbox = (img: string) => {
@@ -128,41 +132,45 @@ export default function ExperienceContainer({
           </div>
         )}
 
-        {/* Lightbox */}
-        {selectedImage && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4 animate-fade-in"
-            onClick={closeLightbox}
-          >
-            <div className="flex items-center justify-center animate-scale-in">
-              <div
-                className="image-skeleton rounded-lg overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  display: "inline-block",
-                  position: "relative",
-                  maxWidth: "90vw",
-                  maxHeight: "80vh",
-                }}
-              >
-                <Image
-                  src={selectedImage}
-                  alt={`${work.organization} - ${work.title} expanded view`}
-                  width={1200}
-                  height={800}
-                  className="rounded-lg"
+        {/* Lightbox — portaled to <body> so a transformed ancestor (the
+            animate-* / stagger cards) can't trap position:fixed to its box. */}
+        {mounted &&
+          selectedImage &&
+          createPortal(
+            <div
+              className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4 animate-fade-in"
+              onClick={closeLightbox}
+            >
+              <div className="flex items-center justify-center animate-scale-in">
+                <div
+                  className="image-skeleton rounded-lg overflow-hidden"
+                  onClick={(e) => e.stopPropagation()}
                   style={{
+                    display: "inline-block",
+                    position: "relative",
                     maxWidth: "90vw",
                     maxHeight: "80vh",
-                    width: "auto",
-                    height: "auto",
-                    objectFit: "contain",
                   }}
-                />
+                >
+                  <Image
+                    src={selectedImage}
+                    alt={`${work.organization} - ${work.title} expanded view`}
+                    width={1200}
+                    height={800}
+                    className="rounded-lg"
+                    style={{
+                      maxWidth: "90vw",
+                      maxHeight: "80vh",
+                      width: "auto",
+                      height: "auto",
+                      objectFit: "contain",
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </div>,
+            document.body,
+          )}
       </div>
     </div>
   );
