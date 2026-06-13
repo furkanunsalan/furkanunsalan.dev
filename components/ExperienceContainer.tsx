@@ -6,14 +6,12 @@ import SmartImage from "@/components/SmartImage";
 
 export default function ExperienceContainer({
   work,
-  isMainRole = false,
   isPreviousRole = false,
-  hasPreviousRoles = false,
+  durationLabel,
 }: {
   work: Experience;
-  isMainRole?: boolean;
   isPreviousRole?: boolean;
-  hasPreviousRoles?: boolean;
+  durationLabel?: string;
 }) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -47,32 +45,42 @@ export default function ExperienceContainer({
     <div>
       <div
         key={work.id}
-        className={`${
-          isPreviousRole ? "mb-4" : "mb-8"
-        } ${!isPreviousRole && !hasPreviousRoles ? "border-b border-white/[0.06] pb-6" : ""}`}
+        className={
+          isPreviousRole
+            ? ""
+            : "mb-8 border-b border-white/[0.06] pb-8 md:border-b-0 md:pb-0"
+        }
       >
-        <div className="flex items-start gap-3">
-          {!isPreviousRole && work.logo && (
-            <div className="relative mt-1 shrink-0 w-11 h-11 rounded-md overflow-hidden ring-1 ring-white/[0.08] bg-white/[0.04]">
-              <Image
-                src={work.logo}
-                alt={`${work.organization} logo`}
-                fill
-                sizes="44px"
-                className="object-contain p-1"
-              />
-            </div>
-          )}
+        {isPreviousRole ? (
           <div className="min-w-0">
-            <p className="text-sm text-light-fourth mt-1">
-              {work.start_date} - {work.end_date || "Current"}
-            </p>
             <h3 className="text-lg font-semibold text-white">{work.title}</h3>
-            {!isPreviousRole && (
-              <p className="text-light-fourth">{work.organization}</p>
-            )}
+            <p className="text-sm text-light-fourth mt-0.5">
+              {work.start_date} - {work.end_date || "Current"}
+              {durationLabel ? ` · ${durationLabel}` : ""}
+            </p>
           </div>
-        </div>
+        ) : (
+          <div className="flex flex-col md:flex-row items-start gap-3">
+            {work.logo && (
+              <div className="relative mt-1 shrink-0 w-11 h-11 overflow-hidden rounded-lg bg-white/[0.04]">
+                <Image
+                  src={work.logo}
+                  alt={`${work.organization} logo`}
+                  fill
+                  sizes="44px"
+                  className="object-cover"
+                />
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-sm text-light-fourth mt-1">
+                {work.start_date} - {work.end_date || "Current"}
+              </p>
+              <h3 className="text-lg font-semibold text-white">{work.title}</h3>
+              <p className="text-light-fourth">{work.organization}</p>
+            </div>
+          </div>
+        )}
         <p className="mt-3 mb-4 font-light whitespace-pre-line text-light-secondary/90">
           {work.comment}
         </p>
