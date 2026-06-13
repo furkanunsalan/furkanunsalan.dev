@@ -40,6 +40,13 @@ export const homeSocialIconEnum = pgEnum("home_social_icon", [
   "globe",
 ]);
 
+// CV-only categorization for experiences. Used solely to split the generated
+// CV into Work Experience vs Volunteering — the /experience page ignores it.
+export const experienceKindEnum = pgEnum("experience_kind", [
+  "work",
+  "volunteer",
+]);
+
 // ---- posts ---------------------------------------------------------------
 
 export const posts = pgTable("posts", {
@@ -99,6 +106,9 @@ export const experiences = pgTable("experiences", {
   logo: text("logo"),
   links: jsonb("links").$type<ExperienceLink[]>().notNull().default([]),
   images: text("images").array().notNull().default([]),
+  // CV-only: routes this role into Work Experience vs Volunteering on the
+  // generated CV. The /experience page does not read this.
+  kind: experienceKindEnum("kind").notNull().default("work"),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -181,6 +191,59 @@ export const homeSettings = pgTable("home_settings", {
   timezoneLabel: text("timezone_label").notNull().default("IST"),
   pgpId: text("pgp_id").notNull().default(""),
   socials: jsonb("socials").$type<HomeSocial[]>().notNull().default([]),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+// CV / résumé settings. Single row (id = 1). Holds the CV-only content; Work
+// Experience + Projects are reused from the experiences/projects tables, and
+// email/web/github/linkedin from home_settings.socials.
+export type CvHeader = { name: string; role: string };
+export type CvContact = { address: string; phone: string; web: string };
+export type CvCert = { name: string; date: string };
+export type CvLanguage = { name: string; level: string };
+export type CvEducationItem = {
+  degree: string;
+  dates: string;
+  line: string;
+  bullets: string[];
+};
+// Ordered selection layered over the projects table.
+export type CvProjectSel = {
+  slug: string;
+  techStack: string;
+  inShort: boolean;
+};
+// Ordered selection layered over the experiences table (section via kind).
+export type CvExperienceSel = { id: string; inShort: boolean };
+
+export const cvSettings = pgTable("cv_settings", {
+  id: integer("id").primaryKey(),
+  header: jsonb("header")
+    .$type<CvHeader>()
+    .notNull()
+    .default({ name: "", role: "" }),
+  contact: jsonb("contact")
+    .$type<CvContact>()
+    .notNull()
+    .default({ address: "", phone: "", web: "" }),
+  summary: text("summary").notNull().default(""),
+  skills: jsonb("skills").$type<string[]>().notNull().default([]),
+  certifications: jsonb("certifications")
+    .$type<CvCert[]>()
+    .notNull()
+    .default([]),
+  languages: jsonb("languages").$type<CvLanguage[]>().notNull().default([]),
+  education: jsonb("education")
+    .$type<CvEducationItem[]>()
+    .notNull()
+    .default([]),
+  projects: jsonb("projects").$type<CvProjectSel[]>().notNull().default([]),
+  experiences: jsonb("experiences")
+    .$type<CvExperienceSel[]>()
+    .notNull()
+    .default([]),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

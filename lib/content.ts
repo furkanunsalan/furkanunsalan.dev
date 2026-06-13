@@ -3,6 +3,15 @@ import Markdoc from "@markdoc/markdoc";
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import type {
+  CvHeader,
+  CvContact,
+  CvCert,
+  CvLanguage,
+  CvEducationItem,
+  CvProjectSel,
+  CvExperienceSel,
+} from "@/db/schema";
+import type {
   BlogPost,
   CustomProject,
   Experience,
@@ -139,6 +148,8 @@ export async function getExperiences(): Promise<Experience[]> {
     // Synthetic numeric id only used as a React key on the list; assigned
     // after sort so it matches display order.
     id: i + 1,
+    slug: r.id,
+    kind: r.kind,
     order: r.order,
     organization: r.organization,
     title: r.title,
@@ -244,7 +255,7 @@ const DEFAULT_HOME: HomeSettings = {
       icon: "linkedin",
     },
     { name: "Mail", url: "mailto:me@furkanunsalan.dev", icon: "mail" },
-    { name: "CV", url: "/resume.pdf", icon: "cv" },
+    { name: "CV", url: "/resume", icon: "cv" },
     {
       name: "Medium",
       url: "https://medium.com/@furkanunsalan",
@@ -456,5 +467,56 @@ export async function getLatestThought(): Promise<Thought | null> {
   } catch (e) {
     console.error("[getLatestThought] query failed:", e);
     return null;
+  }
+}
+
+// ---- cv settings (singleton) -----------------------------------------
+
+export type CvSettings = {
+  header: CvHeader;
+  contact: CvContact;
+  summary: string;
+  skills: string[];
+  certifications: CvCert[];
+  languages: CvLanguage[];
+  education: CvEducationItem[];
+  projects: CvProjectSel[];
+  experiences: CvExperienceSel[];
+};
+
+const CV_DEFAULTS: CvSettings = {
+  header: { name: "", role: "" },
+  contact: { address: "", phone: "", web: "" },
+  summary: "",
+  skills: [],
+  certifications: [],
+  languages: [],
+  education: [],
+  projects: [],
+  experiences: [],
+};
+
+export async function getCvSettings(): Promise<CvSettings> {
+  try {
+    const [row] = await db
+      .select()
+      .from(schema.cvSettings)
+      .where(eq(schema.cvSettings.id, 1))
+      .limit(1);
+    if (!row) return CV_DEFAULTS;
+    return {
+      header: row.header,
+      contact: row.contact,
+      summary: row.summary,
+      skills: row.skills,
+      certifications: row.certifications,
+      languages: row.languages,
+      education: row.education,
+      projects: row.projects,
+      experiences: row.experiences,
+    };
+  } catch (e) {
+    console.error("[getCvSettings] query failed:", e);
+    return CV_DEFAULTS;
   }
 }

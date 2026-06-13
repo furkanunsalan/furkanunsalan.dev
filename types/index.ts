@@ -11,6 +11,8 @@ export type Tool = {
 
 export type Experience = {
   id: number;
+  slug?: string; // DB text id (e.g. "acme-2024-engineer"); CV selection keys off this
+  kind?: "work" | "volunteer"; // CV-only section routing; /experience ignores it
   order: number;
   organization: string;
   title: string;
@@ -115,3 +117,39 @@ export type ProjectCardData =
       image?: string;
       order: number;
     };
+
+export type CvDocumentModel = {
+  variant: "short" | "full";
+  header: { name: string; role: string };
+  contact: {
+    address: string;
+    phone: string;
+    email: string;
+    github: string;
+    web: string;
+    linkedin: string;
+  };
+  summary: string;
+  skills: string[];
+  certifications: { name: string; date: string }[];
+  languages: { name: string; level: string }[];
+  education: {
+    degree: string;
+    dates: string;
+    line: string;
+    bullets: string[];
+  }[];
+  projects: {
+    name: string;
+    url: string;
+    description: string;
+    techStack: string;
+  }[];
+  work: { org: string; role: string; dates: string; bullets: string[] }[];
+  volunteering: {
+    org: string;
+    role: string;
+    dates: string;
+    bullets: string[];
+  }[];
+};

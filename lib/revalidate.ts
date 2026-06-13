@@ -6,14 +6,15 @@ import { revalidatePath } from "next/cache";
 // had its own copies.
 const COLLECTION_PATHS: Record<string, readonly string[]> = {
   posts: ["/writing", "/", "/rss.xml"],
-  projects: ["/projects", "/"],
-  experiences: ["/experience", "/"],
+  projects: ["/projects", "/", "/resume"],
+  experiences: ["/experience", "/", "/resume"],
   tools: ["/", "/api/tools"],
   places: ["/places"],
   placeLists: ["/places"],
   home: ["/"],
   github: ["/projects"],
   thoughts: ["/writing", "/", "/rss.xml"],
+  cv: ["/resume"],
 };
 
 // Per-collection optional dynamic-detail path. Only collections with public

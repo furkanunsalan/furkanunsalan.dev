@@ -15,6 +15,12 @@ const nextConfig = {
       ],
     },
   },
+  webpack: (config) => {
+    // react-pdf / pdfjs-dist optionally require the Node `canvas` package; it's
+    // not needed in the browser. Alias it off so the bundler doesn't choke.
+    config.resolve.alias.canvas = false;
+    return config;
+  },
   images: {
     // Disable the Next image optimizer entirely. The /_next/image endpoint
     // is what makes wildcard `remotePatterns` an open HTTPS proxy / SSRF

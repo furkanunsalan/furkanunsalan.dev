@@ -19,6 +19,7 @@ import {
   Database,
   Archive,
   Activity,
+  FileText,
 } from "lucide-react";
 
 const ICON = "w-4 h-4";
@@ -65,6 +66,7 @@ export const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
     Icon: Settings,
     group: "Settings",
   },
+  { label: "CV", href: "/admin/cv", Icon: FileText, group: "Settings" },
   { label: "Rename", href: "/admin/rename", Icon: Replace, group: "Settings" },
   { label: "Database", href: "/admin/db", Icon: Database, group: "System" },
   { label: "Backup", href: "/admin/backup", Icon: Archive, group: "System" },
