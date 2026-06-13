@@ -15,7 +15,7 @@ export default async function PlacesPage() {
   const [places, lists] = await Promise.all([getPlaces(), getPlaceLists()]);
 
   return (
-    <div className="mt-24 mb-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
+    <div className="mt-24 mb-16 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
       {places.length === 0 ? (
         <div className="rounded-xl ring-1 ring-white/[0.06] bg-zinc-950 p-6 text-sm text-light-fourth">
           No places yet. Add one in{" "}

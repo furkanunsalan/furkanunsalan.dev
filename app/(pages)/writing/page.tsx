@@ -33,7 +33,7 @@ export default async function ThoughtsPage() {
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 mt-24 mb-16">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-24 mb-16">
       <FeedList items={feed} />
     </div>
   );
