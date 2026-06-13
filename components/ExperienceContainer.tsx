@@ -60,26 +60,30 @@ export default function ExperienceContainer({
             </p>
           </div>
         ) : (
-          <div className="flex flex-col md:flex-row items-start gap-3">
-            {work.logo && (
-              <div className="relative mt-1 shrink-0 w-11 h-11 overflow-hidden rounded-lg bg-white/[0.04]">
-                <Image
-                  src={work.logo}
-                  alt={`${work.organization} logo`}
-                  fill
-                  sizes="44px"
-                  className="object-cover"
-                />
+          <>
+            <div className="flex flex-col md:flex-row items-start gap-3">
+              {work.logo && (
+                <div className="relative mt-1 shrink-0 w-11 h-11 overflow-hidden rounded-lg bg-white/[0.04]">
+                  <Image
+                    src={work.logo}
+                    alt={`${work.organization} logo`}
+                    fill
+                    sizes="44px"
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-sm text-light-fourth mt-1">
+                  {work.start_date} - {work.end_date || "Current"}
+                </p>
+                <p className="text-light-fourth">{work.organization}</p>
               </div>
-            )}
-            <div className="min-w-0">
-              <p className="text-sm text-light-fourth mt-1">
-                {work.start_date} - {work.end_date || "Current"}
-              </p>
-              <h3 className="text-lg font-semibold text-white">{work.title}</h3>
-              <p className="text-light-fourth">{work.organization}</p>
             </div>
-          </div>
+            <h3 className="mt-4 text-lg font-semibold text-white">
+              {work.title}
+            </h3>
+          </>
         )}
         <p className="mt-3 mb-4 font-light whitespace-pre-line text-light-secondary/90">
           {work.comment}

@@ -68,8 +68,16 @@ export default function CompanyExperienceGroup({
   // tighter indent against the company name. Desktop only — mobile drops the
   // rail entirely and lets roles use the full width.
   const rail = logo
-    ? { indent: "md:ml-[21px] md:pl-[33px]", line: "-left-[33px]", dot: "-left-[37px]" }
-    : { indent: "md:ml-[3px] md:pl-[27px]", line: "-left-[27px]", dot: "-left-[31px]" };
+    ? {
+        indent: "md:ml-[21px] md:pl-[33px]",
+        line: "-left-[33px]",
+        dot: "-left-[37px]",
+      }
+    : {
+        indent: "md:ml-[3px] md:pl-[27px]",
+        line: "-left-[27px]",
+        dot: "-left-[31px]",
+      };
 
   return (
     <div className="mb-8 border-b border-white/[0.06] pb-8 md:border-b-0 md:pb-0">
