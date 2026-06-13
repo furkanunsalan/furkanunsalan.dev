@@ -1,7 +1,8 @@
 import GithubCommitHistory from "@/components/GithubCommitHistory";
-import ProjectContainer from "@/components/ProjectContainer";
+import ProjectsExplorer from "@/components/ProjectsExplorer";
+import SshChip from "@/components/SshChip";
 import { getCustomProjects, getGithubProjectVisibility } from "@/lib/content";
-import { getGithubRepos } from "@/lib/github";
+import { getGithubRepos, getRepoCommitActivity } from "@/lib/github";
 import type { ProjectCardData } from "@/types";
 import { Metadata } from "next";
 
@@ -39,11 +40,12 @@ export default async function Projects() {
     metric: p.metric,
     link: p.link,
     image: p.image,
+    order: p.order,
   }));
 
   // A repo is excluded if:
   //   - a custom project has the same slug (custom wins), OR
-  //   - the Keystatic singleton has it as visible=false.
+  //   - the visibility singleton has it as visible=false.
   // Repos missing from the singleton default to visible (newly-discovered).
   const customSlugs = new Set(custom.map((p) => p.slug.toLowerCase()));
   const visibleRepos = repos.filter((r) => {
@@ -52,18 +54,15 @@ export default async function Projects() {
     return entry ? entry.visible : true;
   });
 
-  // Pinned repos float to the top in the order the user arranged them in the
-  // singleton's array. Non-pinned keep the default star-sorted order.
-  visibleRepos.sort((a, b) => {
-    const ea = visibility.byName.get(a.name.toLowerCase());
-    const eb = visibility.byName.get(b.name.toLowerCase());
-    const ai = ea?.pinned ? ea.pinIndex : Number.MAX_SAFE_INTEGER;
-    const bi = eb?.pinned ? eb.pinIndex : Number.MAX_SAFE_INTEGER;
-    if (ai !== bi) return ai - bi;
-    return b.stargazers_count - a.stargazers_count;
-  });
+  // Weekly commit totals per repo drive the card sparklines. Cached at the
+  // fetch layer (6h) and degrade to [] on error, so this stays cheap.
+  const activities = await Promise.all(
+    visibleRepos.map((r) =>
+      getRepoCommitActivity(r.owner, r.name).catch(() => []),
+    ),
+  );
 
-  const githubCards: ProjectCardData[] = visibleRepos.map((r) => ({
+  const githubCards: ProjectCardData[] = visibleRepos.map((r, i) => ({
     kind: "github",
     slug: r.name,
     name: r.name,
@@ -71,19 +70,38 @@ export default async function Projects() {
     language: r.language,
     stargazers_count: r.stargazers_count,
     forks_count: r.forks_count,
+    pushed_at: r.pushed_at,
+    commitActivity: activities[i],
   }));
 
-  const cards = [...customCards, ...githubCards];
+  // One unified order across custom + GitHub: custom projects use their `order`
+  // field; pinned repos use their `pinOrder` on the same scale, so a repo can
+  // sit between two custom builds. Everything unpinned trails, sorted by stars.
+  const rankOf = (c: ProjectCardData): number => {
+    if (c.kind === "custom") return c.order;
+    const entry = visibility.byName.get(c.slug.toLowerCase());
+    return entry?.pinned ? entry.pinOrder : Number.MAX_SAFE_INTEGER;
+  };
+  const cards = [...customCards, ...githubCards].sort((a, b) => {
+    const ra = rankOf(a);
+    const rb = rankOf(b);
+    if (ra !== rb) return ra - rb;
+    const sa = a.kind === "github" ? a.stargazers_count : 0;
+    const sb = b.kind === "github" ? b.stargazers_count : 0;
+    return sb - sa;
+  });
 
   return (
-    <div className="mt-24 min-h-screen max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="mb-12 animate-fade-in">
+    <div className="mt-24 pb-24 min-h-screen max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mb-8 flex flex-col gap-4 animate-fade-in-down sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl font-semibold text-white">Projects</h1>
+        <SshChip className="max-w-full" />
+      </div>
+      <div className="mb-10 animate-fade-in">
         <GithubCommitHistory />
       </div>
-      <div className="grid grid-cols-1 gap-4 stagger">
-        {cards.map((card) => (
-          <ProjectContainer key={card.slug} project={card} />
-        ))}
+      <div className="animate-fade-in">
+        <ProjectsExplorer cards={cards} />
       </div>
     </div>
   );

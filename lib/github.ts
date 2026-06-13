@@ -116,6 +116,29 @@ export async function getGithubRepo(name: string): Promise<GithubRepo | null> {
   };
 }
 
+// Last ~52 weeks of weekly commit totals for a single repo, for sparklines.
+// Returns [] on any failure or while GitHub is still computing the stats (a 202
+// with no usable body), so the caller simply renders no sparkline that round.
+export async function getRepoCommitActivity(
+  owner: string,
+  name: string,
+): Promise<number[]> {
+  try {
+    const url = `${GITHUB_API}/repos/${owner}/${name}/stats/commit_activity`;
+    const res = await fetch(url, {
+      headers: authHeaders(),
+      next: { revalidate: 21600 },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as unknown;
+    if (!Array.isArray(data)) return [];
+    return data.map((w: any) => (typeof w?.total === "number" ? w.total : 0));
+  } catch {
+    return [];
+  }
+}
+
 export async function getGithubReadme(
   owner: string,
   repo: string,

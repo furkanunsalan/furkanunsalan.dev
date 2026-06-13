@@ -101,6 +101,8 @@ export type ProjectCardData =
       language: string | null;
       stargazers_count: number;
       forks_count: number;
+      pushed_at: string;
+      commitActivity?: number[];
     }
   | {
       kind: "custom";
@@ -111,4 +113,5 @@ export type ProjectCardData =
       metric: string;
       link: string;
       image?: string;
+      order: number;
     };

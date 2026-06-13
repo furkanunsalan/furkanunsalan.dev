@@ -286,7 +286,10 @@ export async function getHomeSettings(): Promise<HomeSettings> {
 // ---- github project visibility ----------------------------------------
 
 export type GithubProjectVisibility = {
-  byName: Map<string, { visible: boolean; pinned: boolean; pinIndex: number }>;
+  byName: Map<
+    string,
+    { visible: boolean; pinned: boolean; pinIndex: number; pinOrder: number }
+  >;
 };
 
 export async function getGithubProjectVisibility(): Promise<GithubProjectVisibility> {
@@ -302,7 +305,7 @@ export async function getGithubProjectVisibility(): Promise<GithubProjectVisibil
   }
   const byName = new Map<
     string,
-    { visible: boolean; pinned: boolean; pinIndex: number }
+    { visible: boolean; pinned: boolean; pinIndex: number; pinOrder: number }
   >();
   let pinIndex = 0;
   for (const r of rows) {
@@ -313,6 +316,7 @@ export async function getGithubProjectVisibility(): Promise<GithubProjectVisibil
       visible: r.visible !== false,
       pinned,
       pinIndex: pinned ? pinIndex++ : Number.MAX_SAFE_INTEGER,
+      pinOrder: r.pinOrder ?? 0,
     });
   }
   return { byName };
