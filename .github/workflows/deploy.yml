@@ -54,7 +54,12 @@ jobs:
           cp -r .next/standalone/. release/
           mkdir -p release/.next
           cp -r .next/static release/.next/static
-          cp -r public release/public
+          # Merge public's CONTENTS into release/public. Next's file tracer may
+          # have already created release/public (it copies public assets read
+          # via process.cwd() into the standalone bundle); `cp -r public
+          # release/public` would then nest everything under release/public/public.
+          mkdir -p release/public
+          cp -r public/. release/public/
           # PM2 process descriptor — overwrite any stale config left on the
           # VPS from previous deploys (e.g. an Astro entrypoint).
           cp ecosystem.config.cjs release/ecosystem.config.cjs
