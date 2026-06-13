@@ -3,11 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 
-// Worker served as a static file from /public (copied from the installed
-// pdfjs-dist). Loading it via `new URL(..., import.meta.url)` makes webpack
-// emit + Terser-minify it, which fails on the worker's ESM syntax — a plain
-// runtime URL sidesteps the bundler entirely.
-pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+// Worker served via /pdf-worker (a route that streams the vendored file with a
+// JS MIME). Static /public/*.mjs 404s under Next's standalone server, and
+// bundling via `new URL(import.meta.url)` breaks Terser — this sidesteps both.
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf-worker";
 
 // Renders the generated PDF as plain canvas pages — no toolbar, no backdrop,
 // no controls. Just the document. Text/annotation layers are off (the CV is
