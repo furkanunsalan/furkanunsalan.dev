@@ -7,8 +7,12 @@ export default async function HomeIntro() {
 
   return (
     <div className="flex flex-col items-start text-left mt-24 w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="w-full flex items-start justify-between mb-1 select-none animate-fade-in-down">
-        <h1 className="text-xl font-semibold">Furkan Ünsalan</h1>
+      <div className="w-full flex items-start justify-between gap-4 mb-4 select-none animate-fade-in-down">
+        <div className="flex items-center gap-3 stagger">
+          {settings.socials.map((s) => (
+            <HomeSocialLink key={s.name + s.url} social={s} />
+          ))}
+        </div>
         <div className="flex flex-col items-end">
           <div className="text-sm text-light-fourth tabular-nums">
             <Time
@@ -27,12 +31,6 @@ export default async function HomeIntro() {
             </a>
           )}
         </div>
-      </div>
-
-      <div className="flex items-center gap-3 mb-4 stagger">
-        {settings.socials.map((s) => (
-          <HomeSocialLink key={s.name + s.url} social={s} />
-        ))}
       </div>
 
       <p className="text-base mb-4 text-justify animate-fade-in-up delay-200 whitespace-pre-line">

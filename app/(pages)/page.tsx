@@ -137,7 +137,9 @@ export default async function Home() {
       <section className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 animate-fade-in-up delay-300">
         <GithubCommitHistory />
       </section>
-      <HomeTools />
+      <div className="pb-16">
+        <HomeTools />
+      </div>
     </>
   );
 }
