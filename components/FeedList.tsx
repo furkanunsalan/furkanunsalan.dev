@@ -197,12 +197,9 @@ function PostRow({ post }: { post: BlogPost }) {
         className="group block py-5 -mx-3 px-3 rounded transition-colors hover:bg-white/[0.02]"
       >
         <div className="flex items-baseline gap-2 mb-1.5 text-[12px]">
-          <PenLine className="w-3 h-3 text-accent-primary shrink-0 self-center" />
+          <PenLine className="w-3 h-3 text-white shrink-0 self-center" />
           <span className="font-mono tabular-nums text-light-fourth">
             {dateLabel}
-          </span>
-          <span className="text-[10px] uppercase tracking-wider text-accent-primary/80">
-            Essay
           </span>
           {post.readingTime && (
             <>
