@@ -54,14 +54,19 @@ jobs:
           docker run -d --name smoke -p 3000:3000 \
             -e ADMIN_SESSION_SECRET=ci-smoke-placeholder-not-used-________________ \
             -e DATABASE_URL=postgres://x:x@127.0.0.1:5432/x "$APP_IMAGE:$TAG"
+          # No DB is reachable here, so /api/health returns 503 (degraded) — that
+          # still proves the server booted and every runtime module resolved.
+          # 000 (no response) means a missing module crashed it (e.g. a bad prune).
           code=000
-          for i in $(seq 1 20); do
+          for i in $(seq 1 30); do
             code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/api/health || echo 000)
-            [ "$code" = "200" ] && break
+            case "$code" in 200 | 503) break ;; esac
             sleep 2
           done
-          if [ "$code" != "200" ]; then echo "image failed to boot ($code):"; docker logs smoke | tail -40; docker rm -f smoke; exit 1; fi
-          echo "app image boots ✓"
+          case "$code" in
+            200 | 503) echo "app image boots ✓ (health $code)" ;;
+            *) echo "image failed to boot ($code):"; docker logs smoke | tail -40; docker rm -f smoke; exit 1 ;;
+          esac
           docker rm -f smoke
 
       - name: Push app image
