@@ -1,15 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import React from "react";
 import Markdoc from "@markdoc/markdoc";
 import {
   ArrowUpRight,
+  Check,
   MessageSquare,
   PenLine,
   Rss,
   Search,
+  SlidersHorizontal,
+  Tag,
 } from "lucide-react";
 import type { BlogPost, Thought } from "@/types";
 import ThoughtImageGallery from "@/components/ThoughtImageGallery";
@@ -68,6 +71,24 @@ export default function FeedList({ items }: { items: FeedItem[] }) {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [tag, setTag] = useState("");
   const [search, setSearch] = useState("");
+  const [openMenu, setOpenMenu] = useState<null | "tags" | "type">(null);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!openMenu) return;
+    const onDown = (e: PointerEvent) => {
+      if (barRef.current && !barRef.current.contains(e.target as Node)) {
+        setOpenMenu(null);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpenMenu(null);
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [openMenu]);
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
@@ -105,15 +126,15 @@ export default function FeedList({ items }: { items: FeedItem[] }) {
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row gap-2 mb-3">
-        <div className="card relative flex-1 flex items-center px-3 text-sm transition-colors duration-200 focus-within:border-accent-primary/40">
-          <Search className="w-3.5 h-3.5 text-light-fourth mr-1.5 shrink-0" />
+      <div ref={barRef} className="relative mb-6">
+        <div className="flex items-center gap-2 border-b border-white/[0.1] pb-2 transition-colors duration-200 focus-within:border-accent-primary/50">
+          <Search className="h-4 w-4 shrink-0 text-light-fourth" />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search…"
-            className="flex-1 bg-transparent py-2 pr-2 text-light-secondary placeholder:text-light-fourth focus:outline-none"
+            className="flex-1 bg-transparent py-1 text-sm text-light-secondary placeholder:text-light-fourth focus:outline-none"
           />
           <a
             href="/rss.xml"
@@ -121,44 +142,95 @@ export default function FeedList({ items }: { items: FeedItem[] }) {
             rel="noopener noreferrer"
             aria-label="RSS feed"
             title="RSS"
-            className="text-light-fourth hover:text-accent-primary transition-colors -mr-1 p-1"
+            className="p-1 text-light-fourth transition-colors hover:text-accent-primary"
           >
-            <Rss className="w-4 h-4" />
+            <Rss className="h-4 w-4" />
           </a>
-        </div>
-        <select
-          value={tag}
-          onChange={(e) => setTag(e.target.value)}
-          className="bg-zinc-950 ring-1 ring-white/[0.06] focus:ring-white/20 outline-none rounded-lg px-3 py-2 text-sm text-light-secondary min-w-[120px]"
-        >
-          <option value="">All tags</option>
-          {allTags.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-      </div>
 
-      <div className="flex items-center gap-1 mb-4">
-        {(["all", "essays", "thoughts"] as TypeFilter[]).map((t) => {
-          const active = typeFilter === t;
-          return (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTypeFilter(t)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] uppercase tracking-wider ring-1 transition-colors ${
-                active
-                  ? "bg-accent-primary/15 text-accent-primary ring-accent-primary/40"
-                  : "text-light-fourth ring-white/[0.06] hover:text-white hover:ring-white/20"
-              }`}
+          <button
+            type="button"
+            onClick={() => setOpenMenu(openMenu === "tags" ? null : "tags")}
+            aria-label="Filter by tag"
+            aria-expanded={openMenu === "tags"}
+            title="Filter by tag"
+            className={`relative p-1 transition-colors ${
+              tag ? "text-accent-primary" : "text-light-fourth hover:text-white"
+            }`}
+          >
+            <Tag className="h-4 w-4" />
+            {tag && (
+              <span className="absolute -right-0 -top-0 h-1.5 w-1.5 rounded-full bg-accent-primary" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setOpenMenu(openMenu === "type" ? null : "type")}
+            aria-label="Filter by type"
+            aria-expanded={openMenu === "type"}
+            title="Filter by type"
+            className={`relative p-1 transition-colors ${
+              typeFilter !== "all"
+                ? "text-accent-primary"
+                : "text-light-fourth hover:text-white"
+            }`}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            {typeFilter !== "all" && (
+              <span className="absolute -right-0 -top-0 h-1.5 w-1.5 rounded-full bg-accent-primary" />
+            )}
+          </button>
+        </div>
+
+        {openMenu === "type" && (
+          <Menu>
+            {(["all", "essays", "thoughts"] as TypeFilter[]).map((t) => (
+              <MenuItem
+                key={t}
+                active={typeFilter === t}
+                onClick={() => {
+                  setTypeFilter(t);
+                  setOpenMenu(null);
+                }}
+              >
+                <span className="capitalize">{t}</span>
+                <span className="ml-auto tabular-nums text-light-fourth">
+                  {counts[t]}
+                </span>
+              </MenuItem>
+            ))}
+          </Menu>
+        )}
+
+        {openMenu === "tags" && (
+          <Menu>
+            <MenuItem
+              active={!tag}
+              onClick={() => {
+                setTag("");
+                setOpenMenu(null);
+              }}
             >
-              <span>{t}</span>
-              <span className="tabular-nums opacity-70">{counts[t]}</span>
-            </button>
-          );
-        })}
+              All tags
+            </MenuItem>
+            {allTags.map((t) => (
+              <MenuItem
+                key={t}
+                active={tag === t}
+                onClick={() => {
+                  setTag(t);
+                  setOpenMenu(null);
+                }}
+              >
+                #{t}
+                {tag === t && <Check className="ml-auto h-3.5 w-3.5" />}
+              </MenuItem>
+            ))}
+            {allTags.length === 0 && (
+              <p className="px-3 py-1.5 text-sm text-light-fourth">No tags</p>
+            )}
+          </Menu>
+        )}
       </div>
 
       {filtered.length === 0 ? (
@@ -177,6 +249,39 @@ export default function FeedList({ items }: { items: FeedItem[] }) {
         </ul>
       )}
     </div>
+  );
+}
+
+function Menu({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="absolute right-0 top-full z-30 mt-2 max-h-64 w-48 overflow-auto rounded-lg border border-white/10 bg-zinc-950 py-1 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.9)] animate-fade-in"
+      style={{ animationDuration: "120ms" }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function MenuItem({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-white/[0.05] ${
+        active ? "text-accent-primary" : "text-light-secondary hover:text-white"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 

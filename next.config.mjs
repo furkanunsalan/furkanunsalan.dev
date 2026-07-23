@@ -21,6 +21,30 @@ const nextConfig = {
     config.resolve.alias.canvas = false;
     return config;
   },
+  // Security headers applied to every response — defense-in-depth that holds
+  // even if the Caddy config in front drifts. (Strict CSP is intentionally
+  // omitted: it needs per-request nonces to coexist with Next's inline hydration
+  // and the Umami/mermaid inline output — a separate piece of work.)
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+    ];
+  },
   images: {
     // Disable the Next image optimizer entirely. The /_next/image endpoint
     // is what makes wildcard `remotePatterns` an open HTTPS proxy / SSRF

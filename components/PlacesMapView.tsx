@@ -111,7 +111,7 @@ export default function PlacesMapView({
         markerRefs={markerRefs}
       />
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         subdomains="abcd"
         maxZoom={19}
       />

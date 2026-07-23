@@ -1,0 +1,21 @@
+CREATE TABLE "photos" (
+	"id" text PRIMARY KEY NOT NULL,
+	"order" integer DEFAULT 100 NOT NULL,
+	"width" integer DEFAULT 0 NOT NULL,
+	"height" integer DEFAULT 0 NOT NULL,
+	"color" text DEFAULT '#0a0a0a' NOT NULL,
+	"blur_hash" text,
+	"alt" text DEFAULT '' NOT NULL,
+	"caption" text DEFAULT '' NOT NULL,
+	"taken_at" timestamp with time zone,
+	"camera_make" text,
+	"camera_model" text,
+	"focal_length" text,
+	"aperture" text,
+	"shutter" text,
+	"iso" integer,
+	"tags" text[] DEFAULT '{}' NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);

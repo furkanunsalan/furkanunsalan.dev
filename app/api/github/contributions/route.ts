@@ -1,11 +1,11 @@
-import { getContributionCalendar } from "@/lib/github";
+import { getMergedContributions } from "@/lib/github";
 
 export const runtime = "nodejs";
 export const revalidate = 3600;
 
 export async function GET() {
   try {
-    const calendar = await getContributionCalendar();
+    const calendar = await getMergedContributions();
     return new Response(JSON.stringify(calendar), {
       status: 200,
       headers: {

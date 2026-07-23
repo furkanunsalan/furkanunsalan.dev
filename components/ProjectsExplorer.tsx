@@ -7,10 +7,10 @@ export default function ProjectsExplorer({
   cards: ProjectCardData[];
 }) {
   return (
-    <div className="grid grid-cols-1 gap-3 stagger">
+    <ul className="stagger divide-y divide-white/[0.06] border-y border-white/[0.06]">
       {cards.map((card) => (
         <ProjectContainer key={card.slug} project={card} />
       ))}
-    </div>
+    </ul>
   );
 }

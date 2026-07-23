@@ -1,37 +1,40 @@
 import TopProgressBar from "@/components/TopProgressBar";
 
+// Scattered node hints for the fullscreen graph while it loads.
+const NODES: [number, number, number][] = [
+  [50, 50, 34],
+  [34, 38, 20],
+  [66, 40, 18],
+  [42, 66, 16],
+  [60, 68, 20],
+  [26, 58, 12],
+  [74, 60, 12],
+  [40, 26, 12],
+  [62, 24, 10],
+  [22, 44, 9],
+  [78, 46, 9],
+  [50, 80, 11],
+  [30, 74, 8],
+  [70, 78, 8],
+];
+
 export default function Loading() {
   return (
     <>
       <TopProgressBar />
-      <div className="mt-24 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-3 gap-3 mb-8 stagger">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="card p-4 space-y-2">
-              <div className="skeleton h-3 w-16" />
-              <div className="skeleton h-5 w-12" />
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-center mb-8 gap-3">
-          <div className="skeleton h-6 w-20" />
-          <div className="skeleton h-6 w-20" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 stagger">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="card h-32 flex flex-row overflow-hidden">
-              <div className="skeleton w-2/5 h-full rounded-none" />
-              <div className="flex-1 flex flex-col p-3 space-y-2">
-                <div className="skeleton h-4 w-full" />
-                <div className="skeleton h-4 w-3/4" />
-                <div className="mt-auto flex items-center justify-between">
-                  <div className="skeleton h-3 w-20" />
-                  <div className="skeleton h-4 w-12 rounded-full" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="fixed inset-0 z-0 overflow-hidden bg-dark-primary">
+        {NODES.map(([top, left, size], i) => (
+          <div
+            key={i}
+            className="skeleton-circle absolute -translate-x-1/2 -translate-y-1/2"
+            style={{
+              top: `${top}%`,
+              left: `${left}%`,
+              width: `${size}px`,
+              height: `${size}px`,
+            }}
+          />
+        ))}
       </div>
     </>
   );

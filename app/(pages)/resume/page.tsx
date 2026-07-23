@@ -30,7 +30,6 @@ export default function ResumePage({
         </div>
         <a
           href={`/api/cv?variant=${variant}&download=1`}
-          data-umami-event={`CV download ${variant}`}
           className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-zinc-950 px-3 py-1.5 text-sm text-light-secondary transition-colors duration-200 hover:border-accent-primary/50 hover:text-accent-primary"
         >
           <Download className="h-3.5 w-3.5" />

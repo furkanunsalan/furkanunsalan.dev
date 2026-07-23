@@ -47,6 +47,7 @@ export default async function EditToolPage({
           comment: row.comment,
           favorite: row.favorite,
           link: row.link || "",
+          icon: row.icon || "",
         }}
       />
     </div>

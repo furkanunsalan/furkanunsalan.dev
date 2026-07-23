@@ -8,6 +8,7 @@ import {
   Briefcase,
   Wrench,
   MapPin,
+  Camera,
   Settings,
   ArrowUpRight,
   Plus,
@@ -72,6 +73,8 @@ async function countAll() {
     actTools,
     actPlaces,
     actGithub,
+    photosCount,
+    actPhotos,
   ] = await Promise.all([
     db.select({ n: sql<number>`count(*)::int` }).from(schema.posts),
     db.select({ n: sql<number>`count(*)::int` }).from(schema.thoughts),
@@ -102,6 +105,8 @@ async function countAll() {
     activityByDay("tools", "created_at"),
     activityByDay("places", "created_at"),
     activityByDay("github_project_visibility", "updated_at"),
+    db.select({ n: sql<number>`count(*)::int` }).from(schema.photos),
+    activityByDay("photos", "created_at"),
   ]);
   return {
     posts: posts[0]?.n ?? 0,
@@ -112,6 +117,7 @@ async function countAll() {
     places: places[0]?.n ?? 0,
     placeLists: placeLists[0]?.n ?? 0,
     github: github[0]?.n ?? 0,
+    photos: photosCount[0]?.n ?? 0,
     logins: logins[0] ?? { ok: 0, fail: 0 },
     recentLogins: recentLogins.map((r) => ({
       id: r.id,
@@ -127,6 +133,7 @@ async function countAll() {
       tools: actTools,
       places: actPlaces,
       github: actGithub,
+      photos: actPhotos,
     },
   };
 }
@@ -274,6 +281,13 @@ const TILES: Tile[] = [
     count: (c) => c.places,
     secondary: (c) => `${c.placeLists} list${c.placeLists === 1 ? "" : "s"}`,
     series: (c) => c.activity.places,
+  },
+  {
+    label: "Photos",
+    href: "/admin/photos",
+    Icon: Camera,
+    count: (c) => c.photos,
+    series: (c) => c.activity.photos,
   },
 ];
 

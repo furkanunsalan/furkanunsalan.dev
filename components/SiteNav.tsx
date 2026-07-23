@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import ScrambleText from "@/components/ScrambleText";
 
 const NAME = "Furkan Ünsalan";
 const SHORT = "FÜ";
@@ -43,13 +44,9 @@ export default function SiteNav() {
           overscroll instead of floating down over the background. */}
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-dark-primary animate-fade-in-down">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <Link
-            href="/"
-            className="shrink-0 text-sm font-semibold text-white"
-            data-umami-event="nav home"
-          >
-            <span className="md:hidden">{SHORT}</span>
-            <span className="hidden md:inline">{NAME}</span>
+          <Link href="/" className="shrink-0 text-sm font-semibold text-white">
+            <ScrambleText text={SHORT} className="md:hidden" />
+            <ScrambleText text={NAME} className="hidden md:inline" />
           </Link>
           <nav className="flex items-center gap-4 sm:gap-5">
             <NavDropdown
@@ -59,14 +56,11 @@ export default function SiteNav() {
               active={groupActive(WORK)}
               open={menu === "work"}
               isActive={isActive}
+              onOpen={() => setMenu("work")}
               onToggle={() => setMenu((m) => (m === "work" ? null : "work"))}
               onClose={() => setMenu(null)}
             />
-            <Link
-              href="/writing"
-              className={topCls(isActive("/writing"))}
-              data-umami-event="nav writing"
-            >
+            <Link href="/writing" className={topCls(isActive("/writing"))}>
               Writing
             </Link>
             <NavDropdown
@@ -76,6 +70,7 @@ export default function SiteNav() {
               active={groupActive(HOBBY)}
               open={menu === "hobby"}
               isActive={isActive}
+              onOpen={() => setMenu("hobby")}
               onToggle={() => setMenu((m) => (m === "hobby" ? null : "hobby"))}
               onClose={() => setMenu(null)}
             />
@@ -101,6 +96,7 @@ function NavDropdown({
   active,
   open,
   isActive,
+  onOpen,
   onToggle,
   onClose,
 }: {
@@ -110,11 +106,12 @@ function NavDropdown({
   active: boolean;
   open: boolean;
   isActive: (href: string) => boolean;
+  onOpen: () => void;
   onToggle: () => void;
   onClose: () => void;
 }) {
   return (
-    <div className="relative">
+    <div className="relative" onMouseEnter={onOpen} onMouseLeave={onClose}>
       <button
         type="button"
         aria-expanded={open}
@@ -127,26 +124,29 @@ function NavDropdown({
         />
       </button>
       {open && (
+        // pt-3 is a transparent bridge so the hover gap between trigger and menu
+        // doesn't trigger mouseleave and close the dropdown.
         <div
-          className={`absolute top-full z-50 mt-3 w-44 overflow-hidden rounded-lg border border-white/[0.08] bg-zinc-950 p-1 shadow-xl ${
+          className={`absolute top-full z-50 pt-3 ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >
-          {items.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              onClick={onClose}
-              data-umami-event={`nav ${l.label.toLowerCase()}`}
-              className={`block rounded-md px-3 py-2 text-sm ${
-                isActive(l.href)
-                  ? "text-accent-primary"
-                  : "text-light-secondary hover:bg-white/[0.04] hover:text-white"
-              }`}
-            >
-              {l.label}
-            </Link>
-          ))}
+          <div className="w-44 overflow-hidden rounded-lg border border-white/[0.08] bg-zinc-950 p-1 shadow-xl">
+            {items.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={onClose}
+                className={`block rounded-md px-3 py-2 text-sm ${
+                  isActive(l.href)
+                    ? "text-accent-primary"
+                    : "text-light-secondary hover:bg-white/[0.04] hover:text-white"
+                }`}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

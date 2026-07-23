@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 // Per-collection list of public paths to invalidate on mutation. Keeping this
 // in one place prevents the "I edited a post but the home / RSS still shows
@@ -11,6 +11,7 @@ const COLLECTION_PATHS: Record<string, readonly string[]> = {
   tools: ["/", "/api/tools"],
   places: ["/places"],
   placeLists: ["/places"],
+  photos: ["/photos"],
   home: ["/"],
   github: ["/projects"],
   thoughts: ["/writing", "/", "/rss.xml"],
@@ -31,4 +32,7 @@ export function revalidateCollection(
   for (const p of COLLECTION_PATHS[collection]) revalidatePath(p);
   const detailPrefix = DETAIL_PATHS[collection];
   if (slug && detailPrefix) revalidatePath(`${detailPrefix}/${slug}`);
+  // Bust the cached data readers (lib/cache.ts) tagged with this collection.
+  // The tag matches the collection key, e.g. revalidateTag("posts").
+  revalidateTag(collection);
 }

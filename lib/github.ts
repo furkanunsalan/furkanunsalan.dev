@@ -18,10 +18,12 @@ export type GithubRepo = {
   owner: string;
 };
 
+export type ContributionLevel = 0 | 1 | 2 | 3 | 4;
+
 export type ContributionDay = {
   date: string; // YYYY-MM-DD
   count: number;
-  level: 0 | 1 | 2 | 3 | 4;
+  level: ContributionLevel;
 };
 
 export type ContributionCalendar = {
@@ -29,7 +31,24 @@ export type ContributionCalendar = {
   weeks: { days: ContributionDay[] }[];
 };
 
+// A day carrying both accounts' activity, aligned on the same date grid.
+export type MergedDay = {
+  date: string;
+  personal: number;
+  personalLevel: ContributionLevel;
+  work: number;
+  workLevel: ContributionLevel;
+};
+
+export type MergedContributions = {
+  totalPersonal: number;
+  totalWork: number;
+  weeks: { days: MergedDay[] }[];
+};
+
 const githubUser = process.env.GITHUB_USERNAME || "furkanunsalan";
+const githubWorkUser =
+  process.env.GITHUB_USERNAME_WORK || "furkanunsalan-teachfluence";
 
 function authHeaders(extra: Record<string, string> = {}) {
   const token = process.env.GITHUB_TOKEN;
@@ -161,7 +180,7 @@ export async function getGithubReadme(
   return markdown;
 }
 
-function levelFor(count: number): 0 | 1 | 2 | 3 | 4 {
+function levelFor(count: number): ContributionLevel {
   if (count === 0) return 0;
   if (count < 3) return 1;
   if (count < 6) return 2;
@@ -169,7 +188,13 @@ function levelFor(count: number): 0 | 1 | 2 | 3 | 4 {
   return 4;
 }
 
-export async function getContributionCalendar(): Promise<ContributionCalendar> {
+// Fetch one account's calendar. Private contributions are included per-day only
+// when the token belongs to `login` (GitHub restricts private day-data to the
+// account owner), so callers pass each account its own token.
+async function fetchContributionCalendar(
+  login: string,
+  token: string,
+): Promise<ContributionCalendar> {
   const query = `
     query($login: String!) {
       user(login: $login) {
@@ -190,20 +215,23 @@ export async function getContributionCalendar(): Promise<ContributionCalendar> {
 
   const res = await fetch(GITHUB_GRAPHQL, {
     method: "POST",
-    headers: authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({
-      query,
-      variables: { login: githubUser },
-    }),
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query, variables: { login } }),
     next: { revalidate: 3600 },
   });
 
-  if (!res.ok) throw new Error(`GitHub GraphQL failed: ${res.status}`);
+  if (!res.ok)
+    throw new Error(`GitHub GraphQL failed for ${login}: ${res.status}`);
 
   const json = await res.json();
   if (json.errors) {
     throw new Error(
-      `GitHub GraphQL errors: ${JSON.stringify(json.errors).slice(0, 200)}`,
+      `GitHub GraphQL errors for ${login}: ${JSON.stringify(json.errors).slice(0, 200)}`,
     );
   }
 
@@ -217,5 +245,51 @@ export async function getContributionCalendar(): Promise<ContributionCalendar> {
         level: levelFor(d.contributionCount),
       })),
     })),
+  };
+}
+
+// Personal + work calendars overlaid on one date grid. The personal grid is
+// authoritative for the rendered cells; work counts are matched in by date.
+// Work fetch failures degrade to a personal-only graph rather than 500-ing.
+export async function getMergedContributions(): Promise<MergedContributions> {
+  const personalToken = process.env.GITHUB_TOKEN;
+  if (!personalToken) throw new Error("GITHUB_TOKEN is not configured");
+  // No dedicated work token → query the work account with the personal token,
+  // which sees its PUBLIC contributions only (private won't be counted).
+  const workToken = process.env.GITHUB_TOKEN_WORK || personalToken;
+
+  const personal = await fetchContributionCalendar(githubUser, personalToken);
+
+  let work: ContributionCalendar | null = null;
+  try {
+    work = await fetchContributionCalendar(githubWorkUser, workToken);
+  } catch (e) {
+    console.error("[contributions] work calendar fetch failed:", e);
+  }
+
+  const workByDate = new Map<string, ContributionDay>();
+  if (work) {
+    for (const week of work.weeks) {
+      for (const day of week.days) workByDate.set(day.date, day);
+    }
+  }
+
+  const weeks = personal.weeks.map((week) => ({
+    days: week.days.map((day) => {
+      const w = workByDate.get(day.date);
+      return {
+        date: day.date,
+        personal: day.count,
+        personalLevel: day.level,
+        work: w?.count ?? 0,
+        workLevel: w?.level ?? 0,
+      };
+    }),
+  }));
+
+  return {
+    totalPersonal: personal.total,
+    totalWork: work?.total ?? 0,
+    weeks,
   };
 }

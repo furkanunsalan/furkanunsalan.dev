@@ -39,7 +39,7 @@ export default function Tool({ tool }: { tool: ToolType }) {
 
   if (link) {
     return (
-      <Link href={link} target="_blank" data-umami-event={name + " -> Web"}>
+      <Link href={link} target="_blank">
         {content}
       </Link>
     );

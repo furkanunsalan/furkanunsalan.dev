@@ -42,6 +42,8 @@ export async function PATCH(
   if (typeof body.favorite === "boolean") patch.favorite = body.favorite;
   if (typeof body.link === "string") patch.link = body.link || null;
   if (body.link === null) patch.link = null;
+  if (typeof body.icon === "string") patch.icon = body.icon.trim() || null;
+  if (body.icon === null) patch.icon = null;
 
   try {
     const [before] = await db

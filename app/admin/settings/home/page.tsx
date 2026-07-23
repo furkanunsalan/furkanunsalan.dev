@@ -21,6 +21,9 @@ export default async function AdminHomeSettings() {
       <HomeSettingsForm
         initial={{
           intro: row?.intro || "",
+          location: row?.location || "",
+          focus: row?.focus || "",
+          watching: row?.watching || "",
           timezone: row?.timezone || "Europe/Istanbul",
           timezoneLabel: row?.timezoneLabel || "IST",
           pgpId: row?.pgpId || "",

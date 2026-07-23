@@ -44,7 +44,6 @@ export function HomeSocialLink({
       rel={external ? "noopener noreferrer" : undefined}
       aria-label={social.name}
       title={social.name}
-      data-umami-event={social.name}
       className="text-white/40 hover:text-accent-primary hover:-translate-y-0.5 transition-all duration-200"
     >
       <Icon className="w-4 h-4" />

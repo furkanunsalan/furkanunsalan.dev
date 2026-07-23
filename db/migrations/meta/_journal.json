@@ -50,6 +50,27 @@
       "when": 1781367903129,
       "tag": "0006_dear_blockbuster",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784794457621,
+      "tag": "0007_strange_tomorrow_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784810725282,
+      "tag": "0008_blushing_proudstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784815859014,
+      "tag": "0009_easy_lilith",
+      "breakpoints": true
     }
   ]
 }

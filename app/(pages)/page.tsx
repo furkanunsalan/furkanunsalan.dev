@@ -1,145 +1,33 @@
-import GithubCommitHistory from "@/components/GithubCommitHistory";
 import HomeIntro from "@/components/HomeIntro";
-import HomeTools from "@/components/HomeTools";
-import LatestSection, { type LatestItem } from "@/components/LatestSection";
-import { getExperiences, getLatestThought, getPosts } from "@/lib/content";
-import { getGithubRepos } from "@/lib/github";
-import { BOOKMARK_LISTS, getKarakeepLatestFromLists } from "@/lib/karakeep";
-import unsplash from "@/lib/unsplash";
+import JsonLd from "@/components/JsonLd";
+import { getHomeSettings } from "@/lib/content";
 
 // DB-backed: avoid prerender at build time (CI has no access to the VPS pg).
 export const dynamic = "force-dynamic";
 
-async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
-  try {
-    return await fn();
-  } catch (e) {
-    console.error("home latest fetch failed:", e);
-    return fallback;
-  }
-}
+const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://furkanunsalan.dev";
 
 export default async function Home() {
-  const [experiences, thought, posts, repos, bookmark, photos] =
-    await Promise.all([
-      safe(() => getExperiences(), []),
-      safe(() => getLatestThought(), null),
-      safe(() => getPosts(), []),
-      safe(() => getGithubRepos(), []),
-      safe(
-        () => getKarakeepLatestFromLists(BOOKMARK_LISTS.map((l) => l.id)),
-        null,
-      ),
-      safe(() => unsplash.getPhotos(1) as Promise<any[]>, [] as any[]),
-    ]);
-
-  const latestExperience = [...experiences].sort((a, b) => {
-    if (a.order !== b.order) return a.order - b.order;
-    const parse = (s: string) => {
-      const [d, m, y] = s.split("/").map(Number);
-      return new Date(y || 0, (m || 1) - 1, d || 1).getTime();
-    };
-    return parse(b.start_date) - parse(a.start_date);
-  })[0];
-  const latestPost = [...posts].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  )[0];
-  const latestProject = [...repos].sort(
-    (a, b) => new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime(),
-  )[0];
-  const latestPhoto = photos[0];
-
-  const items: LatestItem[] = [];
-
-  if (latestExperience) {
-    items.push({
-      type: "experience",
-      title: `${latestExperience.title} @ ${latestExperience.organization}`,
-      href: "/experience",
-      date: latestExperience.start_date,
-    });
-  }
-
-  // Posts + thoughts now share one public feed at /writing — surface whichever
-  // is newer as a single "Latest" row pointing into that feed.
-  const writingCandidates: Array<{
-    kind: "post" | "thought";
-    date: string;
-    item: LatestItem;
-  }> = [];
-  if (latestPost) {
-    writingCandidates.push({
-      kind: "post",
-      date: latestPost.date,
-      item: {
-        type: "writing",
-        title: latestPost.title,
-        href: `/writing/${latestPost.slug}`,
-        date: latestPost.date,
-      },
-    });
-  }
-  if (thought) {
-    const preview = thought.body.replace(/\s+/g, " ").trim();
-    writingCandidates.push({
-      kind: "thought",
-      date: thought.createdAt,
-      item: {
-        type: "thought",
-        title:
-          preview.length > 100
-            ? `${preview.slice(0, 100)}…`
-            : preview || `Thought #${thought.id}`,
-        href: `/writing#t-${thought.id}`,
-        date: thought.createdAt,
-      },
-    });
-  }
-  writingCandidates.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
-  if (writingCandidates[0]) items.push(writingCandidates[0].item);
-
-  if (latestProject) {
-    items.push({
-      type: "project",
-      title: latestProject.description
-        ? `${latestProject.name} — ${latestProject.description}`
-        : latestProject.name,
-      href: `/projects/${latestProject.name}`,
-      date: latestProject.pushed_at,
-    });
-  }
-
-  if (bookmark) {
-    items.push({
-      type: "bookmark",
-      title: bookmark.title,
-      href: bookmark.link,
-      date: bookmark.created,
-      external: true,
-    });
-  }
-
-  if (latestPhoto) {
-    items.push({
-      type: "photo",
-      title: latestPhoto.alt_description || latestPhoto.slug || "Untitled",
-      href: "/photos",
-      date: latestPhoto.created_at,
-    });
-  }
+  const settings = await getHomeSettings();
+  const sameAs = settings.socials
+    .map((s) => s.url)
+    .filter((u) => u.startsWith("http"));
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: "Furkan Ünsalan",
+          alternateName: "Furkan Unsalan",
+          url: BASE,
+          jobTitle: "Full Stack Developer",
+          homeLocation: { "@type": "Place", name: settings.location },
+          sameAs,
+        }}
+      />
       <HomeIntro />
-      <LatestSection items={items} />
-      <section className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 animate-fade-in-up delay-300">
-        <GithubCommitHistory />
-      </section>
-      <div className="pb-16">
-        <HomeTools />
-      </div>
     </>
   );
 }

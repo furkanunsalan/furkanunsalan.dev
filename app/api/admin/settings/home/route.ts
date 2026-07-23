@@ -42,6 +42,9 @@ export async function PATCH(req: Request) {
   const values = {
     id: 1,
     intro: body.intro ?? "",
+    location: body.location ?? "",
+    focus: body.focus ?? "",
+    watching: body.watching ?? "",
     timezone: body.timezone ?? "Europe/Istanbul",
     timezoneLabel: body.timezoneLabel ?? "IST",
     pgpId: body.pgpId ?? "",

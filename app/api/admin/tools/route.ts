@@ -1,14 +1,28 @@
 import { NextResponse } from "next/server";
 import { asc } from "drizzle-orm";
+import { z } from "zod";
 import { db, schema } from "@/lib/db";
 import { friendlyDbError } from "@/lib/db-errors";
 import { slugifyAscii, cleanUserSlug } from "@/lib/slugify";
 import { revalidateCollection } from "@/lib/revalidate";
 import { recordAudit } from "@/lib/audit";
+import { readJson } from "@/lib/validate";
 
 export const runtime = "nodejs";
 
-const CATS = new Set<string>(schema.toolCategoryEnum.enumValues);
+// Validated input schema for a gadget/tool. The category enum is derived from
+// db/schema.ts so the two never drift. This is the reference pattern for
+// zod-at-the-boundary; other admin routes can adopt the same shape.
+const ToolCreate = z.object({
+  brand: z.string().trim().default(""),
+  what: z.string().trim().min(1, "required"),
+  name: z.string().trim().optional(),
+  category: z.enum(schema.toolCategoryEnum.enumValues).default("tech"),
+  comment: z.string().default(""),
+  favorite: z.boolean().default(false),
+  link: z.string().trim().nullish(),
+  icon: z.string().trim().nullish(),
+});
 
 export async function GET() {
   const rows = await db
@@ -19,29 +33,24 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => null);
-  if (!body || typeof body !== "object") {
-    return NextResponse.json({ error: "bad json" }, { status: 400 });
-  }
-  const what = (body.what || "").trim();
-  const brand = (body.brand || "").trim();
-  if (!what)
-    return NextResponse.json({ error: "what required" }, { status: 400 });
+  const parsed = await readJson(req, ToolCreate);
+  if ("response" in parsed) return parsed.response;
+  const b = parsed.data;
   const name =
-    cleanUserSlug(body.name) || slugifyAscii(`${brand}-${what}`, "tool");
-  const category = CATS.has(body.category) ? body.category : "tech";
+    cleanUserSlug(b.name) || slugifyAscii(`${b.brand}-${b.what}`, "tool");
 
   try {
     const [row] = await db
       .insert(schema.tools)
       .values({
         name,
-        brand,
-        what,
-        category,
-        comment: body.comment ?? "",
-        favorite: !!body.favorite,
-        link: body.link || null,
+        brand: b.brand,
+        what: b.what,
+        category: b.category,
+        comment: b.comment,
+        favorite: b.favorite,
+        link: b.link || null,
+        icon: b.icon?.trim() || null,
       })
       .returning();
     revalidateCollection("tools");

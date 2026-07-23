@@ -15,6 +15,7 @@ export default function NewToolPage() {
           comment: "",
           favorite: false,
           link: "",
+          icon: "",
         }}
       />
     </div>

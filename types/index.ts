@@ -7,6 +7,7 @@ export type Tool = {
   what: string;
   category: string;
   link?: string;
+  icon?: string;
 };
 
 export type Experience = {

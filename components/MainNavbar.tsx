@@ -37,7 +37,6 @@ const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {
                   href={route}
                   className="relative inline-block px-1 py-0.5 transition-colors duration-300 ease-in-out group"
                   id="na-buttons"
-                  data-umami-event={route}
                 >
                   {label}
                   <span className="block absolute left-0 bottom-0 w-0 h-0.5 bg-white transition-all duration-300 ease-out group-hover:w-full"></span>

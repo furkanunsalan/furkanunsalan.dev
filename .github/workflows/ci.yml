@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://furkanunsalan.dev
+          # Mirror deploy.yml: module-load checks in lib/auth.ts + lib/db.ts throw
+          # if these are missing. Placeholders only — never baked into the bundle
+          # (no NEXT_PUBLIC_ prefix) and postgres-js opens no connection until a
+          # query runs, which force-dynamic routes never do at build time.
+          ADMIN_SESSION_SECRET: ci-build-placeholder-not-used-at-runtime-________
+          DATABASE_URL: postgres://build:placeholder@127.0.0.1:5432/build_placeholder
+        run: npm run build

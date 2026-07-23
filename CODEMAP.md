@@ -12,7 +12,7 @@ Where things live and what they're for. Pair with [`CLAUDE.md`](CLAUDE.md) for c
 | `lib/`                 | Server-side helpers: DB client, auth, content readers, uploads, slug/excerpt/revalidate.  |
 | `public/`              | Static assets (banners, photos, OG fallbacks, resume.pdf).                                |
 | `types/`               | Shared TypeScript types.                                                                  |
-| `data/`                | Small static constants (`constants.ts`).                                                  |
+| `data/`                | Small static assets (e.g. `asciiPortrait.ts` — the home ASCII portrait).                  |
 | `terminal/`            | Go + Charm Wish SSH twin. Standalone module, own deploy. (See note below — disconnected.) |
 | `scripts/`             | Two scripts only: `db-migrate.mjs`, `admin-set-password.mjs`.                             |
 | `.github/workflows/`   | `deploy.yml` (web), `deploy-terminal.yml` (Go binary).                                    |

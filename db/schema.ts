@@ -128,6 +128,7 @@ export const tools = pgTable("tools", {
   comment: text("comment").notNull().default(""),
   favorite: boolean("favorite").notNull().default(false),
   link: text("link"),
+  icon: text("icon"), // sketch key from the gadget library (see GadgetGlyph)
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -187,6 +188,9 @@ export type HomeSocial = {
 export const homeSettings = pgTable("home_settings", {
   id: integer("id").primaryKey(),
   intro: text("intro").notNull().default(""),
+  location: text("location").notNull().default(""),
+  focus: text("focus").notNull().default(""),
+  watching: text("watching").notNull().default(""),
   timezone: text("timezone").notNull().default("Europe/Istanbul"),
   timezoneLabel: text("timezone_label").notNull().default("IST"),
   pgpId: text("pgp_id").notNull().default(""),
@@ -313,4 +317,32 @@ export const auditEvents = pgTable("audit_events", {
   ip: text("ip"),
   before: jsonb("before").$type<Record<string, unknown> | null>(),
   after: jsonb("after").$type<Record<string, unknown> | null>(),
+});
+
+// Self-hosted photography. Files live in UPLOADS_DIR/photos/{display,thumb}/<id>.webp
+// (migrated off Unsplash); this row holds the shot metadata for the /photos timeline.
+export const photos = pgTable("photos", {
+  id: text("id").primaryKey(), // slug + filename base
+  order: integer("order").notNull().default(100),
+  width: integer("width").notNull().default(0),
+  height: integer("height").notNull().default(0),
+  color: text("color").notNull().default("#0a0a0a"),
+  blurHash: text("blur_hash"),
+  alt: text("alt").notNull().default(""),
+  caption: text("caption").notNull().default(""),
+  takenAt: timestamp("taken_at", { withTimezone: true }),
+  cameraMake: text("camera_make"),
+  cameraModel: text("camera_model"),
+  focalLength: text("focal_length"),
+  aperture: text("aperture"),
+  shutter: text("shutter"),
+  iso: integer("iso"),
+  tags: text("tags").array().notNull().default([]),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });

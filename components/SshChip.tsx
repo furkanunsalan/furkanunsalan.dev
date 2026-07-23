@@ -19,22 +19,25 @@ export default function SshChip({ className = "" }: { className?: string }) {
   };
 
   return (
-    <button
-      type="button"
-      onClick={copy}
-      data-umami-event="SSH twin copy"
-      title="This site has an SSH twin — click to copy"
-      className={`group inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-zinc-950 px-3 py-1.5 font-mono text-xs text-light-secondary transition-all duration-200 hover:border-accent-primary/50 hover:text-accent-primary ${className}`}
+    <div
+      className={`inline-flex items-center gap-2 font-mono text-xs text-light-secondary ${className}`}
     >
-      <span className="text-accent-primary/80 group-hover:text-accent-primary">
-        $
-      </span>
-      <span className="truncate">{CMD}</span>
-      {copied ? (
-        <Check className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
-      ) : (
-        <Copy className="h-3.5 w-3.5 shrink-0 opacity-50 group-hover:opacity-100" />
-      )}
-    </button>
+      <code className="whitespace-nowrap">
+        <span className="text-accent-primary/80">$</span> {CMD}
+      </code>
+      <button
+        type="button"
+        onClick={copy}
+        aria-label="Copy SSH command"
+        title="This site has an SSH twin — click to copy"
+        className="shrink-0 text-light-fourth transition-colors duration-200 hover:text-accent-primary"
+      >
+        {copied ? (
+          <Check className="h-3.5 w-3.5 text-emerald-400" />
+        ) : (
+          <Copy className="h-3.5 w-3.5" />
+        )}
+      </button>
+    </div>
   );
 }

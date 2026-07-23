@@ -32,6 +32,7 @@ const ALLOWED_DIRS = new Set([
   "experiences",
   "places",
   "thoughts",
+  "photos",
   "misc",
 ]);
 
@@ -111,6 +112,39 @@ export async function saveUpload(
     bytes: buf.length,
     mime: file.type,
   };
+}
+
+// Photos are served from nested variant dirs (photos/display, photos/thumb)
+// rather than the flat single-file layout saveUpload uses, so they get their
+// own writer that still honours the dev-against-prod remote path.
+export async function writePhotoVariant(
+  buf: Buffer,
+  variant: "display" | "thumb",
+  filename: string,
+): Promise<void> {
+  const remote = parseUploadRemote();
+  if (remote) {
+    await writeRemote(buf, remote, `photos/${variant}`, filename);
+  } else {
+    const dest = path.join(UPLOADS_DIR, "photos", variant, filename);
+    await fs.mkdir(path.dirname(dest), { recursive: true });
+    await fs.writeFile(dest, buf, { mode: 0o644 });
+  }
+}
+
+export async function deletePhotoVariants(id: string): Promise<void> {
+  const file = `${id}.webp`;
+  const remote = parseUploadRemote();
+  if (remote) {
+    await deleteRemoteFiles(remote, "photos/display", [file]).catch(() => {});
+    await deleteRemoteFiles(remote, "photos/thumb", [file]).catch(() => {});
+  } else {
+    for (const variant of ["display", "thumb"] as const) {
+      await fs
+        .rm(path.join(UPLOADS_DIR, "photos", variant, file), { force: true })
+        .catch(() => {});
+    }
+  }
 }
 
 export type UploadRemote = { user: string; host: string; dir: string };

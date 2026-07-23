@@ -5,6 +5,11 @@ import React from "react";
 import { getPostBySlug } from "@/lib/content";
 import TableOfContents, { type Heading } from "@/components/TableOfContents";
 import PostBentoImages from "@/components/PostBentoImages";
+import Mermaid from "@/components/Mermaid";
+import JsonLd from "@/components/JsonLd";
+
+const SITE_BASE =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://furkanunsalan.dev";
 
 interface BlogPostProps {
   params: { slug: string };
@@ -96,7 +101,30 @@ function buildMarkdocConfig(): Config {
       return new Tag("p", {}, children);
     },
   };
-  return { nodes: { heading, paragraph } };
+  // Fenced code: ```mermaid becomes a <Mermaid> client component; every other
+  // language keeps Markdoc's default <pre data-language> output unchanged.
+  const fence: Schema = {
+    attributes: {
+      content: { type: String, render: false, required: true },
+      language: { type: String, render: "data-language" },
+      process: { type: Boolean, render: false, default: true },
+    },
+    transform(node, config) {
+      const content = String(node.attributes.content ?? "");
+      if ((node.attributes.language as string) === "mermaid") {
+        return new Tag("Mermaid", { chart: content });
+      }
+      const children = node.children.length
+        ? node.transformChildren(config)
+        : [content];
+      return new Tag(
+        "pre",
+        { "data-language": node.attributes.language },
+        children,
+      );
+    },
+  };
+  return { nodes: { heading, paragraph, fence } };
 }
 
 type RenderableNode = Tag | string;
@@ -151,6 +179,9 @@ export default async function BlogPost({ params }: BlogPostProps) {
   const collapsed = collapseImageRuns(transformed as RenderableNode);
   const rendered = Markdoc.renderers.react(collapsed as any, React, {
     components: {
+      Mermaid: ({ chart }: { chart?: string }) => (
+        <Mermaid chart={chart ?? ""} />
+      ),
       PostBentoImages: ({ children }: { children?: React.ReactNode }) => {
         const arr = React.Children.toArray(children) as any[];
         const images = arr
@@ -168,8 +199,54 @@ export default async function BlogPost({ params }: BlogPostProps) {
   });
   const readingTime = calculateReadingTime(post.node);
 
+  const postUrl = `${SITE_BASE}/writing/${post.slug}`;
+
   return (
     <div className="mt-24 mb-16 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "BlogPosting",
+              headline: post.title,
+              datePublished: new Date(post.date).toISOString(),
+              dateModified: new Date(post.date).toISOString(),
+              author: {
+                "@type": "Person",
+                name: "Furkan Ünsalan",
+                url: SITE_BASE,
+              },
+              mainEntityOfPage: postUrl,
+              url: postUrl,
+              ...(post.tags?.length ? { keywords: post.tags.join(", ") } : {}),
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                {
+                  "@type": "ListItem",
+                  position: 1,
+                  name: "Home",
+                  item: SITE_BASE,
+                },
+                {
+                  "@type": "ListItem",
+                  position: 2,
+                  name: "Writing",
+                  item: `${SITE_BASE}/writing`,
+                },
+                {
+                  "@type": "ListItem",
+                  position: 3,
+                  name: post.title,
+                  item: postUrl,
+                },
+              ],
+            },
+          ],
+        }}
+      />
       <div className="lg:grid lg:grid-cols-[1fr_220px] lg:gap-12">
         <article className="min-w-0">
           <header className="mb-8 animate-fade-in-up">

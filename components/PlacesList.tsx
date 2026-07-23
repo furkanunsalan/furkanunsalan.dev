@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark,
   Check,
@@ -8,7 +8,9 @@ import {
   ChevronRight,
   ExternalLink,
   Heart,
+  LayoutGrid,
   Search,
+  SlidersHorizontal,
 } from "lucide-react";
 import type { Place, PlaceStatus } from "@/types";
 import { iconKey, type ListIconKey } from "@/lib/place-list-icons";
@@ -70,6 +72,24 @@ export default function PlacesList({ places, lists, onSelect }: Props) {
   const [query, setQuery] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [openMenu, setOpenMenu] = useState<null | "lists" | "status">(null);
+  const barRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!openMenu) return;
+    const onDown = (e: PointerEvent) => {
+      if (barRef.current && !barRef.current.contains(e.target as Node)) {
+        setOpenMenu(null);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpenMenu(null);
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [openMenu]);
 
   const listCounts = useMemo(() => {
     const m = new Map<string, number>();
@@ -141,73 +161,142 @@ export default function PlacesList({ places, lists, onSelect }: Props) {
 
   return (
     <div>
-      {/* Top row — list filter chips with icons */}
-      <div className="flex flex-wrap items-center gap-1.5 mb-3">
-        <ListChip
-          active={activeList === ""}
-          onClick={() => onList("")}
-          label="All"
-          count={places.length}
-        />
-        {lists.map((l) => {
-          const ik = iconByList.get(l.name) ?? iconKey(l.icon);
-          const Icon = PLACE_LIST_ICON_COMPONENTS[ik];
-          const count = listCounts.get(l.name) ?? 0;
-          return (
-            <ListChip
-              key={l.name}
-              active={activeList === l.name}
-              onClick={() => onList(activeList === l.name ? "" : l.name)}
-              label={l.name}
-              count={count}
-              Icon={Icon}
-            />
-          );
-        })}
-        {uncategorizedCount > 0 && (
-          <ListChip
-            active={activeList === "__none__"}
-            onClick={() => onList(activeList === "__none__" ? "" : "__none__")}
-            label="Uncategorized"
-            count={uncategorizedCount}
-          />
-        )}
-      </div>
-
-      {/* Second row — search + status filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-light-fourth" />
+      {/* Search + filters — single underlined bar with icon dropdowns */}
+      <div ref={barRef} className="relative mb-4">
+        <div className="flex items-center gap-2 border-b border-white/[0.1] pb-2 transition-colors duration-200 focus-within:border-accent-primary/50">
+          <Search className="h-4 w-4 shrink-0 text-light-fourth" />
           <input
             type="search"
             value={query}
             onChange={(e) => onQuery(e.target.value)}
-            placeholder="Search places, address, city, tag…"
-            className="w-full bg-zinc-950 ring-1 ring-white/[0.06] focus:ring-white/20 outline-none rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-light-fourth"
+            placeholder="Search places, address…"
+            className="flex-1 bg-transparent py-1 text-sm text-light-secondary placeholder:text-light-fourth focus:outline-none"
           />
+
+          <button
+            type="button"
+            onClick={() => setOpenMenu(openMenu === "lists" ? null : "lists")}
+            aria-label="Filter by category"
+            aria-expanded={openMenu === "lists"}
+            title="Filter by category"
+            className={`relative p-1 transition-colors ${
+              activeList !== ""
+                ? "text-accent-primary"
+                : "text-light-fourth hover:text-white"
+            }`}
+          >
+            <LayoutGrid className="h-4 w-4" />
+            {activeList !== "" && (
+              <span className="absolute -right-0 -top-0 h-1.5 w-1.5 rounded-full bg-accent-primary" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setOpenMenu(openMenu === "status" ? null : "status")}
+            aria-label="Filter by status"
+            aria-expanded={openMenu === "status"}
+            title="Filter by status"
+            className={`relative p-1 transition-colors ${
+              statusFilter !== "all"
+                ? "text-accent-primary"
+                : "text-light-fourth hover:text-white"
+            }`}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            {statusFilter !== "all" && (
+              <span className="absolute -right-0 -top-0 h-1.5 w-1.5 rounded-full bg-accent-primary" />
+            )}
+          </button>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          <FilterChip
-            active={statusFilter === "all"}
-            onClick={() => onStatus("all")}
-            label="All status"
-            count={statusCounts.all}
-          />
-          {(Object.keys(STATUS_META) as PlaceStatus[]).map((s) => {
-            const m = STATUS_META[s];
-            return (
-              <FilterChip
-                key={s}
-                active={statusFilter === s}
-                onClick={() => onStatus(s)}
-                label={m.label}
-                count={statusCounts[s]}
-                accent={`${m.chipBg} ${m.chipText} ${m.ring}/40`}
-                Icon={m.Icon}
-              />
-            );
-          })}
-        </div>
+
+        {openMenu === "lists" && (
+          <Menu>
+            <MenuItem
+              active={activeList === ""}
+              onClick={() => {
+                onList("");
+                setOpenMenu(null);
+              }}
+            >
+              All
+              <span className="ml-auto tabular-nums text-light-fourth">
+                {places.length}
+              </span>
+            </MenuItem>
+            {lists.map((l) => {
+              const ik = iconByList.get(l.name) ?? iconKey(l.icon);
+              const Icon = PLACE_LIST_ICON_COMPONENTS[ik];
+              const count = listCounts.get(l.name) ?? 0;
+              return (
+                <MenuItem
+                  key={l.name}
+                  active={activeList === l.name}
+                  onClick={() => {
+                    onList(l.name);
+                    setOpenMenu(null);
+                  }}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {l.name}
+                  <span className="ml-auto tabular-nums text-light-fourth">
+                    {count}
+                  </span>
+                </MenuItem>
+              );
+            })}
+            {uncategorizedCount > 0 && (
+              <MenuItem
+                active={activeList === "__none__"}
+                onClick={() => {
+                  onList("__none__");
+                  setOpenMenu(null);
+                }}
+              >
+                Uncategorized
+                <span className="ml-auto tabular-nums text-light-fourth">
+                  {uncategorizedCount}
+                </span>
+              </MenuItem>
+            )}
+          </Menu>
+        )}
+
+        {openMenu === "status" && (
+          <Menu>
+            <MenuItem
+              active={statusFilter === "all"}
+              onClick={() => {
+                onStatus("all");
+                setOpenMenu(null);
+              }}
+            >
+              All status
+              <span className="ml-auto tabular-nums text-light-fourth">
+                {statusCounts.all}
+              </span>
+            </MenuItem>
+            {(Object.keys(STATUS_META) as PlaceStatus[]).map((s) => {
+              const m = STATUS_META[s];
+              return (
+                <MenuItem
+                  key={s}
+                  active={statusFilter === s}
+                  onClick={() => {
+                    onStatus(s);
+                    setOpenMenu(null);
+                  }}
+                >
+                  <m.Icon className="h-3.5 w-3.5" />
+                  {m.label}
+                  <span className="ml-auto tabular-nums text-light-fourth">
+                    {statusCounts[s]}
+                  </span>
+                </MenuItem>
+              );
+            })}
+          </Menu>
+        )}
       </div>
 
       {activeTag !== null && (
@@ -349,66 +438,35 @@ export default function PlacesList({ places, lists, onSelect }: Props) {
   );
 }
 
-function ListChip({
-  active,
-  onClick,
-  label,
-  count,
-  Icon,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  count: number;
-  Icon?: typeof Bookmark;
-}) {
+function Menu({ children }: { children: React.ReactNode }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs ring-1 transition-colors ${
-        active
-          ? "bg-accent-primary/15 text-accent-primary ring-accent-primary/40"
-          : "ring-white/[0.06] text-light-secondary hover:text-white hover:ring-white/20"
-      }`}
+    <div
+      className="absolute right-0 top-full z-30 mt-2 max-h-72 w-56 overflow-auto rounded-lg border border-white/10 bg-zinc-950 py-1 shadow-[0_12px_32px_-12px_rgba(0,0,0,0.9)] animate-fade-in"
+      style={{ animationDuration: "120ms" }}
     >
-      {Icon && <Icon className="w-3.5 h-3.5" />}
-      <span className="font-medium">{label}</span>
-      <span className="opacity-60">{count}</span>
-    </button>
+      {children}
+    </div>
   );
 }
 
-function FilterChip({
+function MenuItem({
   active,
   onClick,
-  label,
-  count,
-  accent,
-  Icon,
+  children,
 }: {
   active: boolean;
   onClick: () => void;
-  label: string;
-  count: number;
-  accent?: string;
-  Icon?: typeof Bookmark;
+  children: React.ReactNode;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs ring-1 transition-colors ${
-        active
-          ? accent
-            ? `${accent} ring-1`
-            : "bg-white/10 text-white ring-white/20"
-          : "ring-white/[0.06] text-light-fourth hover:text-white hover:ring-white/20"
+      className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-white/[0.05] ${
+        active ? "text-accent-primary" : "text-light-secondary hover:text-white"
       }`}
     >
-      {Icon && <Icon className="w-3 h-3" />}
-      {label}
-      <span className="opacity-70">· {count}</span>
+      {children}
     </button>
   );
 }

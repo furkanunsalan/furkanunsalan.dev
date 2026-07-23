@@ -2,6 +2,7 @@ import "server-only";
 import Markdoc from "@markdoc/markdoc";
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { cachedReader } from "@/lib/cache";
 import type {
   CvHeader,
   CvContact,
@@ -20,6 +21,10 @@ import type {
   Thought,
   Tool,
 } from "@/types";
+
+// Reads are cached in Next's data cache and busted per-collection tag by
+// lib/revalidate.ts on every admin mutation (see cachedReader). Readers that
+// return a Markdoc AST node or a Map aren't serializable, so they stay uncached.
 
 // ---- shared helpers ----------------------------------------------------
 
@@ -44,18 +49,12 @@ function experienceImageUrl(value: string): string {
 
 // ---- posts ------------------------------------------------------------
 
-export async function getPosts(): Promise<BlogPost[]> {
-  let rows: (typeof schema.posts.$inferSelect)[] = [];
-  try {
-    rows = await db
-      .select()
-      .from(schema.posts)
-      .where(and(eq(schema.posts.draft, false), isNull(schema.posts.deletedAt)))
-      .orderBy(desc(schema.posts.date));
-  } catch (e) {
-    console.error("[getPosts] query failed:", e);
-    return [];
-  }
+async function getPostsQuery(): Promise<BlogPost[]> {
+  const rows = await db
+    .select()
+    .from(schema.posts)
+    .where(and(eq(schema.posts.draft, false), isNull(schema.posts.deletedAt)))
+    .orderBy(desc(schema.posts.date));
   return rows.map((r) => {
     const post: BlogPost = {
       slug: r.slug,
@@ -73,7 +72,14 @@ export async function getPosts(): Promise<BlogPost[]> {
     return post;
   });
 }
+export const getPosts = cachedReader(
+  ["getPosts"],
+  ["posts"],
+  getPostsQuery,
+  [],
+);
 
+// Returns a Markdoc AST node — not serializable, so this reader stays uncached.
 export async function getPostBySlug(slug: string) {
   const [r] = await db
     .select()
@@ -94,7 +100,7 @@ export async function getPostBySlug(slug: string) {
 
 // Lightweight read used by OG images and other places that only need the
 // metadata — skips the Markdoc parse of the body.
-export async function getPostMetaBySlug(
+async function getPostMetaBySlugQuery(
   slug: string,
 ): Promise<{ slug: string; title: string; date: string } | null> {
   const [r] = await db
@@ -108,20 +114,20 @@ export async function getPostMetaBySlug(
     .limit(1);
   return r ? { slug: r.slug, title: r.title, date: String(r.date) } : null;
 }
+export const getPostMetaBySlug = cachedReader(
+  ["getPostMetaBySlug"],
+  ["posts"],
+  getPostMetaBySlugQuery,
+  null,
+);
 
 // ---- experiences ------------------------------------------------------
 
-export async function getExperiences(): Promise<Experience[]> {
-  let rows: (typeof schema.experiences.$inferSelect)[] = [];
-  try {
-    rows = await db
-      .select()
-      .from(schema.experiences)
-      .where(isNull(schema.experiences.deletedAt));
-  } catch (e) {
-    console.error("[getExperiences] query failed:", e);
-    return [];
-  }
+async function getExperiencesQuery(): Promise<Experience[]> {
+  const rows = await db
+    .select()
+    .from(schema.experiences)
+    .where(isNull(schema.experiences.deletedAt));
 
   const fmt = (d: string | null) =>
     d ? new Date(d).toLocaleDateString("en-GB") : "";
@@ -163,21 +169,21 @@ export async function getExperiences(): Promise<Experience[]> {
     images: (r.images || []).map(experienceImageUrl),
   }));
 }
+export const getExperiences = cachedReader(
+  ["getExperiences"],
+  ["experiences"],
+  getExperiencesQuery,
+  [],
+);
 
 // ---- projects (custom) ------------------------------------------------
 
-export async function getCustomProjects(): Promise<CustomProject[]> {
-  let rows: (typeof schema.projects.$inferSelect)[] = [];
-  try {
-    rows = await db
-      .select()
-      .from(schema.projects)
-      .where(isNull(schema.projects.deletedAt))
-      .orderBy(asc(schema.projects.order));
-  } catch (e) {
-    console.error("[getCustomProjects] query failed:", e);
-    return [];
-  }
+async function getCustomProjectsQuery(): Promise<CustomProject[]> {
+  const rows = await db
+    .select()
+    .from(schema.projects)
+    .where(isNull(schema.projects.deletedAt))
+    .orderBy(asc(schema.projects.order));
   return rows.map((r) => {
     const image = projectImageUrl(r.image);
     const project: CustomProject = {
@@ -193,7 +199,14 @@ export async function getCustomProjects(): Promise<CustomProject[]> {
     return project;
   });
 }
+export const getCustomProjects = cachedReader(
+  ["getCustomProjects"],
+  ["projects"],
+  getCustomProjectsQuery,
+  [],
+);
 
+// Returns a Markdoc AST node — not serializable, so this reader stays uncached.
 export async function getCustomProjectBySlug(slug: string) {
   const [r] = await db
     .select()
@@ -217,6 +230,68 @@ export async function getCustomProjectBySlug(slug: string) {
   };
 }
 
+// ---- photos -----------------------------------------------------------
+
+export type Photo = {
+  id: string;
+  width: number;
+  height: number;
+  color: string;
+  blurHash: string | null;
+  alt: string;
+  caption: string;
+  takenAt: string | null;
+  camera: string | null;
+  focalLength: string | null;
+  aperture: string | null;
+  shutter: string | null;
+  iso: number | null;
+  tags: string[];
+  display: string;
+  thumb: string;
+};
+
+async function getPhotosQuery(): Promise<Photo[]> {
+  const rows = await db
+    .select()
+    .from(schema.photos)
+    .where(isNull(schema.photos.deletedAt))
+    .orderBy(desc(schema.photos.takenAt), asc(schema.photos.order));
+  return rows.map((r) => {
+    const make = r.cameraMake?.trim();
+    const model = r.cameraModel?.trim();
+    const camera = model
+      ? make && !model.toLowerCase().includes(make.toLowerCase())
+        ? `${make} ${model}`
+        : model
+      : make || null;
+    return {
+      id: r.id,
+      width: r.width,
+      height: r.height,
+      color: r.color,
+      blurHash: r.blurHash,
+      alt: r.alt,
+      caption: r.caption,
+      takenAt: r.takenAt ? new Date(r.takenAt).toISOString() : null,
+      camera,
+      focalLength: r.focalLength,
+      aperture: r.aperture,
+      shutter: r.shutter,
+      iso: r.iso,
+      tags: r.tags ?? [],
+      display: `/api/img/photos/display/${r.id}.webp`,
+      thumb: `/api/img/photos/thumb/${r.id}.webp`,
+    };
+  });
+}
+export const getPhotos = cachedReader(
+  ["getPhotos"],
+  ["photos"],
+  getPhotosQuery,
+  [],
+);
+
 // ---- home singleton ---------------------------------------------------
 
 export type HomeSocialIcon =
@@ -235,6 +310,9 @@ export type HomeSocialIcon =
 
 export type HomeSettings = {
   intro: string;
+  location: string;
+  focus: string;
+  watching: string;
   timezone: string;
   timezoneLabel: string;
   pgpId: string;
@@ -244,6 +322,9 @@ export type HomeSettings = {
 const DEFAULT_HOME: HomeSettings = {
   intro:
     "Dedicated software engineering student with a focus on full-stack web development and special love for communities. Enthusiastic about creating and contributing to open-source projects while continually exploring and learning new technologies. Excited to take on innovative challenges and grow within the tech industry.",
+  location: "Istanbul, TR",
+  focus: "full-stack · privacy · self-hosting",
+  watching: "Star Wars: Andor · Rick and Morty",
   timezone: "Europe/Istanbul",
   timezoneLabel: "IST",
   pgpId: "A728E9CA9578CBA7",
@@ -265,24 +346,21 @@ const DEFAULT_HOME: HomeSettings = {
   ],
 };
 
-export async function getHomeSettings(): Promise<HomeSettings> {
-  let r: typeof schema.homeSettings.$inferSelect | undefined;
-  try {
-    [r] = await db
-      .select()
-      .from(schema.homeSettings)
-      .where(eq(schema.homeSettings.id, 1))
-      .limit(1);
-  } catch (e) {
-    console.error("[getHomeSettings] query failed:", e);
-    return DEFAULT_HOME;
-  }
+async function getHomeSettingsQuery(): Promise<HomeSettings> {
+  const [r] = await db
+    .select()
+    .from(schema.homeSettings)
+    .where(eq(schema.homeSettings.id, 1))
+    .limit(1);
   // When no row exists at all, fall back. When a row exists, trust it — even
   // if the admin chose to clear socials, an empty array is intentional.
   if (!r) return DEFAULT_HOME;
   const socials = (r.socials || []).filter((s) => s && s.url && s.name);
   return {
     intro: r.intro || DEFAULT_HOME.intro,
+    location: r.location || DEFAULT_HOME.location,
+    focus: r.focus || DEFAULT_HOME.focus,
+    watching: r.watching || DEFAULT_HOME.watching,
     timezone: r.timezone || DEFAULT_HOME.timezone,
     timezoneLabel: r.timezoneLabel || DEFAULT_HOME.timezoneLabel,
     pgpId: r.pgpId ?? DEFAULT_HOME.pgpId,
@@ -293,6 +371,12 @@ export async function getHomeSettings(): Promise<HomeSettings> {
     })),
   };
 }
+export const getHomeSettings = cachedReader(
+  ["getHomeSettings"],
+  ["home"],
+  getHomeSettingsQuery,
+  DEFAULT_HOME,
+);
 
 // ---- github project visibility ----------------------------------------
 
@@ -303,6 +387,7 @@ export type GithubProjectVisibility = {
   >;
 };
 
+// Returns a Map — not serializable, so this reader stays uncached.
 export async function getGithubProjectVisibility(): Promise<GithubProjectVisibility> {
   let rows: (typeof schema.githubProjectVisibility.$inferSelect)[] = [];
   try {
@@ -335,18 +420,12 @@ export async function getGithubProjectVisibility(): Promise<GithubProjectVisibil
 
 // ---- places -----------------------------------------------------------
 
-export async function getPlaces(): Promise<Place[]> {
-  let rows: (typeof schema.places.$inferSelect)[] = [];
-  try {
-    rows = await db
-      .select()
-      .from(schema.places)
-      .where(isNull(schema.places.deletedAt))
-      .orderBy(desc(schema.places.addedAt), asc(schema.places.name));
-  } catch (e) {
-    console.error("[getPlaces] query failed:", e);
-    return [];
-  }
+async function getPlacesQuery(): Promise<Place[]> {
+  const rows = await db
+    .select()
+    .from(schema.places)
+    .where(isNull(schema.places.deletedAt))
+    .orderBy(desc(schema.places.addedAt), asc(schema.places.name));
   return rows.map((r) => ({
     slug: r.slug,
     name: r.name,
@@ -364,42 +443,43 @@ export async function getPlaces(): Promise<Place[]> {
     notes: r.notes || undefined,
   }));
 }
+export const getPlaces = cachedReader(
+  ["getPlaces"],
+  ["places"],
+  getPlacesQuery,
+  [],
+);
 
 // ---- place lists ------------------------------------------------------
 
 export type PlaceListMeta = { name: string; icon: string; position: number };
 
-export async function getPlaceLists(): Promise<PlaceListMeta[]> {
-  try {
-    const rows = await db
-      .select({
-        name: schema.placeLists.name,
-        icon: schema.placeLists.icon,
-        position: schema.placeLists.position,
-      })
-      .from(schema.placeLists)
-      .orderBy(asc(schema.placeLists.position), asc(schema.placeLists.name));
-    return rows;
-  } catch (e) {
-    console.error("[getPlaceLists] query failed:", e);
-    return [];
-  }
+async function getPlaceListsQuery(): Promise<PlaceListMeta[]> {
+  const rows = await db
+    .select({
+      name: schema.placeLists.name,
+      icon: schema.placeLists.icon,
+      position: schema.placeLists.position,
+    })
+    .from(schema.placeLists)
+    .orderBy(asc(schema.placeLists.position), asc(schema.placeLists.name));
+  return rows;
 }
+export const getPlaceLists = cachedReader(
+  ["getPlaceLists"],
+  ["placeLists"],
+  getPlaceListsQuery,
+  [],
+);
 
 // ---- tools ------------------------------------------------------------
 
-export async function getTools(): Promise<Tool[]> {
-  let rows: (typeof schema.tools.$inferSelect)[] = [];
-  try {
-    rows = await db
-      .select()
-      .from(schema.tools)
-      .where(isNull(schema.tools.deletedAt))
-      .orderBy(asc(schema.tools.name));
-  } catch (e) {
-    console.error("[getTools] query failed:", e);
-    return [];
-  }
+async function getToolsQuery(): Promise<Tool[]> {
+  const rows = await db
+    .select()
+    .from(schema.tools)
+    .where(isNull(schema.tools.deletedAt))
+    .orderBy(asc(schema.tools.name));
   return rows.map((r, i) => ({
     id: i + 1,
     name: r.name,
@@ -409,31 +489,29 @@ export async function getTools(): Promise<Tool[]> {
     comment: r.comment,
     favorite: r.favorite,
     link: r.link ?? undefined,
+    icon: r.icon ?? undefined,
   }));
 }
+export const getTools = cachedReader(
+  ["getTools"],
+  ["tools"],
+  getToolsQuery,
+  [],
+);
 
 // ---- thoughts ---------------------------------------------------------
 
-export async function getThoughts({ limit }: { limit?: number } = {}): Promise<
+async function getThoughtsQuery({ limit }: { limit?: number } = {}): Promise<
   Thought[]
 > {
-  let rows: (typeof schema.thoughts.$inferSelect)[] = [];
-  try {
-    const q = db
-      .select()
-      .from(schema.thoughts)
-      .where(
-        and(
-          eq(schema.thoughts.draft, false),
-          isNull(schema.thoughts.deletedAt),
-        ),
-      )
-      .orderBy(desc(schema.thoughts.createdAt));
-    rows = typeof limit === "number" ? await q.limit(limit) : await q;
-  } catch (e) {
-    console.error("[getThoughts] query failed:", e);
-    return [];
-  }
+  const q = db
+    .select()
+    .from(schema.thoughts)
+    .where(
+      and(eq(schema.thoughts.draft, false), isNull(schema.thoughts.deletedAt)),
+    )
+    .orderBy(desc(schema.thoughts.createdAt));
+  const rows = typeof limit === "number" ? await q.limit(limit) : await q;
   return rows.map((r) => ({
     id: r.id,
     body: r.body || "",
@@ -442,33 +520,37 @@ export async function getThoughts({ limit }: { limit?: number } = {}): Promise<
     createdAt: r.createdAt.toISOString(),
   }));
 }
+export const getThoughts = cachedReader(
+  ["getThoughts"],
+  ["thoughts"],
+  getThoughtsQuery,
+  [],
+);
 
-export async function getLatestThought(): Promise<Thought | null> {
-  try {
-    const [r] = await db
-      .select()
-      .from(schema.thoughts)
-      .where(
-        and(
-          eq(schema.thoughts.draft, false),
-          isNull(schema.thoughts.deletedAt),
-        ),
-      )
-      .orderBy(desc(schema.thoughts.createdAt))
-      .limit(1);
-    if (!r) return null;
-    return {
-      id: r.id,
-      body: r.body || "",
-      images: r.images || [],
-      tags: r.tags || [],
-      createdAt: r.createdAt.toISOString(),
-    };
-  } catch (e) {
-    console.error("[getLatestThought] query failed:", e);
-    return null;
-  }
+async function getLatestThoughtQuery(): Promise<Thought | null> {
+  const [r] = await db
+    .select()
+    .from(schema.thoughts)
+    .where(
+      and(eq(schema.thoughts.draft, false), isNull(schema.thoughts.deletedAt)),
+    )
+    .orderBy(desc(schema.thoughts.createdAt))
+    .limit(1);
+  if (!r) return null;
+  return {
+    id: r.id,
+    body: r.body || "",
+    images: r.images || [],
+    tags: r.tags || [],
+    createdAt: r.createdAt.toISOString(),
+  };
 }
+export const getLatestThought = cachedReader(
+  ["getLatestThought"],
+  ["thoughts"],
+  getLatestThoughtQuery,
+  null,
+);
 
 // ---- cv settings (singleton) -----------------------------------------
 
@@ -496,27 +578,28 @@ const CV_DEFAULTS: CvSettings = {
   experiences: [],
 };
 
-export async function getCvSettings(): Promise<CvSettings> {
-  try {
-    const [row] = await db
-      .select()
-      .from(schema.cvSettings)
-      .where(eq(schema.cvSettings.id, 1))
-      .limit(1);
-    if (!row) return CV_DEFAULTS;
-    return {
-      header: row.header,
-      contact: row.contact,
-      summary: row.summary,
-      skills: row.skills,
-      certifications: row.certifications,
-      languages: row.languages,
-      education: row.education,
-      projects: row.projects,
-      experiences: row.experiences,
-    };
-  } catch (e) {
-    console.error("[getCvSettings] query failed:", e);
-    return CV_DEFAULTS;
-  }
+async function getCvSettingsQuery(): Promise<CvSettings> {
+  const [row] = await db
+    .select()
+    .from(schema.cvSettings)
+    .where(eq(schema.cvSettings.id, 1))
+    .limit(1);
+  if (!row) return CV_DEFAULTS;
+  return {
+    header: row.header,
+    contact: row.contact,
+    summary: row.summary,
+    skills: row.skills,
+    certifications: row.certifications,
+    languages: row.languages,
+    education: row.education,
+    projects: row.projects,
+    experiences: row.experiences,
+  };
 }
+export const getCvSettings = cachedReader(
+  ["getCvSettings"],
+  ["cv"],
+  getCvSettingsQuery,
+  CV_DEFAULTS,
+);

@@ -10,6 +10,7 @@ import {
   Toggle,
   SaveBar,
 } from "@/components/admin/form";
+import GadgetGlyph, { GADGET_SKETCHES } from "@/components/GadgetGlyph";
 
 export type ToolFormValue = {
   name: string;
@@ -19,6 +20,7 @@ export type ToolFormValue = {
   comment: string;
   favorite: boolean;
   link: string;
+  icon: string;
 };
 
 export default function ToolForm({
@@ -132,6 +134,36 @@ export default function ToolForm({
         </Field>
       </div>
 
+      <Field
+        label="Sketch"
+        hint="Blueprint icon on the gadgets page. Leave on Auto to derive it from the type."
+      >
+        <div className="grid grid-cols-5 gap-2 sm:grid-cols-8">
+          <PickTile
+            selected={!v.icon}
+            onClick={() => upd("icon", "")}
+            label="Auto"
+          >
+            <span className="font-mono text-[10px] tracking-wider text-light-fourth">
+              AUTO
+            </span>
+          </PickTile>
+          {GADGET_SKETCHES.map((s) => (
+            <PickTile
+              key={s.key}
+              selected={v.icon === s.key}
+              onClick={() => upd("icon", s.key)}
+              label={s.label}
+            >
+              <GadgetGlyph
+                icon={s.key}
+                className="h-7 w-7 text-light-secondary"
+              />
+            </PickTile>
+          ))}
+        </div>
+      </Field>
+
       <Field label="Comment">
         <TextArea
           value={v.comment}
@@ -160,5 +192,36 @@ export default function ToolForm({
         onCancel={() => router.replace("/admin/tools")}
       />
     </form>
+  );
+}
+
+function PickTile({
+  selected,
+  onClick,
+  label,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-pressed={selected}
+      className={`flex flex-col items-center justify-center gap-1 rounded-lg py-2.5 ring-1 transition-colors ${
+        selected
+          ? "bg-accent-primary/10 text-accent-primary ring-accent-primary/60"
+          : "ring-white/[0.08] hover:ring-white/25"
+      }`}
+    >
+      <span className="flex h-7 items-center justify-center">{children}</span>
+      <span className="max-w-full truncate px-1 text-[8px] uppercase tracking-wide text-light-fourth">
+        {label}
+      </span>
+    </button>
   );
 }

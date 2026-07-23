@@ -32,6 +32,9 @@ export type Social = { name: string; url: string; icon: Icon };
 
 export type HomeFormValue = {
   intro: string;
+  location: string;
+  focus: string;
+  watching: string;
   timezone: string;
   timezoneLabel: string;
   pgpId: string;
@@ -86,6 +89,18 @@ export default function HomeSettingsForm({
       <Field label="Intro paragraph">
         <TextArea value={v.intro} onChange={(s) => upd("intro", s)} rows={5} />
       </Field>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Field label="Location" hint="e.g. Istanbul, TR — the “based” row">
+          <TextInput value={v.location} onChange={(s) => upd("location", s)} />
+        </Field>
+        <Field label="Focus" hint="middot-separated, e.g. full-stack · privacy">
+          <TextInput value={v.focus} onChange={(s) => upd("focus", s)} />
+        </Field>
+        <Field label="Watching" hint="the “watching” row">
+          <TextInput value={v.watching} onChange={(s) => upd("watching", s)} />
+        </Field>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Field label="Timezone (IANA)">

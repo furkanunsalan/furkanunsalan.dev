@@ -7,6 +7,13 @@ import { Metadata } from "next";
 import { Star, GitFork, ExternalLink, Sparkles } from "lucide-react";
 import { getGithubRepo, getGithubReadme } from "@/lib/github";
 import { getCustomProjectBySlug } from "@/lib/content";
+import InfraShowcase from "@/components/InfraShowcase";
+import TeachfluenceStudioShowcase from "@/components/TeachfluenceStudioShowcase";
+
+const BESPOKE = {
+  "multigroup-infra": InfraShowcase,
+  "teachfluence-studio": TeachfluenceStudioShowcase,
+} as const;
 
 // DB-backed: rendered on demand. Skipping generateStaticParams means CI never
 // tries to call the VPS pg at build time.
@@ -64,6 +71,8 @@ export default async function ProjectPage({
 }) {
   const custom = await getCustomProjectBySlug(params.slug);
   if (custom) {
+    const Bespoke = BESPOKE[custom.slug as keyof typeof BESPOKE];
+    if (Bespoke) return <Bespoke project={custom} />;
     const transformed = Markdoc.transform(custom.node);
     const rendered = Markdoc.renderers.react(transformed, React);
     return (
@@ -89,7 +98,6 @@ export default async function ProjectPage({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.06] bg-zinc-950 hover:border-accent-primary/50 hover:-translate-y-0.5 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)] transition-all duration-300 text-sm"
-                data-umami-event={`${custom.name} Link`}
               >
                 <ExternalLink className="w-4 h-4" />
                 Visit
@@ -158,7 +166,6 @@ export default async function ProjectPage({
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.06] bg-zinc-950 hover:border-accent-primary/50 hover:-translate-y-0.5 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)] transition-all duration-300 text-sm"
-            data-umami-event={`${repo.name} Github`}
           >
             <ExternalLink className="w-4 h-4" />
             View on GitHub
@@ -169,7 +176,6 @@ export default async function ProjectPage({
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.06] bg-zinc-950 hover:border-accent-primary/50 hover:-translate-y-0.5 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)] transition-all duration-300 text-sm"
-              data-umami-event={`${repo.name} Homepage`}
             >
               <ExternalLink className="w-4 h-4" />
               Live
