@@ -13,7 +13,7 @@
 services:
   app:
     build: .
-    image: furkanunsalan-web
+    image: ghcr.io/furkanunsalan/furkanunsalan-web:${IMAGE_TAG:-release}
     restart: unless-stopped
     # Secrets come from the sibling .env. Compose DOES interpolate env_file
     # values, so any literal `$` in a value — notably the argon2 hash
@@ -67,7 +67,7 @@ services:
   terminal:
     build:
       context: ./terminal
-    image: furkanunsalan-term
+    image: ghcr.io/furkanunsalan/furkanunsalan-term:${IMAGE_TAG:-release}
     restart: unless-stopped
     environment:
       HOST: 0.0.0.0

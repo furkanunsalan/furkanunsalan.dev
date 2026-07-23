@@ -7,7 +7,7 @@ name: furkanunsalan-preview
 services:
   app:
     build: .
-    image: furkanunsalan-web-preview
+    image: ghcr.io/furkanunsalan/furkanunsalan-web:${IMAGE_TAG:-develop}
     restart: unless-stopped
     # Same secrets as prod (see .env). $ in values (argon2 hash) is $$-escaped.
     env_file:

@@ -9,34 +9,69 @@ concurrency:
   group: deploy-${{ github.ref_name }}
   cancel-in-progress: false
 
-# release -> furkanunsalan.dev (prod stack, :3010, its own db + terminal)
-# develop -> preview.furkanunsalan.dev (web only, :3013, shares the prod db)
-# The image is built ON the VPS from the synced source; runtime secrets live in
-# the target's compose `.env`, which this workflow never touches.
+permissions:
+  contents: read
+  packages: write
+
+# Images are built HERE (GitHub-hosted runners) and pushed to GHCR; the VPS only
+# pulls. Nothing is built on the VPS anymore — no build cache, no builder images,
+# no disk spikes. release -> prod (:3010), develop -> preview (:3013, shared db).
+env:
+  APP_IMAGE: ghcr.io/furkanunsalan/furkanunsalan-web
+  TERM_IMAGE: ghcr.io/furkanunsalan/furkanunsalan-term
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Resolve target
         run: |
-          if [ "${{ github.ref_name }}" = "release" ]; then
-            {
-              echo "APP_DIR=/root/furkanunsalan.dev"
-              echo "COMPOSE=docker compose"
-              echo "HEALTH_PORT=3010"
-            } >> "$GITHUB_ENV"
+          T="${{ github.ref_name }}"
+          echo "TAG=$T" >> "$GITHUB_ENV"
+          if [ "$T" = "release" ]; then
+            echo "APP_DIR=/root/furkanunsalan.dev"     >> "$GITHUB_ENV"
+            echo "COMPOSE=docker compose"              >> "$GITHUB_ENV"
+            echo "PORT=3010"                           >> "$GITHUB_ENV"
           else
-            {
-              echo "APP_DIR=/root/furkanunsalan-preview"
-              echo "COMPOSE=docker compose -f compose.preview.yml"
-              echo "HEALTH_PORT=3013"
-            } >> "$GITHUB_ENV"
+            echo "APP_DIR=/root/furkanunsalan-preview" >> "$GITHUB_ENV"
+            echo "COMPOSE=docker compose -f compose.preview.yml" >> "$GITHUB_ENV"
+            echo "PORT=3013"                           >> "$GITHUB_ENV"
           fi
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build app image
+        run: docker build -t "$APP_IMAGE:$TAG" .
+
+      - name: Smoke-test app image (boots + serves before we ship it)
+        run: |
+          set -e
+          docker run -d --name smoke -p 3000:3000 \
+            -e ADMIN_SESSION_SECRET=ci-smoke-placeholder-not-used-________________ \
+            -e DATABASE_URL=postgres://x:x@127.0.0.1:5432/x "$APP_IMAGE:$TAG"
+          code=000
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/api/health || echo 000)
+            [ "$code" = "200" ] && break
+            sleep 2
+          done
+          if [ "$code" != "200" ]; then echo "image failed to boot ($code):"; docker logs smoke | tail -40; docker rm -f smoke; exit 1; fi
+          echo "app image boots ✓"
+          docker rm -f smoke
+
+      - name: Push app image
+        run: docker push "$APP_IMAGE:$TAG"
+
+      - name: Build + push terminal image
+        if: github.ref_name == 'release'
+        run: |
+          docker build -t "$TERM_IMAGE:$TAG" ./terminal
+          docker push "$TERM_IMAGE:$TAG"
 
       - name: Setup SSH
         run: |
@@ -46,33 +81,21 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Sync build context to VPS
+      - name: Pull & start on VPS (no build)
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
-        run: |
-          set -euo pipefail
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
-            "$VPS_USER@$VPS_HOST" "mkdir -p $APP_DIR"
-          rsync -az --delete \
-            --exclude='.git' --exclude='.env' --exclude='.env.*' \
-            --exclude='node_modules' --exclude='dist' --exclude='.next' \
-            --exclude='.astro' --exclude='.uploads' \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
-            ./ "$VPS_USER@$VPS_HOST:$APP_DIR/"
-
-      - name: Build & start containers
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
             "$VPS_USER@$VPS_HOST" \
             "cd $APP_DIR && \
-              { test -f .env || { echo 'ERROR: $APP_DIR/.env missing (compose secrets)'; exit 1; }; } && \
-              $COMPOSE up -d --build && \
-              docker builder prune -f >/dev/null 2>&1 || true && \
+              { test -f .env || { echo 'ERROR: $APP_DIR/.env missing'; exit 1; }; } && \
+              echo '$GH_TOKEN' | docker login ghcr.io -u ${{ github.actor }} --password-stdin && \
+              IMAGE_TAG=$TAG $COMPOSE pull && \
+              IMAGE_TAG=$TAG $COMPOSE up -d --no-build && \
+              docker logout ghcr.io >/dev/null 2>&1 || true && \
               docker image prune -f >/dev/null 2>&1 || true"
 
       - name: Health check
@@ -83,4 +106,4 @@ jobs:
           set -euo pipefail
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
             "$VPS_USER@$VPS_HOST" \
-            "for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:${HEALTH_PORT}/api/health && exit 0; sleep 2; done; echo 'health check failed'; cd $APP_DIR && $COMPOSE logs --tail 50 app; exit 1"
+            "for i in 1 2 3 4 5 6 7 8 9 10; do curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:${PORT}/api/health && exit 0; sleep 2; done; echo 'health check failed'; cd $APP_DIR && IMAGE_TAG=$TAG $COMPOSE logs --tail 40 app; exit 1"
