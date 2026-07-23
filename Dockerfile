@@ -17,8 +17,11 @@ COPY . .
 ENV ADMIN_SESSION_SECRET="docker-build-placeholder-not-used-at-runtime-____"
 ENV DATABASE_URL="postgres://build:placeholder@127.0.0.1:5432/build"
 
-RUN npm run build \
-  && npm prune --omit=dev
+# No `npm prune --omit=dev`: Astro's standalone SSR output imports a handful of
+# packages that npm classifies as (transitive) dev deps — e.g. es-module-lexer —
+# so pruning them breaks `node dist/server/entry.mjs` at runtime. Keeping the
+# full tree costs image size but guarantees every referenced module resolves.
+RUN npm run build
 
 # ---- runtime: distroless, no shell / no package manager, just node + app ----
 FROM gcr.io/distroless/nodejs22-debian12 AS runner
