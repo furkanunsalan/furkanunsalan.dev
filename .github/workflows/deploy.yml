@@ -67,6 +67,16 @@ jobs:
             200 | 503) echo "app image boots ✓ (health $code)" ;;
             *) echo "image failed to boot ($code):"; docker logs smoke | tail -40; docker rm -f smoke; exit 1 ;;
           esac
+          # Every route must render (readers fail-soft to 200 without a DB), so a
+          # 5xx/000 means a missing module — e.g. an over-aggressive prune of a
+          # dep an .astro page imports for SSR. This is what would have caught
+          # /photos (react-masonry-css).
+          for p in / /photos /places /resume /writing /projects /experience /gadgets /bookmarks /rss.xml; do
+            pc=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:3000$p" || echo 000)
+            echo "  route $p -> $pc"
+            case "$pc" in 5* | 000) echo "route $p failed:"; docker logs smoke | tail -30; docker rm -f smoke; exit 1 ;; esac
+          done
+          echo "all routes render ✓"
           docker rm -f smoke
 
       - name: Push app image
