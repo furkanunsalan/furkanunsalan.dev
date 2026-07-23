@@ -1,0 +1,68 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import CvForm from "@/components/admin/CvForm";
+import { db, schema } from "@/lib/db";
+import { eq, isNull, asc } from "drizzle-orm";
+
+export const prerender = false;
+
+const [row] = await db
+  .select()
+  .from(schema.cvSettings)
+  .where(eq(schema.cvSettings.id, 1))
+  .limit(1);
+
+const availableExperiences = await db
+  .select({
+    id: schema.experiences.id,
+    organization: schema.experiences.organization,
+    title: schema.experiences.title,
+    kind: schema.experiences.kind,
+  })
+  .from(schema.experiences)
+  .where(isNull(schema.experiences.deletedAt))
+  .orderBy(asc(schema.experiences.order));
+
+const availableProjects = await db
+  .select({ slug: schema.projects.slug, name: schema.projects.name })
+  .from(schema.projects)
+  .where(isNull(schema.projects.deletedAt))
+  .orderBy(asc(schema.projects.order));
+
+const initial = {
+  header: row?.header ?? { name: "", role: "" },
+  contact: row?.contact ?? { address: "", phone: "", web: "" },
+  summary: row?.summary ?? "",
+  skills: row?.skills ?? [],
+  certifications: row?.certifications ?? [],
+  languages: row?.languages ?? [],
+  education: row?.education ?? [],
+  projects: row?.projects ?? [],
+  experiences: row?.experiences ?? [],
+};
+---
+
+<AdminLayout title="CV / Resume · admin">
+  <div>
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <h1 class="text-xl font-semibold tracking-tight truncate">
+            CV / Resume
+          </h1>
+        </div>
+        <p class="mt-1 text-xs text-light-fourth">
+          Drives /resume and the PDF download. Work Experience + Projects reuse
+          the experiences/projects tables; an experience's kind (work/volunteer)
+          decides its CV section.
+        </p>
+      </div>
+    </header>
+    <CvForm
+      initial={initial}
+      availableExperiences={availableExperiences}
+      availableProjects={availableProjects}
+      client:load
+    />
+  </div>
+</AdminLayout>

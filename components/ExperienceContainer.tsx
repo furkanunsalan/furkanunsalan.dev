@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import type { Experience } from "@/types";
-import Image from "next/image";
+import { Image } from "@/components/_compat";
 import SmartImage from "@/components/SmartImage";
 
 export default function ExperienceContainer({

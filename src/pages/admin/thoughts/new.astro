@@ -1,0 +1,15 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import ThoughtForm from "@/components/admin/ThoughtForm";
+
+export const prerender = false;
+---
+
+<AdminLayout title="New thought · admin">
+  <ThoughtForm
+    mode="new"
+    chrome={{ title: "New thought", back: { href: "/admin/thoughts" } }}
+    initial={{ body: "", images: [], tags: [], draft: false }}
+    client:load
+  />
+</AdminLayout>

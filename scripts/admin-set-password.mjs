@@ -1,15 +1,19 @@
 #!/usr/bin/env node
 /**
  * Hash the admin password with argon2id and write ADMIN_PASSWORD_HASH into
- * .env.pm2.secrets — a sidecar env file that PM2's ecosystem.config.cjs
- * loads but Next.js's @next/env does NOT auto-read. Next's dotenv-expand
- * silently drops every `$` in the argon2 PHC hash from any .env.* file it
- * reads at runtime, so the hash must live outside that set.
+ * .env.local — the env file `npm run dev` loads via node's `--env-file`. The
+ * hash is written verbatim (plain `$`, no escaping): node's `--env-file` does
+ * NOT do variable expansion, so the argon2 PHC string round-trips as-is. (Do
+ * not hand-edit the value to `\$…` — that backslash survives into process.env
+ * and argon2.verify then throws, which surfaces as "invalid password".)
  *
  *   npm run admin:set-password -- "your password here"
  *
  * Quotes are mandatory if the password has spaces. The plaintext password is
- * never written to disk by this script.
+ * never written to disk.
+ *
+ * For the container stack, put the same ADMIN_PASSWORD_HASH line in the compose
+ * `.env` file (see .env.example) and `docker compose up -d --force-recreate app`.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -18,7 +22,7 @@ import argon2 from "argon2";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
-const envFile = path.join(root, ".env.pm2.secrets");
+const envFile = path.join(root, ".env.local");
 
 const password = process.argv.slice(2).join(" ").trim();
 if (!password) {
@@ -37,15 +41,21 @@ const hash = await argon2.hash(password, {
   parallelism: 1,
 });
 
+// Preserve every other line (including blank lines) — only the existing hash
+// line is replaced, so the rest of .env.local keeps its structure.
 const raw = fs.existsSync(envFile) ? fs.readFileSync(envFile, "utf8") : "";
-const lines = raw
+const kept = raw
   .split("\n")
-  .filter((l) => !l.startsWith("ADMIN_PASSWORD_HASH=") && !l.startsWith("# ADMIN_PASSWORD_HASH="));
-lines.push("ADMIN_PASSWORD_HASH=" + hash);
-fs.writeFileSync(envFile, lines.filter(Boolean).join("\n") + "\n", { mode: 0o600 });
+  .filter(
+    (l) =>
+      !l.startsWith("ADMIN_PASSWORD_HASH=") &&
+      !l.startsWith("# ADMIN_PASSWORD_HASH="),
+  );
+while (kept.length && kept[kept.length - 1].trim() === "") kept.pop();
+kept.push("ADMIN_PASSWORD_HASH=" + hash);
+fs.writeFileSync(envFile, kept.join("\n") + "\n", { mode: 0o600 });
 
-console.log("Wrote ADMIN_PASSWORD_HASH to .env.pm2.secrets (chmod 600)");
+console.log("Wrote ADMIN_PASSWORD_HASH to .env.local (chmod 600).");
 console.log("");
-console.log("For production, copy the same file to the VPS:");
-console.log("  scp .env.pm2.secrets <vps>:/root/furkanunsalan.dev/");
-console.log("  ssh <vps> 'pm2 restart furkanunsalan --update-env'");
+console.log("For the container stack, set the same line in the compose .env:");
+console.log("  docker compose up -d --force-recreate app");

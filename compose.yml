@@ -1,0 +1,66 @@
+# The site + its Postgres as a self-contained stack, fronted by your existing
+# Caddy (which reverse-proxies to 127.0.0.1:3010). Replaces the PM2 + host-pg
+# setup. The app image is distroless.
+#
+# Data migration: this defines a FRESH `db` volume. To carry over the current
+# data, restore a dump into it once:
+#   docker compose up -d db
+#   docker compose exec -T db pg_restore -U furkan -d furkanunsalan --clean --if-exists < latest.dump
+# then run migrations from the app (or `npm run db:migrate` against the exposed port).
+#
+# Secrets come from a sibling `.env` file (see .env.example). Never commit it.
+
+services:
+  app:
+    build: .
+    image: furkanunsalan-web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      DATABASE_URL: postgres://furkan:${PG_PASSWORD}@db:5432/furkanunsalan
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+      UPLOADS_DIR: /uploads
+      NEXT_PUBLIC_SITE_URL: ${SITE_URL:-https://furkanunsalan.dev}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_TOKEN_WORK: ${GITHUB_TOKEN_WORK:-}
+      GITHUB_USERNAME_WORK: ${GITHUB_USERNAME_WORK:-}
+      KARAKEEP_API_KEY: ${KARAKEEP_API_KEY:-}
+      UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY:-}
+    volumes:
+      - uploads:/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      # Caddy on the host proxies to this. Bound to localhost only.
+      - "127.0.0.1:3010:3000"
+    # NOTE: distroless has no shell, so no `healthcheck:` here — point your
+    # Uptime-Kuma at http://127.0.0.1:3010/api/health instead.
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: furkan
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: furkanunsalan
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Published on localhost only. The app reaches Postgres over the compose
+    # network (db:5432); this host binding is for the terminal twin (systemd,
+    # not in compose) and for `npm run db:migrate` / pg_restore during deploys.
+    # Mirrors the old host-pg exposure so nothing host-side changes.
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U furkan -d furkanunsalan"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  uploads:
+  pgdata:

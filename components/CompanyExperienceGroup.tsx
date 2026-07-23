@@ -1,5 +1,5 @@
 import { Experience } from "@/types";
-import Image from "next/image";
+import { Image } from "@/components/_compat";
 import ExperienceContainer from "./ExperienceContainer";
 
 type CompanyGroup = {

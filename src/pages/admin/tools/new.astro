@@ -1,0 +1,51 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import ToolForm from "@/components/admin/ToolForm";
+
+export const prerender = false;
+---
+
+<AdminLayout title="New tool · admin">
+  <div>
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <a
+            href="/admin/tools"
+            aria-label="Back"
+            class="inline-flex items-center justify-center w-7 h-7 rounded-md ring-1 ring-white/[0.08] text-light-secondary hover:text-white hover:ring-white/20 transition-colors shrink-0"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+          </a>
+          <h1 class="text-xl font-semibold tracking-tight truncate">New tool</h1>
+        </div>
+      </div>
+    </header>
+    <ToolForm
+      mode="new"
+      initial={{
+        name: "",
+        brand: "",
+        what: "",
+        category: "tech",
+        order: 100,
+        comment: "",
+        favorite: false,
+        link: "",
+        icon: "",
+      }}
+      client:load
+    />
+  </div>
+</AdminLayout>

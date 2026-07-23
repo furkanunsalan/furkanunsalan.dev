@@ -1,0 +1,64 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { eq } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+import ProjectForm from "@/components/admin/ProjectForm";
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+const [row] = await db
+  .select()
+  .from(schema.projects)
+  .where(eq(schema.projects.slug, slug!))
+  .limit(1);
+if (!row) return new Response(null, { status: 404 });
+---
+
+<AdminLayout title={`${row.name} · admin`}>
+  <div>
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <a
+            href="/admin/projects"
+            aria-label="Back"
+            class="inline-flex items-center justify-center w-7 h-7 rounded-md ring-1 ring-white/[0.08] text-light-secondary hover:text-white hover:ring-white/20 transition-colors shrink-0"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+          </a>
+          <h1 class="text-xl font-semibold tracking-tight truncate">
+            {row.name}
+          </h1>
+        </div>
+        <p class="mt-1 text-xs text-light-fourth">{`/projects/${row.slug}`}</p>
+      </div>
+    </header>
+    <ProjectForm
+      mode="edit"
+      initial={{
+        slug: row.slug,
+        name: row.name,
+        description: row.description,
+        metric: row.metric,
+        link: row.link,
+        language: row.language || "",
+        order: row.order,
+        image: row.image || undefined,
+        content: row.content,
+      }}
+      client:load
+    />
+  </div>
+</AdminLayout>

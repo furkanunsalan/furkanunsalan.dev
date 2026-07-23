@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/components/_compat";
 import { Star, GitFork } from "lucide-react";
 import type { ProjectCardData } from "@/types";
 import Sparkline from "@/components/admin/Sparkline";

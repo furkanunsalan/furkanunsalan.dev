@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/components/_compat";
 import React from "react";
 import Markdoc from "@markdoc/markdoc";
 import {

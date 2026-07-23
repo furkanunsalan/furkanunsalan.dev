@@ -1,0 +1,15 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import GadgetsBlueprint from "@/components/GadgetsBlueprint";
+import { getTools } from "@/lib/content";
+
+export const prerender = false;
+const gadgets = await getTools();
+---
+
+<PageLayout
+  title="Gadgets | Furkan Ünsalan"
+  description="The gear I use every day: a technical flat-lay of my everyday carry and desk setup."
+>
+  <GadgetsBlueprint gadgets={gadgets} />
+</PageLayout>

@@ -1,4 +1,3 @@
-import "server-only";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { sql, desc, eq } from "drizzle-orm";

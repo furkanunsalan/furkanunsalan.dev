@@ -19,7 +19,6 @@ function Tile({ photo, onOpen }: { photo: Photo; onOpen: () => void }) {
       className="photo-figure group relative mb-3 block w-full cursor-pointer overflow-hidden rounded-lg ring-1 ring-transparent transition-[box-shadow] duration-300 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)] hover:ring-accent-primary/60"
       style={{ aspectRatio: `${photo.width} / ${photo.height}` }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={photo.thumb}
         alt={photo.alt}
@@ -120,7 +119,6 @@ export default function Photos({ data }: { data: Photo[] }) {
           >
             <div className="flex min-h-0 flex-1 items-center justify-center">
               {/* key forces the <img> to swap when navigating */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 key={active.id}
                 src={active.display}

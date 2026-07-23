@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/components/_compat";
 import { Eye } from "lucide-react";
 
 // Maps an admin path to its corresponding public-site URL. Returns null when

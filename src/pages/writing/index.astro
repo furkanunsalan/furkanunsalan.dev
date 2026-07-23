@@ -1,0 +1,37 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+import FeedList, { type FeedItem } from "@/components/FeedList";
+import { getPosts, getThoughts } from "@/lib/content";
+
+export const prerender = false;
+
+const [posts, thoughts] = await Promise.all([getPosts(), getThoughts()]);
+
+const feed: FeedItem[] = [
+  ...posts.map(
+    (p): FeedItem => ({
+      kind: "post",
+      id: p.slug,
+      date: p.date,
+      data: p,
+    }),
+  ),
+  ...thoughts.map(
+    (t): FeedItem => ({
+      kind: "thought",
+      id: String(t.id),
+      date: t.createdAt,
+      data: t,
+    }),
+  ),
+].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+---
+
+<PageLayout
+  title="Thoughts | Furkan Ünsalan"
+  description="Whatever comes to mind, whenever it comes. No schedule, no plan."
+>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-24 mb-16">
+    <FeedList items={feed} client:load />
+  </div>
+</PageLayout>

@@ -3,9 +3,8 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   darkMode: "class", // Enables dark mode by toggling 'dark' class on the root element
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{astro,js,ts,jsx,tsx,md,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {

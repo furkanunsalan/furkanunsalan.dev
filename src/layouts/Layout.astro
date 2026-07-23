@@ -1,0 +1,80 @@
+---
+import "../styles/globals.css";
+import "@fontsource-variable/inter";
+import FaviconAnimator from "@/components/FaviconAnimator";
+import CommandPalette from "@/components/CommandPalette";
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+  image?: string;
+  ogType?: "website" | "article";
+}
+const {
+  title = "Furkan Ünsalan",
+  description = "Software Developer | Photography Enthusiast | @Istanbul",
+  noindex = false,
+  image = "/og/default.png",
+  ogType = "website",
+} = Astro.props;
+
+const SITE_BASE = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://furkanunsalan.dev"
+).replace(/\/$/, "");
+const canonical = new URL(Astro.url.pathname, SITE_BASE).href;
+const ogImage = image.startsWith("http")
+  ? image
+  : new URL(image, SITE_BASE).href;
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/icon.png" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Furkan Ünsalan's Blog RSS Feed"
+      href="/rss.xml"
+    />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Furkan Ünsalan" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <slot name="head" />
+  </head>
+  <body class="page-enter">
+    <slot />
+    <CommandPalette client:idle />
+    <FaviconAnimator client:idle />
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    font-family:
+      "Inter Variable",
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      sans-serif;
+  }
+</style>

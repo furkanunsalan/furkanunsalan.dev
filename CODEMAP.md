@@ -4,77 +4,70 @@ Where things live and what they're for. Pair with [`CLAUDE.md`](CLAUDE.md) for c
 
 ## Top level
 
-| Path                   | What                                                                                      |
-| ---------------------- | ----------------------------------------------------------------------------------------- |
-| `app/`                 | Next.js App Router — pages, API routes, admin UI, OG/RSS.                                 |
-| `components/`          | Server + client React components. `admin/` holds shared admin form widgets.               |
-| `db/`                  | Drizzle schema (`schema.ts`) + generated migrations.                                      |
-| `lib/`                 | Server-side helpers: DB client, auth, content readers, uploads, slug/excerpt/revalidate.  |
-| `public/`              | Static assets (banners, photos, OG fallbacks, resume.pdf).                                |
-| `types/`               | Shared TypeScript types.                                                                  |
-| `data/`                | Small static assets (e.g. `asciiPortrait.ts` — the home ASCII portrait).                  |
-| `terminal/`            | Go + Charm Wish SSH twin. Standalone module, own deploy. (See note below — disconnected.) |
-| `scripts/`             | Two scripts only: `db-migrate.mjs`, `admin-set-password.mjs`.                             |
-| `.github/workflows/`   | `deploy.yml` (web), `deploy-terminal.yml` (Go binary).                                    |
-| `drizzle.config.ts`    | Drizzle Kit config (schema path, migrations out dir, reads DATABASE_URL from env).        |
-| `middleware.ts`        | iron-session gate for `/admin/*` + `/api/admin/*` + security headers.                     |
-| `next.config.mjs`      | Standalone output, image optimizer disabled, build-phase placeholder for session secret.  |
-| `tailwind.config.ts`   | AMOLED palette tokens (`dark-*`, `light-*`, `accent-primary`).                            |
-| `ecosystem.config.cjs` | PM2 process descriptor (port 3010, fork mode, 512M ceiling, env_file: `.env.production`). |
+| Path                 | What                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| `src/`               | Astro app: `pages/` (routes + API + OG), `layouts/`, `middleware.ts`, `styles/`.                 |
+| `components/`        | React islands (mounted from `.astro` with `client:*`). `admin/` holds admin form widgets.        |
+| `lib/`               | Server-side helpers: DB client, auth/session, content readers, cache, uploads, OG, slug/excerpt. |
+| `db/`                | Drizzle schema (`schema.ts`) + generated migrations.                                             |
+| `public/`            | Static assets (banners, photos, OG fallbacks, pdf.js worker).                                    |
+| `data/`              | Small static assets (e.g. `asciiPortrait.ts` — the home ASCII portrait).                         |
+| `types/`             | Shared TypeScript types.                                                                         |
+| `terminal/`          | Go + Charm Wish SSH twin. Standalone module, own deploy (`deploy-terminal.yml`).                 |
+| `scripts/`           | `db-migrate.mjs`, `admin-set-password.mjs`, `dev-tunnel.mjs`.                                    |
+| `.github/workflows/` | `ci.yml`, `deploy.yml` (web, compose), `deploy-terminal.yml` (Go binary).                        |
+| `astro.config.mjs`   | SSR (`output: "server"`) + Node standalone adapter; React + Tailwind integrations; `@` alias.    |
+| `Dockerfile`         | Multi-stage build → distroless runtime (`node dist/server/entry.mjs`).                           |
+| `compose.yml`        | App (distroless) + Postgres `db` service; `uploads`/`pgdata` volumes; app on `127.0.0.1:3010`.   |
+| `drizzle.config.ts`  | Drizzle Kit config (schema path, migrations out dir, reads `DATABASE_URL`).                      |
+| `tailwind.config.ts` | AMOLED palette tokens (`dark-*`, `light-*`, `accent-primary`).                                   |
 
-## `app/`
+## `src/`
+
+`.astro` files render on the server; anything interactive is a React island in `components/*` mounted with a `client:*` directive. The few `next/*` APIs the ported components use are shimmed by `components/_compat.tsx`. Every DB-backed route sets `export const prerender = false`.
 
 ```
-app/
-├── layout.tsx              # html/body, Inter font, Umami script
-├── globals.css             # base styles, page-enter, image skeleton
-├── opengraph-image.tsx     # site-wide OG fallback
-├── not-found.tsx           # 404 with chromatic-split glitch title
-├── icon.png                # favicon
-├── rss.xml/route.ts        # RSS feed generated from posts (dynamic)
+src/
+├── middleware.ts            # iron-session gate for /admin/* + /api/admin/* + security headers
+├── env.d.ts                 # Astro ambient types
+├── styles/globals.css       # base styles, page-enter, image shimmer
+├── layouts/
+│   ├── Layout.astro         # <html>/<head>, fonts, OG/Twitter/canonical meta, CommandPalette + FaviconAnimator islands
+│   ├── PageLayout.astro     # Layout + SiteNav; forwards head/OG props
+│   └── AdminLayout.astro     # admin chrome (nav / logout / view-link islands)
 │
-├── (pages)/                # route group — no URL prefix; all DB-backed pages
-│   ├── layout.tsx          #   are force-dynamic
-│   ├── page.tsx            # home: HomeIntro + LatestSection + heatmap + HomeTools
-│   ├── writing/page.tsx + [slug]/page.tsx + [slug]/opengraph-image.tsx
-│   ├── projects/page.tsx + [slug]/page.tsx + [slug]/opengraph-image.tsx
-│   ├── experience/page.tsx
-│   ├── photos/page.tsx     # Unsplash gallery (masonry)
-│   ├── bookmarks/page.tsx  # Karakeep bookmarks
-│   └── places/page.tsx     # Curated places + Leaflet/Carto Voyager map
-│
-├── admin/                  # iron-session-gated CMS
-│   ├── layout.tsx          # admin chrome (top bar + side nav)
-│   ├── page.tsx            # dashboard (counts + last-24h login audit)
-│   ├── login/page.tsx + LoginForm.tsx
-│   ├── posts/             page + new + [slug] + PostForm.tsx
-│   ├── projects/          page + new + [slug] + ProjectForm.tsx
-│   ├── experiences/       page + new + [id] + ExperienceForm.tsx
-│   ├── tools/             page + new + [name] + ToolForm.tsx
-│   ├── places/            page + new (paste-URL panel) + [slug] + PlaceForm.tsx + ResolveUrlPanel.tsx
-│   └── settings/
-│       ├── home/          HomeSettingsForm.tsx
-│       ├── place-lists/   PlaceListsEditor.tsx
-│       └── github/        GithubVisibilityEditor.tsx
-│
-└── api/
-    ├── github/contributions/route.ts   # GraphQL contribution calendar
-    ├── tools/route.ts                  # tools JSON for client filtering
-    ├── karakeep/...                    # bookmarks proxy
-    ├── img/[...path]/route.ts          # streams from UPLOADS_DIR (public)
-    └── admin/                          # all gated by middleware
-        ├── login/route.ts              # argon2.verify + iron-session.save (rate-limited)
-        ├── logout/route.ts
-        ├── upload/route.ts             # multipart → saveUpload → returns /api/img/...
-        ├── posts/route.ts + [slug]/route.ts
-        ├── projects/route.ts + [slug]/route.ts
-        ├── experiences/route.ts + [id]/route.ts
-        ├── tools/route.ts + [name]/route.ts
-        ├── places/route.ts + [slug]/route.ts + resolve-url/route.ts
-        ├── place-lists/route.ts + [name]/route.ts
-        └── settings/
-            ├── home/route.ts
-            └── github/route.ts + sync/route.ts
+└── pages/
+    ├── index.astro          # home: info card + AsciiPortrait + Time + GithubCommitHistory + latest thought
+    ├── writing/index.astro + writing/[slug].astro     # list + post (PostBody island renders Markdoc client-side)
+    ├── projects/index.astro + projects/[slug].astro   # list (ProjectsExplorer) + project (ProjectBody / showcases)
+    ├── experience.astro · photos.astro · places.astro · bookmarks.astro · gadgets.astro · resume.astro
+    ├── 404.astro
+    ├── rss.xml.ts · sitemap.xml.ts · robots.txt.ts · pdf-worker.ts
+    │
+    ├── og/                  # PNG OG cards rendered by lib/og.ts (@resvg/resvg-js)
+    │   ├── default.png.ts · writing/[slug].png.ts · projects/[slug].png.ts
+    │
+    ├── admin/               # iron-session-gated CMS (one .astro per screen)
+    │   ├── index.astro      # dashboard (counts + recent login audit)
+    │   ├── login.astro      # only admin path that's public
+    │   ├── posts/ · projects/ · experiences/ · tools/ · thoughts/ · places/   # index + new + [slug|id|name]
+    │   ├── photos.astro · cv.astro · settings/home.astro
+    │   └── activity.astro · logins.astro · trash.astro · uploads.astro · rename.astro · db.astro · backup.astro
+    │
+    └── api/
+        ├── health.ts                    # { status, checks: { db, uploads } } — used by the deploy health check
+        ├── github/contributions.ts      # GraphQL contribution calendar (personal + work overlay)
+        ├── tools.ts · search/index.ts (→ /api/search) · karakeep/…
+        ├── img/[...path].ts             # public stream from UPLOADS_DIR (traversal-safe)
+        ├── cv.ts · pdf-worker
+        └── admin/                       # all gated by middleware
+            ├── login.ts                 # argon2.verify + saveSession (rate-limited, audited)
+            ├── logout.ts · upload.ts · rename.ts · cv.ts
+            ├── posts.ts + posts/[slug].ts   (same shape: projects, experiences, tools, thoughts, places, photos)
+            ├── place-lists.ts + [name].ts · places/bulk.ts · places/resolve-url.ts
+            ├── settings/home.ts · settings/github.ts + github/sync.ts
+            ├── trash.ts + purge/restore · uploads/{list,file,usage,sweep}
+            └── db/{tables,rows,schema,migrations} · backup/{export,import}
 ```
 
 ## `db/`
@@ -85,112 +78,92 @@ db/
 └── migrations/        # Generated by drizzle-kit. Apply with `npm run db:migrate`.
 ```
 
-Tables: `posts`, `projects`, `experiences`, `tools`, `places`, `place_lists`, `home_settings`, `github_project_visibility`, `admin_logins`.
-Enums: `place_status`, `tool_category`, `home_social_icon`.
+Tables: `posts`, `projects`, `experiences`, `tools`, `places`, `place_lists`, `photos`, `thoughts`, `home_settings`, `cv_settings`, `github_project_visibility`, `admin_logins`, `audit_events`.
+Enums: `place_status`, `tool_category`, `home_social_icon`, `experience_kind`.
 
 ## `components/`
 
-| File                                                        | Role                                                                                                                                         |
-| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MainNavbar.tsx`                                            | Top nav with cmd-modifier shortcut badges.                                                                                                   |
-| `Footer.tsx`                                                | Static footer.                                                                                                                               |
-| `TopProgressBar.tsx`                                        | Route-transition progress bar.                                                                                                               |
-| `HomeIntro.tsx`                                             | Bio block, socials, clock — driven by `home_settings` row.                                                                                   |
-| `HomeSocialLink.tsx`                                        | Single icon-link renderer for the socials list.                                                                                              |
-| `HomeTools.tsx`                                             | Tools section on the home page.                                                                                                              |
-| `ToolTabs.tsx` / `Tool.tsx`                                 | Tools tabs UI + single-tool card.                                                                                                            |
-| `LatestSection.tsx`                                         | "Latest from each surface" home card.                                                                                                        |
-| `GithubCommitHistory.tsx`                                   | Contribution heatmap with custom tooltip.                                                                                                    |
-| `ContributionContainer.tsx`                                 | Stats panel under the heatmap.                                                                                                               |
-| `BlogPosts.tsx`                                             | Writing list grid + tag select + RSS link.                                                                                                   |
-| `TableOfContents.tsx`                                       | Right-rail TOC on post pages, scroll-spy.                                                                                                    |
-| `PostBentoImages.tsx`                                       | Bento grid built from image-only paragraph runs.                                                                                             |
-| `ProjectContainer.tsx`                                      | Single project card on `/projects` (client).                                                                                                 |
-| `CompanyExperienceGroup.tsx`                                | Group of roles per company on `/experience`.                                                                                                 |
-| `ExperienceContainer.tsx`                                   | Single role card.                                                                                                                            |
-| `Photos.tsx` / `Photos.css`                                 | Unsplash masonry gallery.                                                                                                                    |
-| `KarakeepBookmarks.tsx`                                     | Bookmark list with filters (Karakeep-backed).                                                                                                |
-| `PlacesMap.tsx` + `PlacesMapView.tsx` + `PlacesMapView.css` | Leaflet/Carto Voyager map for `/places`.                                                                                                     |
-| `PlacesList.tsx`                                            | Filterable, paginated list rendered under the map.                                                                                           |
-| `AdminNav.tsx`                                              | Sidebar nav in `/admin/*`.                                                                                                                   |
-| `LogoutButton.tsx`                                          | Top-bar logout in admin chrome.                                                                                                              |
-| `admin/form.tsx`                                            | Shared form primitives (Field, TextInput, NumberInput, TextArea, Select, Toggle, TagInput, LinkArrayInput, ImageInput, SaveBar, PageHeader). |
-| `StatsCard.tsx`                                             | Reusable stat block.                                                                                                                         |
-| `TagSelect.tsx`                                             | Portaled Radix Select for tag filtering.                                                                                                     |
-| `BreadcrumpNavigator.tsx`                                   | Top-of-page breadcrumbs (sic).                                                                                                               |
-| `Time.tsx`                                                  | Istanbul clock with timezone label.                                                                                                          |
-| `Loading.tsx`                                               | Shared skeleton.                                                                                                                             |
-| `ui/`                                                       | shadcn-style Radix wrappers.                                                                                                                 |
+React islands. Key ones:
+
+| File                                                                     | Role                                                                                           |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `_compat.tsx`                                                            | Drop-in shims for `next/*` (`Link`, `Image` (forwardRef), `useRouter`, …).                     |
+| `SiteNav.tsx` / `MainNavbar.tsx`                                         | Top nav + cmd-shortcut badges.                                                                 |
+| `CommandPalette.tsx`                                                     | ⌘K search over `/api/search`.                                                                  |
+| `HomeIntro.tsx` / `HomeSocialLink.tsx` / `Time.tsx`                      | Home bio block, socials, Istanbul clock.                                                       |
+| `AsciiPortrait.tsx`                                                      | Home ASCII portrait (data in `data/asciiPortrait.ts`).                                         |
+| `GithubCommitHistory.tsx` / `ContributionContainer.tsx`                  | Contribution heatmap + stats.                                                                  |
+| `PostBody.tsx` / `ProjectBody.tsx`                                       | Client-side Markdoc render (Mermaid, bento images, TOC) for post/project bodies.               |
+| `TableOfContents.tsx` / `PostBentoImages.tsx` / `Mermaid.tsx`            | Post-body building blocks.                                                                     |
+| `ProjectsExplorer.tsx` / `ProjectContainer.tsx`                          | Projects list + card.                                                                          |
+| `InfraShowcase.tsx` / `TeachfluenceStudioShowcase.tsx`                   | Bespoke project showcases.                                                                     |
+| `CompanyExperienceGroup.tsx` / `ExperienceContainer.tsx`                 | Experience grouping + role card.                                                               |
+| `Photos.tsx` · `PlacesMap*.tsx` / `PlacesList.tsx` / `PlacesSection.tsx` | Photos masonry; Leaflet/CARTO map + list.                                                      |
+| `KarakeepBookmarks.tsx` / `BookmarkGraph.tsx`                            | Bookmarks list + tag graph.                                                                    |
+| `GadgetsBlueprint.tsx` / `GadgetGlyph.tsx`                               | Gadgets page (blueprint layout, hover-tint icons).                                             |
+| `ThoughtImageGallery.tsx`                                                | Thought lightbox with swipeable image carousel.                                                |
+| `SmartImage.tsx`                                                         | Lazy, load-gated image with shimmer + cross-fade.                                              |
+| `ResumePdfPages.tsx`                                                     | react-pdf viewer for `/resume` (worker served by `pdf-worker`).                                |
+| `FaviconAnimator.tsx` / `TopProgressBar.tsx` / `ScrambleText.tsx`        | Favicon animation, route progress, text scramble.                                              |
+| `admin/*`                                                                | Admin form widgets (`PostForm`, `ProjectForm`, `ToolForm`, `PlaceForm`, shared `form.tsx`, …). |
+| `ui/`                                                                    | shadcn-style Radix wrappers (dropdown-menu, select, tabs, breadcrumb).                         |
 
 ## `lib/`
 
-| File                         | Exports                                                                                                                                                                                                                                                                     |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `db.ts`                      | `db` (Drizzle client over postgres-js) + `schema` re-export. Globally cached across HMR. `"server-only"`.                                                                                                                                                                   |
-| `auth.ts`                    | iron-session `sessionOptions` (httpOnly, sameSite=lax, 14d). Throws at module-load if `ADMIN_SESSION_SECRET` missing/<32 chars.                                                                                                                                             |
-| `content.ts`                 | DB readers: `getPosts`, `getPostBySlug`, `getPostMetaBySlug`, `getCustomProjects`, `getCustomProjectBySlug`, `getExperiences`, `getTools`, `getPlaces`, `getPlaceLists`, `getHomeSettings`, `getGithubProjectVisibility`. All wrapped in try/catch returning safe defaults. |
-| `db-errors.ts`               | `friendlyDbError(e, resource)` — maps PG error codes (23505, 23503, 23502, 22001, 22P02) to clean `{ error, status }`. Strips SQL + params before returning.                                                                                                                |
-| `revalidate.ts`              | `revalidateCollection("posts"\|"projects"\|...)` — single map of collection → paths to invalidate. Use this instead of `revalidatePath()` directly.                                                                                                                         |
-| `uploads.ts`                 | `saveUpload(file, dir)`, `resolveServePath(parts)`, `mimeFor(filename)`, `UPLOADS_DIR`. Path-traversal hardening on serve.                                                                                                                                                  |
-| `slugify.ts`                 | `slugify` (Turkish-character-aware, headings), `slugifyAscii(text, fallback)` (DB PKs), `cleanUserSlug(input)` (admin-typed slug sanitisation).                                                                                                                             |
-| `excerpt.ts`                 | `excerptFromMarkdoc(body, maxWords)` — plain-text card excerpt.                                                                                                                                                                                                             |
-| `validators.ts`              | `cleanLinks`, `cleanStringArray` — shared admin input cleaners.                                                                                                                                                                                                             |
-| `place-resolve.ts`           | `resolvePlaceUrl(url)` — follow short links, parse lat/lng + name, Nominatim reverse-geocode. SSRF-hardened with hostname allowlist.                                                                                                                                        |
-| `place-list-icons.ts`        | Server-safe icon registry (key + SVG path strings).                                                                                                                                                                                                                         |
-| `place-list-icons-react.tsx` | `"use client"` lookup of lucide-react components keyed on the same names.                                                                                                                                                                                                   |
-| `github.ts`                  | `getGithubRepos`, `getGithubRepo`, `getGithubReadme`, `getContributionCalendar`.                                                                                                                                                                                            |
-| `karakeep.ts`                | Karakeep bookmarks API wrapper.                                                                                                                                                                                                                                             |
-| `og.tsx`                     | `OG_SIZE`, `OG_CONTENT_TYPE`, `renderOgImage(...)` — shared OG template.                                                                                                                                                                                                    |
-| `unsplash.ts`                | Default-export class wrapping the Unsplash user API.                                                                                                                                                                                                                        |
-| `project-finder.ts`          | Thin wrapper over `getGithubRepo`.                                                                                                                                                                                                                                          |
-| `utils.ts`                   | `cn` (clsx + tailwind-merge).                                                                                                                                                                                                                                               |
+| File                                                                                                                                           | Exports                                                                                                                                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `db.ts`                                                                                                                                        | `db` (Drizzle over postgres-js) + `schema` re-export.                                                                                                                                                 |
+| `auth.ts`                                                                                                                                      | iron-session `sessionOptions`. Throws at module-load if `ADMIN_SESSION_SECRET` missing/<32 chars.                                                                                                     |
+| `session.ts`                                                                                                                                   | `getSession` / `saveSession` / `clearSession` over Astro cookies (sealData/unsealData).                                                                                                               |
+| `content.ts`                                                                                                                                   | DB readers (`getPosts`, `getPostContentBySlug`, `getCustomProjects`, `getExperiences`, `getTools`, `getPlaces`, `getThoughts`, `getPhotos`, …). All fail soft. Cached ones go through `cachedReader`. |
+| `cache.ts`                                                                                                                                     | In-memory tagged cache (`cachedReader`, `bustTag`) — replaces Next `unstable_cache`.                                                                                                                  |
+| `revalidate.ts`                                                                                                                                | `revalidateCollection(...)` → `bustTag(...)`. Central collection → tags map.                                                                                                                          |
+| `validate.ts`                                                                                                                                  | `readJson(req, schema)` — zod body validation returning `{ data }` or a `400` `Response`.                                                                                                             |
+| `db-errors.ts`                                                                                                                                 | `friendlyDbError(e, resource)` — maps PG error codes to clean `{ error, status }`, strips SQL.                                                                                                        |
+| `og.ts`                                                                                                                                        | `renderOgImage(...)` — hand-built SVG rasterized by `@resvg/resvg-js` with self-hosted Inter.                                                                                                         |
+| `uploads.ts`                                                                                                                                   | `saveUpload`, `resolveServePath`, `mimeFor`, `UPLOADS_DIR` (traversal-hardened).                                                                                                                      |
+| `github.ts`                                                                                                                                    | `getGithubRepos`, `getGithubRepo`, `getGithubReadme`, `getContributionCalendar`.                                                                                                                      |
+| `karakeep.ts`                                                                                                                                  | Karakeep bookmarks API wrapper.                                                                                                                                                                       |
+| `slugify.ts` / `excerpt.ts` / `validators.ts`                                                                                                  | Slug generation, card excerpts, admin input cleaners.                                                                                                                                                 |
+| `place-resolve.ts` / `place-list-icons.ts`                                                                                                     | Maps-URL resolver (SSRF-hardened) + icon registry.                                                                                                                                                    |
+| `health.ts` · `audit.ts` · `image-compress.ts` · `photoImport.ts` · `backup-collections.ts` · `db-tables.ts` · `uploadRefs.ts` · `cv/build.ts` | Health check, audit log, image processing, photo EXIF import, backup/restore, DB console, upload GC, CV PDF build.                                                                                    |
 
 ## `terminal/`
 
-Go + Charm Wish SSH twin (`ssh -p 2222 furkanunsalan.dev`). Independent module under `terminal/`, separate deploy via `deploy-terminal.yml`, runs as the `furkanunsalan-term` systemd unit on the VPS.
+Go + Charm Wish SSH twin (`ssh -p 2222 furkanunsalan.dev`). Independent module, separate deploy via `deploy-terminal.yml`, runs as the `furkanunsalan-term` systemd unit on the VPS host.
 
 ```
 terminal/
 ├── cmd/server/main.go                # SSH + Bubble Tea bootstrap, .env loader
 ├── internal/tui/                     # views, styles, root model
-└── internal/data/
-    ├── db.go                         # pgxpool singleton (DATABASE_URL → Postgres)
-    ├── loaders.go                    # SELECTs for posts/experiences/tools
-    ├── github.go                     # GitHub repos via REST
-    ├── raindrop.go                   # (Optional) Raindrop bookmarks via REST
-    └── dotenv.go                     # tiny KEY=value loader (no extra dep)
+└── internal/data/                    # db.go (pgxpool), loaders.go, github.go, raindrop.go, dotenv.go
 ```
 
-Connects to the same Postgres container the web app uses (`127.0.0.1:5432`), so `DATABASE_URL` in `term.env` mirrors the web app's. Shares `GITHUB_TOKEN` and `RAINDROP_TOKEN` env names. Listens on `:2222` by default; host key persisted at `<app-dir>/.ssh/term_ed25519`.
+It runs on the host (not in compose) and reaches Postgres at `127.0.0.1:5432`, so the compose `db` service is published there (localhost-only) and `term.env`'s `DATABASE_URL` mirrors the web app's credentials.
 
 ## Scripts & workflows
 
-| Path                                    | What                                                                          |
-| --------------------------------------- | ----------------------------------------------------------------------------- |
-| `scripts/db-migrate.mjs`                | Applies Drizzle migrations against `DATABASE_URL`.                            |
-| `scripts/admin-set-password.mjs`        | Hashes a password with argon2id and writes `\$`-escaped hash to `.env.local`. |
-| `.github/workflows/deploy.yml`          | Build Next.js → rsync `release/` to VPS → reload PM2 → health check.          |
-| `.github/workflows/deploy-terminal.yml` | Cross-compile Go binary → ship to VPS → restart systemd unit.                 |
+| Path                                    | What                                                                           |
+| --------------------------------------- | ------------------------------------------------------------------------------ |
+| `scripts/db-migrate.mjs`                | Applies Drizzle migrations against `DATABASE_URL`.                             |
+| `scripts/admin-set-password.mjs`        | Hashes a password with argon2id and writes the plain PHC hash to `.env.local`. |
+| `scripts/dev-tunnel.mjs`                | Idempotent SSH tunnel to the VPS Postgres for local dev (`predev`).            |
+| `.github/workflows/ci.yml`              | Typecheck (`astro check`) + unit tests + build on PRs and `main`.              |
+| `.github/workflows/deploy.yml`          | rsync build context to VPS → `docker compose up -d --build` → health check.    |
+| `.github/workflows/deploy-terminal.yml` | Cross-compile Go binary → ship to VPS → restart systemd unit.                  |
 
 ## Routes at a glance
 
-| URL                          | Source                                                         |
-| ---------------------------- | -------------------------------------------------------------- |
-| `/`                          | `app/(pages)/page.tsx` (force-dynamic)                         |
-| `/writing`                   | `app/(pages)/writing/page.tsx` (force-dynamic)                 |
-| `/writing/<slug>`            | `app/(pages)/writing/[slug]/page.tsx` (force-dynamic)          |
-| `/projects`                  | `app/(pages)/projects/page.tsx` (force-dynamic)                |
-| `/projects/<slug>`           | `app/(pages)/projects/[slug]/page.tsx` (force-dynamic)         |
-| `/experience`                | `app/(pages)/experience/page.tsx` (force-dynamic)              |
-| `/photos`                    | `app/(pages)/photos/page.tsx` (Unsplash, static)               |
-| `/bookmarks`                 | `app/(pages)/bookmarks/page.tsx` (Karakeep)                    |
-| `/places`                    | `app/(pages)/places/page.tsx` (force-dynamic, Leaflet/CARTO)   |
-| `/admin`                     | `app/admin/page.tsx` (dashboard, gated)                        |
-| `/admin/login`               | `app/admin/login/page.tsx` (only admin path that's public)     |
-| `/admin/<collection>`        | List + edit forms for posts/projects/experiences/tools/places. |
-| `/admin/settings/*`          | Singleton editors: home, place-lists, github.                  |
-| `/api/admin/<col>(/[id])`    | CRUD + image upload + URL resolve. All gated by middleware.    |
-| `/api/img/[...path]`         | Public image stream from `UPLOADS_DIR`.                        |
-| `/rss.xml`                   | `app/rss.xml/route.ts` (force-dynamic)                         |
-| `/opengraph-image`           | Site-wide OG fallback                                          |
-| `/<route>/opengraph-image-*` | Per-route OG via `lib/og.tsx`                                  |
+| URL                                                                           | Source                                                 |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `/`                                                                           | `src/pages/index.astro`                                |
+| `/writing` · `/writing/<slug>`                                                | `src/pages/writing/index.astro` · `[slug].astro`       |
+| `/projects` · `/projects/<slug>`                                              | `src/pages/projects/index.astro` · `[slug].astro`      |
+| `/experience` · `/photos` · `/places` · `/bookmarks` · `/gadgets` · `/resume` | `src/pages/<name>.astro`                               |
+| `/admin` · `/admin/login`                                                     | `src/pages/admin/index.astro` · `login.astro` (public) |
+| `/admin/<collection>/…`                                                       | List + new + edit per collection.                      |
+| `/api/admin/<col>(/[id])`                                                     | CRUD + upload + resolve. All gated by middleware.      |
+| `/api/img/[...path]`                                                          | Public image stream from `UPLOADS_DIR`.                |
+| `/api/health`                                                                 | Liveness + DB/uploads checks.                          |
+| `/rss.xml` · `/sitemap.xml` · `/robots.txt`                                   | `src/pages/*.ts`                                       |
+| `/og/default.png` · `/og/writing/<slug>.png` · `/og/projects/<slug>.png`      | `src/pages/og/*` via `lib/og.ts`                       |

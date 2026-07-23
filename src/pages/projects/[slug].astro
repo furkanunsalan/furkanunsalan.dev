@@ -1,0 +1,81 @@
+---
+import PageLayout from "../../layouts/PageLayout.astro";
+import { Sparkles, ExternalLink } from "lucide-react";
+import InfraShowcase from "@/components/InfraShowcase";
+import TeachfluenceStudioShowcase from "@/components/TeachfluenceStudioShowcase";
+import ProjectBody from "@/components/ProjectBody";
+import { getCustomProjectContentBySlug } from "@/lib/content";
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+const project = slug ? await getCustomProjectContentBySlug(slug) : null;
+if (!project) return Astro.redirect("/404");
+
+// Bespoke slugs only need the metadata; the two showcase components are static
+// (no hooks/handlers) so they server-render with no client directive.
+const projectMeta = {
+  name: project.name,
+  description: project.description,
+  metric: project.metric,
+  link: project.link,
+};
+
+const title = `${project.name} | Furkan Ünsalan`;
+const description = project.description || `Details for ${project.name}`;
+---
+
+<PageLayout
+  title={title}
+  description={description}
+  image={`/og/projects/${slug}.png`}
+>
+  {
+    slug === "multigroup-infra" ? (
+      <InfraShowcase project={projectMeta} />
+    ) : slug === "teachfluence-studio" ? (
+      <TeachfluenceStudioShowcase project={projectMeta} />
+    ) : (
+      <div class="mt-24 mb-16 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <header class="mb-8 max-w-3xl animate-fade-in-up">
+          <h1 class="text-3xl font-bold text-white">{project.name}</h1>
+          {project.description && (
+            <p class="mt-2 text-light-secondary/80">{project.description}</p>
+          )}
+          <div class="mt-4 flex flex-wrap items-center gap-4 text-sm text-light-fourth">
+            {project.metric && (
+              <span class="inline-flex items-center gap-1 text-accent-primary/90 font-medium">
+                <Sparkles className="w-4 h-4" />
+                {project.metric}
+              </span>
+            )}
+            {project.language && <span>{project.language}</span>}
+          </div>
+          {project.link && (
+            <div class="mt-4 flex flex-wrap gap-3">
+              <a
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.06] bg-zinc-950 hover:border-accent-primary/50 hover:-translate-y-0.5 hover:shadow-[0_0_24px_-12px_rgba(99,102,241,0.6)] transition-all duration-300 text-sm"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Visit
+              </a>
+            </div>
+          )}
+        </header>
+
+        {project.image && (
+          <img
+            src={project.image}
+            alt={project.name}
+            class="mb-8 w-full rounded-xl border border-white/[0.06] animate-fade-in delay-100"
+          />
+        )}
+
+        <ProjectBody content={project.content} client:only="react" />
+      </div>
+    )
+  }
+</PageLayout>

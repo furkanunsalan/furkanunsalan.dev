@@ -1,6 +1,6 @@
 import type { Tool as ToolType } from "@/types";
 import { Heart, ArrowUpRight } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/components/_compat";
 
 export default function Tool({ tool }: { tool: ToolType }) {
   const { name, comment, brand, favorite, what, link } = tool;

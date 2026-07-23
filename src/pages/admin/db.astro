@@ -1,0 +1,32 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import DbConsole from "@/components/admin/DbConsole";
+
+export const prerender = false;
+
+type Tab = "browse" | "schema" | "migrations";
+const TABS: Tab[] = ["browse", "schema", "migrations"];
+
+const raw = (Astro.url.searchParams.get("tab") || "browse").toLowerCase();
+const initial: Tab = (TABS as string[]).includes(raw)
+  ? (raw as Tab)
+  : "browse";
+---
+
+<AdminLayout title="Database · admin">
+  <div>
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <h1 class="text-xl font-semibold tracking-tight truncate">
+            Database
+          </h1>
+        </div>
+        <p class="mt-1 text-xs text-light-fourth">
+          Inspect tables and review schema and migrations.
+        </p>
+      </div>
+    </header>
+    <DbConsole initial={initial} client:load />
+  </div>
+</AdminLayout>

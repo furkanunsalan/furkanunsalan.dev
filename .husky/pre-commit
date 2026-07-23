@@ -1,1 +1,10 @@
-npm run format && npm run build
+npm run format || exit 1
+
+# `astro build`'s page-generation step loads modules that assert these at
+# module-load (lib/auth.ts, lib/db.ts). Placeholders only — never used at
+# runtime and never baked into the bundle (mirrors ci.yml + Dockerfile). Prefer
+# real values from .env.local if present so the build matches production more
+# closely.
+ADMIN_SESSION_SECRET="${ADMIN_SESSION_SECRET:-precommit-placeholder-not-used-at-runtime-________}" \
+DATABASE_URL="${DATABASE_URL:-postgres://build:placeholder@127.0.0.1:5432/build}" \
+  npm run build

@@ -1,13 +1,7 @@
-import "server-only";
 import { db, schema } from "@/lib/db";
 
 export type AuditAction =
-  | "create"
-  | "update"
-  | "delete"
-  | "restore"
-  | "purge"
-  | "bulk-delete";
+  "create" | "update" | "delete" | "restore" | "purge" | "bulk-delete";
 
 const MAX_FIELD_BYTES = 4 * 1024;
 

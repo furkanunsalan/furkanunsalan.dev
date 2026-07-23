@@ -1,4 +1,3 @@
-import "server-only";
 import type { SessionOptions } from "iron-session";
 
 export type AdminSession = {

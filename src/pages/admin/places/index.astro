@@ -1,0 +1,137 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { and, asc, desc, isNull, sql } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+import PlacesAdminEditor, {
+  type PlaceRow,
+} from "@/components/admin/PlacesAdminEditor";
+import RestoreScroll from "@/components/admin/RestoreScroll";
+import PlaceListsEditor from "@/components/admin/PlaceListsEditor";
+
+export const prerender = false;
+
+const [rows, lists, catRows, listRows, listCounts] = await Promise.all([
+  db
+    .select({
+      slug: schema.places.slug,
+      name: schema.places.name,
+      city: schema.places.city,
+      country: schema.places.country,
+      list: schema.places.list,
+      category: schema.places.category,
+      status: schema.places.status,
+      tags: schema.places.tags,
+      addedAt: schema.places.addedAt,
+      createdAt: schema.places.createdAt,
+    })
+    .from(schema.places)
+    .where(isNull(schema.places.deletedAt))
+    .orderBy(desc(schema.places.addedAt)),
+  db
+    .select({ name: schema.placeLists.name, icon: schema.placeLists.icon })
+    .from(schema.placeLists)
+    .orderBy(asc(schema.placeLists.position), asc(schema.placeLists.name)),
+  db
+    .selectDistinct({ category: schema.places.category })
+    .from(schema.places)
+    .where(
+      and(sql`${schema.places.category} <> ''`, isNull(schema.places.deletedAt)),
+    )
+    .orderBy(asc(schema.places.category)),
+  db
+    .select({
+      name: schema.placeLists.name,
+      icon: schema.placeLists.icon,
+      position: schema.placeLists.position,
+    })
+    .from(schema.placeLists)
+    .orderBy(asc(schema.placeLists.position), asc(schema.placeLists.name)),
+  db
+    .select({ list: schema.places.list, n: sql<number>`count(*)::int` })
+    .from(schema.places)
+    .where(isNull(schema.places.deletedAt))
+    .groupBy(schema.places.list),
+]);
+
+const editorRows: PlaceRow[] = rows.map((r) => ({
+  slug: r.slug,
+  name: r.name,
+  city: r.city,
+  country: r.country,
+  list: r.list,
+  category: r.category,
+  status: r.status,
+  tags: r.tags,
+  addedAt: r.addedAt ? r.addedAt.toISOString() : null,
+  createdAt: r.createdAt.toISOString(),
+}));
+const categories = catRows.map((c) => c.category);
+
+const byList = new Map<string, number>();
+for (const c of listCounts) byList.set(c.list || "", c.n);
+const placeListsInitial = listRows.map((r) => ({
+  ...r,
+  placeCount: byList.get(r.name) ?? 0,
+}));
+---
+
+<AdminLayout title="Places · admin">
+  <div class="space-y-10">
+    <RestoreScroll storageKey="admin:places:scroll" client:load />
+
+    <section>
+      <header class="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-semibold tracking-tight">Places</h1>
+          <p class="mt-1 text-xs text-light-fourth">
+            Manage the lists shown as filter chips on /places, then the entries
+            below.
+          </p>
+        </div>
+      </header>
+      <PlaceListsEditor initial={placeListsInitial} client:load />
+    </section>
+
+    <section>
+      <header class="mb-6 flex items-end justify-between gap-4">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 min-w-0">
+            <h1 class="text-xl font-semibold tracking-tight truncate">
+              Entries
+            </h1>
+          </div>
+          <p class="mt-1 text-xs text-light-fourth">
+            {editorRows.length} places.
+          </p>
+        </div>
+        <a
+          href="/admin/places/new"
+          class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs bg-accent-primary/15 text-accent-primary ring-1 ring-accent-primary/40 hover:bg-accent-primary/25 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="w-3.5 h-3.5"
+          >
+            <path d="M5 12h14"></path>
+            <path d="M12 5v14"></path>
+          </svg>
+          New place
+        </a>
+      </header>
+      <PlacesAdminEditor
+        rows={editorRows}
+        lists={lists}
+        categories={categories}
+        client:load
+      />
+    </section>
+  </div>
+</AdminLayout>

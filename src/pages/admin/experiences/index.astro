@@ -1,0 +1,105 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import RestoreScroll from "@/components/admin/RestoreScroll";
+import { asc, isNull } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+
+export const prerender = false;
+
+const rows = await db
+  .select()
+  .from(schema.experiences)
+  .where(isNull(schema.experiences.deletedAt))
+  .orderBy(asc(schema.experiences.order));
+---
+
+<AdminLayout title="Experiences · admin">
+  <div>
+    <RestoreScroll storageKey="admin:experiences:scroll" client:load />
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <h1 class="text-xl font-semibold tracking-tight truncate">
+            Experiences
+          </h1>
+        </div>
+        <p class="mt-1 text-xs text-light-fourth">
+          {rows.length} entries. Sorted by order field.
+        </p>
+      </div>
+      <a
+        href="/admin/experiences/new"
+        class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs bg-accent-primary/15 text-accent-primary ring-1 ring-accent-primary/40 hover:bg-accent-primary/25 transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="w-3.5 h-3.5"
+        >
+          <path d="M5 12h14"></path>
+          <path d="M12 5v14"></path>
+        </svg>
+        New entry
+      </a>
+    </header>
+    <ul
+      class="divide-y divide-white/[0.04] ring-1 ring-white/[0.06] rounded-xl overflow-hidden bg-zinc-950"
+    >
+      {
+        rows.length === 0 && (
+          <li class="px-4 py-6 text-sm text-light-fourth text-center">
+            No experiences yet.
+          </li>
+        )
+      }
+      {
+        rows.map((e) => (
+          <li>
+            <a
+              href={`/admin/experiences/${encodeURIComponent(e.id)}`}
+              class="block px-4 py-3 hover:bg-white/[0.03] transition-colors"
+            >
+              <div class="flex items-start gap-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="w-4 h-4 text-light-fourth mt-0.5 shrink-0"
+                >
+                  <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                </svg>
+                <div class="min-w-0 flex-1">
+                  <div class="text-sm text-white truncate">
+                    {e.title}{" "}
+                    <span class="text-light-fourth">@ {e.organization}</span>
+                  </div>
+                  <div class="text-xs text-light-fourth truncate">
+                    {String(e.startDate)} →{" "}
+                    {e.endDate ? String(e.endDate) : "current"}
+                  </div>
+                </div>
+                <span class="text-[10px] text-light-fourth/70 shrink-0 uppercase tracking-wider">
+                  order {e.order}
+                </span>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</AdminLayout>

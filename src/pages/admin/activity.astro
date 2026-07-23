@@ -1,0 +1,113 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { desc, and, eq, type SQL } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+import RestoreScroll from "@/components/admin/RestoreScroll";
+import ActivityRow from "@/components/admin/ActivityRow";
+import ActivityFilters from "@/components/admin/ActivityFilters";
+
+export const prerender = false;
+
+const LIMIT = 200;
+
+const ACTIONS = [
+  "create",
+  "update",
+  "delete",
+  "restore",
+  "purge",
+  "bulk-delete",
+] as const;
+
+const RESOURCES = [
+  "post",
+  "thought",
+  "place",
+  "project",
+  "experience",
+  "tool",
+  "placeList",
+  "home",
+  "github",
+] as const;
+
+const sp = Astro.url.searchParams;
+const resourceParam = sp.get("resource") ?? undefined;
+const actionParam = sp.get("action") ?? undefined;
+
+const resourceFilter =
+  resourceParam && RESOURCES.includes(resourceParam as never)
+    ? resourceParam
+    : "";
+const actionFilter =
+  actionParam && ACTIONS.includes(actionParam as never) ? actionParam : "";
+
+const wheres: SQL[] = [];
+if (resourceFilter)
+  wheres.push(eq(schema.auditEvents.resource, resourceFilter));
+if (actionFilter) wheres.push(eq(schema.auditEvents.action, actionFilter));
+const whereClause =
+  wheres.length === 0
+    ? undefined
+    : wheres.length === 1
+      ? wheres[0]
+      : and(...wheres);
+
+const rows = await db
+  .select()
+  .from(schema.auditEvents)
+  .where(whereClause)
+  .orderBy(desc(schema.auditEvents.at))
+  .limit(LIMIT);
+---
+
+<AdminLayout title="Activity · admin">
+  <div>
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold tracking-tight truncate">Activity</h1>
+        <p class="mt-1 text-xs text-light-fourth">
+          Append-only log of every admin mutation. Auto-truncated to last 200
+          events.
+        </p>
+      </div>
+    </header>
+
+    <ActivityFilters
+      action={actionFilter}
+      resource={resourceFilter}
+      actions={[...ACTIONS]}
+      resources={[...RESOURCES]}
+      client:load
+    />
+
+    <ul
+      class="mt-4 divide-y divide-white/[0.04] ring-1 ring-white/[0.06] rounded-xl overflow-hidden bg-zinc-950"
+    >
+      {
+        rows.length === 0 && (
+          <li class="px-4 py-8 text-sm text-light-fourth text-center">
+            No events match.
+          </li>
+        )
+      }
+      {
+        rows.map((r) => (
+          <ActivityRow
+            id={r.id}
+            at={r.at.toISOString()}
+            action={r.action}
+            resource={r.resource}
+            rowId={r.rowId}
+            ip={r.ip}
+            before={r.before ?? null}
+            after={r.after ?? null}
+            client:load
+          />
+        ))
+      }
+    </ul>
+
+    <RestoreScroll storageKey="admin:activity:scroll" client:load />
+  </div>
+</AdminLayout>

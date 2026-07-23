@@ -1,0 +1,80 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import ToolForm from "@/components/admin/ToolForm";
+import { eq } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+import { slugifyAscii } from "@/lib/slugify";
+
+export const prerender = false;
+
+const name = Astro.params.name!;
+
+let [row] = await db
+  .select()
+  .from(schema.tools)
+  .where(eq(schema.tools.name, name))
+  .limit(1);
+
+// Legacy rows have raw names with quote/space/non-ascii chars that don't
+// survive URL round-tripping cleanly. The list page links via slugifyAscii;
+// fall back to a slug-equality scan so those rows still resolve.
+if (!row) {
+  const all = await db.select().from(schema.tools);
+  row =
+    all.find((r) => slugifyAscii(r.name) === name) ||
+    all.find((r) => slugifyAscii(r.name) === slugifyAscii(name)) ||
+    (undefined as never);
+}
+
+if (!row) {
+  return new Response("Not found", { status: 404 });
+}
+---
+
+<AdminLayout title={`${row.brand} ${row.what} · admin`}>
+  <div>
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <a
+            href="/admin/tools"
+            aria-label="Back"
+            class="inline-flex items-center justify-center w-7 h-7 rounded-md ring-1 ring-white/[0.08] text-light-secondary hover:text-white hover:ring-white/20 transition-colors shrink-0"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+          </a>
+          <h1 class="text-xl font-semibold tracking-tight truncate">
+            {row.brand} {row.what}
+          </h1>
+        </div>
+        <p class="mt-1 text-xs text-light-fourth">{row.name}</p>
+      </div>
+    </header>
+    <ToolForm
+      mode="edit"
+      initial={{
+        name: row.name,
+        brand: row.brand,
+        what: row.what,
+        category: row.category,
+        order: row.order,
+        comment: row.comment,
+        favorite: row.favorite,
+        link: row.link || "",
+        icon: row.icon || "",
+      }}
+      client:load
+    />
+  </div>
+</AdminLayout>

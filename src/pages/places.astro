@@ -1,0 +1,26 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import PlacesSection from "@/components/PlacesSection";
+import { getPlaces, getPlaceLists } from "@/lib/content";
+
+export const prerender = false;
+const [places, lists] = await Promise.all([getPlaces(), getPlaceLists()]);
+---
+
+<PageLayout
+  title="Places | Furkan Ünsalan"
+  description="A self-owned map of places I've curated — no Google data dependencies at runtime."
+>
+  <div class="mt-24 mb-16 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
+    {
+      places.length === 0 ? (
+        <div class="rounded-xl ring-1 ring-white/[0.06] bg-zinc-950 p-6 text-sm text-light-fourth">
+          No places yet. Add one in{" "}
+          <code class="text-accent-primary">/admin/places/new</code>.
+        </div>
+      ) : (
+        <PlacesSection places={places} lists={lists} client:only="react" />
+      )
+    }
+  </div>
+</PageLayout>

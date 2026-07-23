@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/_compat";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
 

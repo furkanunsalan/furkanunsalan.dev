@@ -1,0 +1,42 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { sql } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { COLLECTION_LIST } from "@/lib/backup-collections";
+import BackupTools, {
+  type CollectionCount,
+} from "@/components/admin/BackupTools";
+
+export const prerender = false;
+
+const counts: CollectionCount[] = await Promise.all(
+  COLLECTION_LIST.map(async (c) => {
+    try {
+      const rows = await db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(c.table);
+      return { short: c.short, count: rows[0]?.n ?? 0, pk: c.pk };
+    } catch {
+      return { short: c.short, count: 0, pk: c.pk };
+    }
+  }),
+);
+---
+
+<AdminLayout title="Backup / Restore · admin">
+  <div>
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <h1 class="text-xl font-semibold tracking-tight truncate">
+            Backup / Restore
+          </h1>
+        </div>
+        <p class="mt-1 text-xs text-light-fourth">
+          Export any collection as JSON or CSV. Import JSON with dry-run diff.
+        </p>
+      </div>
+    </header>
+    <BackupTools rows={counts} client:load />
+  </div>
+</AdminLayout>

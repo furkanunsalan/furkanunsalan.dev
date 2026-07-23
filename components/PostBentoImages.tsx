@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import { Image } from "@/components/_compat";
 import SmartImage from "@/components/SmartImage";
 
 type ImgChild = { src: string; alt?: string };

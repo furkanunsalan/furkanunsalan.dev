@@ -1,4 +1,3 @@
-import "server-only";
 import Markdoc from "@markdoc/markdoc";
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
@@ -121,6 +120,47 @@ export const getPostMetaBySlug = cachedReader(
   null,
 );
 
+// Raw markdown + metadata for the post-detail page. The Markdoc pipeline runs
+// client-side (see components/PostBody.tsx), so this returns a serializable
+// row and stays cached — unlike getPostBySlug which returns an AST node. No
+// draft filter: a direct slug hit is viewable even while draft (mirrors
+// getPostBySlug).
+export type PostContent = {
+  slug: string;
+  title: string;
+  date: string;
+  tags: string[];
+  banner?: string;
+  excerpt?: string;
+  content: string;
+};
+
+async function getPostContentBySlugQuery(
+  slug: string,
+): Promise<PostContent | null> {
+  const [r] = await db
+    .select()
+    .from(schema.posts)
+    .where(and(eq(schema.posts.slug, slug), isNull(schema.posts.deletedAt)))
+    .limit(1);
+  if (!r) return null;
+  return {
+    slug: r.slug,
+    title: r.title,
+    date: String(r.date),
+    tags: r.tags,
+    banner: bannerUrl(r.slug, r.banner),
+    excerpt: r.excerpt || undefined,
+    content: r.content || "",
+  };
+}
+export const getPostContentBySlug = cachedReader(
+  ["getPostContentBySlug"],
+  ["posts"],
+  getPostContentBySlugQuery,
+  null,
+);
+
 // ---- experiences ------------------------------------------------------
 
 async function getExperiencesQuery(): Promise<Experience[]> {
@@ -229,6 +269,37 @@ export async function getCustomProjectBySlug(slug: string) {
     node,
   };
 }
+
+// Serializable twin of getCustomProjectBySlug: returns the raw Markdoc content
+// string (not a parsed AST node) plus the same metadata, so it can be cached and
+// handed to a client island that parses/renders the body in the browser.
+async function getCustomProjectContentBySlugQuery(slug: string) {
+  const [r] = await db
+    .select()
+    .from(schema.projects)
+    .where(
+      and(eq(schema.projects.slug, slug), isNull(schema.projects.deletedAt)),
+    )
+    .limit(1);
+  if (!r) return null;
+  return {
+    slug: r.slug,
+    name: r.name,
+    description: r.description,
+    metric: r.metric,
+    link: r.link,
+    language: r.language || undefined,
+    order: r.order,
+    image: projectImageUrl(r.image),
+    content: r.content || "",
+  };
+}
+export const getCustomProjectContentBySlug = cachedReader(
+  ["getCustomProjectContentBySlug"],
+  ["projects"],
+  getCustomProjectContentBySlugQuery,
+  null,
+);
 
 // ---- photos -----------------------------------------------------------
 

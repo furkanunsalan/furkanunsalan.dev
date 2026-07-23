@@ -1,0 +1,13 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import BookmarkGraph from "@/components/BookmarkGraph";
+
+export const prerender = false;
+---
+
+<PageLayout
+  title="Bookmarks | Furkan Ünsalan"
+  description="A graph of my curated bookmarks and the tags that connect them, from around the web."
+>
+  <BookmarkGraph client:only="react" />
+</PageLayout>

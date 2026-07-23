@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/components/_compat";
 import { Menu, X } from "lucide-react";
 import AdminNav from "./AdminNav";
 

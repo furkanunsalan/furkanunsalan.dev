@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/components/_compat";
 import {
   Search,
   FileText,
@@ -14,13 +14,7 @@ import {
 } from "lucide-react";
 
 type Kind =
-  | "post"
-  | "project"
-  | "repo"
-  | "place"
-  | "tool"
-  | "experience"
-  | "thought";
+  "post" | "project" | "repo" | "place" | "tool" | "experience" | "thought";
 
 type SearchItem = {
   kind: Kind;
@@ -142,7 +136,7 @@ export default function CommandPalette() {
   const loadIndex = useCallback(async () => {
     if (itemsRef.current) return;
     try {
-      const res = await fetch("/api/search/index", { cache: "force-cache" });
+      const res = await fetch("/api/search", { cache: "force-cache" });
       if (!res.ok) return;
       const json = await res.json();
       if (json && Array.isArray(json.items)) {

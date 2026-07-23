@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@/components/_compat";
+import { usePathname } from "@/components/_compat";
 import {
   Home,
   PenLine,

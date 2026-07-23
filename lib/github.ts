@@ -65,7 +65,6 @@ export async function getGithubRepos(): Promise<GithubRepo[]> {
   const url = `${GITHUB_API}/users/${githubUser}/repos?per_page=100&type=owner&sort=updated`;
   const res = await fetch(url, {
     headers: authHeaders(),
-    next: { revalidate: 3600 },
   });
   if (!res.ok) throw new Error(`GitHub repos fetch failed: ${res.status}`);
 
@@ -111,7 +110,6 @@ export async function getGithubRepo(name: string): Promise<GithubRepo | null> {
   const url = `${GITHUB_API}/repos/${githubUser}/${name}`;
   const res = await fetch(url, {
     headers: authHeaders(),
-    next: { revalidate: 3600 },
   });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`GitHub repo fetch failed: ${res.status}`);
@@ -146,7 +144,6 @@ export async function getRepoCommitActivity(
     const url = `${GITHUB_API}/repos/${owner}/${name}/stats/commit_activity`;
     const res = await fetch(url, {
       headers: authHeaders(),
-      next: { revalidate: 21600 },
       signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) return [];
@@ -164,7 +161,7 @@ export async function getGithubReadme(
   branch: string,
 ): Promise<string> {
   const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/README.md`;
-  const res = await fetch(url, { next: { revalidate: 3600 } });
+  const res = await fetch(url);
   if (!res.ok) return "";
 
   let markdown = await res.text();
@@ -222,7 +219,6 @@ async function fetchContributionCalendar(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ query, variables: { login } }),
-    next: { revalidate: 3600 },
   });
 
   if (!res.ok)

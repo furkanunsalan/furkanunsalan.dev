@@ -1,0 +1,33 @@
+---
+import Layout from "../layouts/Layout.astro";
+import MainNavbar from "@/components/MainNavbar";
+
+export const prerender = false;
+const routes = [
+  "/",
+  "/experience",
+  "/projects",
+  "/photos",
+  "/bookmarks",
+  "/writing",
+];
+---
+
+<Layout title="404 · Furkan Ünsalan">
+  <div class="flex h-screen items-center justify-center">
+    <div class="stagger flex flex-col items-center">
+      <div
+        class="glitch select-none text-6xl font-thin tracking-[0.2em] sm:text-7xl"
+        data-text="404"
+        aria-label="404"
+      >
+        <span aria-hidden class="glitch-green" data-text="404"></span>
+        404
+      </div>
+      <div class="text-l mt-6 text-light-secondary/80">
+        This is not the page you are looking for
+      </div>
+      <MainNavbar routes={routes} client:load />
+    </div>
+  </div>
+</Layout>

@@ -1,38 +1,30 @@
-import { revalidatePath, revalidateTag } from "next/cache";
+import { bustTag } from "@/lib/cache";
 
-// Per-collection list of public paths to invalidate on mutation. Keeping this
-// in one place prevents the "I edited a post but the home / RSS still shows
-// the old title" class of bug — forgetting one path was easy when each route
-// had its own copies.
-const COLLECTION_PATHS: Record<string, readonly string[]> = {
-  posts: ["/writing", "/", "/rss.xml"],
-  projects: ["/projects", "/", "/resume"],
-  experiences: ["/experience", "/", "/resume"],
-  tools: ["/", "/api/tools"],
-  places: ["/places"],
-  placeLists: ["/places"],
-  photos: ["/photos"],
-  home: ["/"],
-  github: ["/projects"],
-  thoughts: ["/writing", "/", "/rss.xml"],
-  cv: ["/resume"],
-};
+// Collections whose cached readers (lib/cache.ts) share the collection name as
+// their tag. Admin mutations call revalidateCollection(name) to bust them.
+export type Collection =
+  | "posts"
+  | "projects"
+  | "experiences"
+  | "tools"
+  | "places"
+  | "placeLists"
+  | "photos"
+  | "home"
+  | "github"
+  | "thoughts"
+  | "cv";
 
-// Per-collection optional dynamic-detail path. Only collections with public
-// detail routes (`/writing/[slug]`, `/projects/[slug]`) get one.
-const DETAIL_PATHS: Partial<Record<keyof typeof COLLECTION_PATHS, string>> = {
-  posts: "/writing",
-  projects: "/projects",
+// Some edits ripple across collections (e.g. a post also affects the home feed).
+const RIPPLE: Partial<Record<Collection, Collection[]>> = {
+  posts: ["thoughts"],
+  thoughts: ["posts"],
 };
 
 export function revalidateCollection(
-  collection: keyof typeof COLLECTION_PATHS,
-  slug?: string,
+  collection: Collection,
+  _slug?: string,
 ): void {
-  for (const p of COLLECTION_PATHS[collection]) revalidatePath(p);
-  const detailPrefix = DETAIL_PATHS[collection];
-  if (slug && detailPrefix) revalidatePath(`${detailPrefix}/${slug}`);
-  // Bust the cached data readers (lib/cache.ts) tagged with this collection.
-  // The tag matches the collection key, e.g. revalidateTag("posts").
-  revalidateTag(collection);
+  bustTag(collection);
+  for (const also of RIPPLE[collection] ?? []) bustTag(also);
 }

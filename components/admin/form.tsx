@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/_compat";
 import { X, Plus, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { compressImageFile } from "@/lib/image-compress";
@@ -416,7 +416,6 @@ export function ImageArrayInput({
       {value.map((url, i) => (
         <div key={i} className="flex items-center gap-2">
           {url && (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={url}
               alt=""
@@ -530,7 +529,6 @@ export function ImageInput({
     <div className="space-y-2">
       {value && (
         <div className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={value}
             alt=""

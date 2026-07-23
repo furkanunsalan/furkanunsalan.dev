@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/components/_compat";
+import { useRouter } from "@/components/_compat";
 import React, { useEffect } from "react";
 
 const MainNavbar: React.FC<{ routes: string[] }> = ({ routes }) => {

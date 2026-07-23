@@ -1,0 +1,23 @@
+node_modules
+dist
+.next
+.git
+.github
+.astro
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+terminal
+tests
+# old Next surface — not part of the Astro build
+app
+middleware.ts
+next.config.mjs
+next-env.d.ts
+.vscode
+.idea
+README.md
+CLAUDE.md
+CODEMAP.md

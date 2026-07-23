@@ -1,19 +1,10 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import type { Place } from "@/types";
+import PlacesMapView from "./PlacesMapView";
 
-// Leaflet touches `window` at import time and react-leaflet ships ESM that
-// breaks Next's RSC graph if rendered server-side. Dynamic import with
-// ssr:false keeps the whole map bundle client-only.
-const PlacesMapView = dynamic(() => import("./PlacesMapView"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-[480px] w-full rounded-xl bg-zinc-950 grid place-items-center text-xs text-light-fourth">
-      loading map…
-    </div>
-  ),
-});
+// Leaflet touches `window` at import time, so this whole component is mounted as
+// a `client:only="react"` island in Astro — it never renders on the server.
 
 interface Props {
   places: Place[];

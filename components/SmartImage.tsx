@@ -1,6 +1,6 @@
 "use client";
 
-import Image, { type ImageProps } from "next/image";
+import { Image, type ImageProps } from "@/components/_compat";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 

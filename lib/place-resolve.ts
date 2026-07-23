@@ -1,4 +1,3 @@
-import "server-only";
 import { slugifyAscii } from "@/lib/slugify";
 
 // Mirrors scripts/add-place.mjs: takes a Google Maps URL (short or full),

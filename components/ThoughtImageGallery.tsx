@@ -194,7 +194,6 @@ export default function ThoughtImageGallery({
                   key={`slide-${id}-${i}`}
                   className="flex min-w-full items-center justify-center p-4 sm:p-8"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={src}
                     alt=""

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@/components/_compat";
+import { usePathname } from "@/components/_compat";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import ScrambleText from "@/components/ScrambleText";

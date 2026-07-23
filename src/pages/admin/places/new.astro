@@ -1,0 +1,54 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { asc, sql } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+import NewPlaceClient from "@/components/admin/NewPlaceClient";
+
+export const prerender = false;
+
+const [lists, catRows] = await Promise.all([
+  db
+    .select({ name: schema.placeLists.name, icon: schema.placeLists.icon })
+    .from(schema.placeLists)
+    .orderBy(asc(schema.placeLists.position), asc(schema.placeLists.name)),
+  db
+    .selectDistinct({ category: schema.places.category })
+    .from(schema.places)
+    .where(sql`${schema.places.category} <> ''`)
+    .orderBy(asc(schema.places.category)),
+]);
+const categories = catRows.map((r) => r.category);
+---
+
+<AdminLayout title="New place · admin">
+  <div>
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <a
+            href="/admin/places"
+            aria-label="Back"
+            class="inline-flex items-center justify-center w-7 h-7 rounded-md ring-1 ring-white/[0.08] text-light-secondary hover:text-white hover:ring-white/20 transition-colors shrink-0"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+          </a>
+          <h1 class="text-xl font-semibold tracking-tight truncate">
+            New place
+          </h1>
+        </div>
+      </div>
+    </header>
+    <NewPlaceClient lists={lists} categories={categories} client:load />
+  </div>
+</AdminLayout>

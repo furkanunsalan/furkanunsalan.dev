@@ -1,0 +1,251 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import {
+  getExperiences,
+  getHomeSettings,
+  getLatestThought,
+  getPosts,
+} from "@/lib/content";
+import { BOOKMARK_LISTS, getKarakeepLatestFromLists } from "@/lib/karakeep";
+import { HomeSocialLink } from "@/components/HomeSocialLink";
+import AsciiPortrait from "@/components/AsciiPortrait";
+import GithubCommitHistory from "@/components/GithubCommitHistory";
+import Time from "@/components/Time";
+
+export const prerender = false;
+
+async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    console.error("[index] fetch failed:", e);
+    return fallback;
+  }
+}
+
+const [settings, experiences, posts, thought, bookmark] = await Promise.all([
+  getHomeSettings(),
+  getExperiences(),
+  safe(() => getPosts(), []),
+  safe(() => getLatestThought(), null),
+  safe(() => getKarakeepLatestFromLists(BOOKMARK_LISTS.map((l) => l.id)), null),
+]);
+
+// The admin's manual `order` decides which experience is primary (lowest
+// first), tie-broken by most recent start — that's the "current role".
+const parseDMY = (s: string) => {
+  const [d, m, y] = s.split("/").map(Number);
+  return new Date(y || 0, (m || 1) - 1, d || 1).getTime();
+};
+const current = [...experiences].sort((a, b) => {
+  const oa = a.order ?? 100;
+  const ob = b.order ?? 100;
+  if (oa !== ob) return oa - ob;
+  return parseDMY(b.start_date) - parseDMY(a.start_date);
+})[0];
+
+// Latest writing (post or thought, whichever is newer) → the "note" row.
+const latestPost = [...posts].sort(
+  (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+)[0];
+const noteCandidates: { date: string; title: string; href: string }[] = [];
+if (latestPost) {
+  noteCandidates.push({
+    date: latestPost.date,
+    title: latestPost.title,
+    href: `/writing/${latestPost.slug}`,
+  });
+}
+if (thought) {
+  const preview = thought.body.replace(/\s+/g, " ").trim();
+  noteCandidates.push({
+    date: thought.createdAt,
+    title:
+      preview.length > 60
+        ? `${preview.slice(0, 60)}…`
+        : preview || `Thought #${thought.id}`,
+    href: `/writing#t-${thought.id}`,
+  });
+}
+noteCandidates.sort(
+  (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+);
+const note = noteCandidates[0] ?? null;
+const save = bookmark ? { title: bookmark.title, href: bookmark.link } : null;
+
+// Person JSON-LD (from the committed app/(pages)/page.tsx).
+const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://furkanunsalan.dev";
+const sameAs = settings.socials
+  .map((s) => s.url)
+  .filter((u) => u.startsWith("http"));
+const personLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Furkan Ünsalan",
+  alternateName: "Furkan Unsalan",
+  url: BASE,
+  jobTitle: "Full Stack Developer",
+  homeLocation: { "@type": "Place", name: settings.location },
+  sameAs,
+};
+---
+
+<PageLayout
+  title="Furkan Ünsalan"
+  description="Software Developer | Photography Enthusiast | @Istanbul"
+>
+  <script
+    slot="head"
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify(personLd)}
+  />
+
+  <div
+    class="mt-24 flex w-full max-w-3xl flex-col items-start px-4 text-left mx-auto sm:px-6 lg:px-8"
+  >
+    <div
+      class="mb-8 flex w-full select-none flex-col items-start gap-6 sm:flex-row sm:gap-8"
+    >
+      <AsciiPortrait className="animate-fade-in" client:load />
+
+      <div
+        class="min-w-0 flex-1 animate-fade-in-down font-mono text-[11px] leading-relaxed sm:text-xs"
+      >
+        <dl class="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5">
+          {
+            current && (
+              <>
+                <dt class="text-light-fourth/60">role</dt>
+                <dd class="min-w-0 text-light-secondary">
+                  <a
+                    href="/experience"
+                    class="text-light-secondary hover:text-accent-primary transition-colors duration-200"
+                  >
+                    {`${current.title} @ ${current.organization}`}
+                  </a>
+                </dd>
+              </>
+            )
+          }
+
+          <dt class="text-light-fourth/60">based</dt>
+          <dd class="min-w-0 text-light-secondary">
+            <span class="whitespace-nowrap">
+              {settings.location}
+              <span class="text-light-fourth/50"> · </span>
+              <span class="text-light-third tabular-nums [&>div]:inline">
+                <Time
+                  location={settings.timezone}
+                  shortName={settings.timezoneLabel}
+                  client:load
+                />
+              </span>
+            </span>
+          </dd>
+
+          <dt class="text-light-fourth/60">focus</dt>
+          <dd class="min-w-0 text-light-secondary">{settings.focus}</dd>
+
+          <dt class="text-light-fourth/60">watching</dt>
+          <dd class="min-w-0 text-light-secondary">{settings.watching}</dd>
+
+          {
+            note && (
+              <>
+                <dt class="text-light-fourth/60">note</dt>
+                <dd class="min-w-0 text-light-secondary">
+                  <a
+                    href={note.href}
+                    class="block truncate text-light-third hover:text-accent-primary transition-colors duration-200"
+                    title={note.title}
+                  >
+                    {note.title}
+                  </a>
+                </dd>
+              </>
+            )
+          }
+
+          {
+            save && (
+              <>
+                <dt class="text-light-fourth/60">save</dt>
+                <dd class="min-w-0 text-light-secondary">
+                  <a
+                    href={save.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="block truncate text-light-third hover:text-accent-primary transition-colors duration-200"
+                    title={save.title}
+                  >
+                    {save.title}
+                  </a>
+                </dd>
+              </>
+            )
+          }
+
+          <dt class="text-light-fourth/60">gadgets</dt>
+          <dd class="min-w-0 text-light-secondary">
+            <a
+              href="/gadgets"
+              class="group inline-flex items-center gap-1 text-light-third transition-colors duration-200 hover:text-accent-primary"
+            >
+              the gear I use daily
+              <span
+                class="transition-transform duration-200 group-hover:translate-x-0.5"
+              >
+                →
+              </span>
+            </a>
+          </dd>
+
+          {
+            settings.pgpId && (
+              <>
+                <dt class="text-light-fourth/60">pgp</dt>
+                <dd class="min-w-0 text-light-secondary">
+                  <a
+                    href="/pgp.asc"
+                    class="text-light-third hover:text-accent-primary transition-colors duration-200"
+                    title="Download PGP public key"
+                  >
+                    {settings.pgpId}
+                  </a>
+                </dd>
+              </>
+            )
+          }
+
+          {
+            settings.socials.length > 0 && (
+              <>
+                <dt class="text-light-fourth/60">social</dt>
+                <dd class="min-w-0 text-light-secondary">
+                  <div class="flex flex-wrap items-center gap-3 stagger">
+                    {settings.socials.map((s) => (
+                      <HomeSocialLink social={s} />
+                    ))}
+                  </div>
+                </dd>
+              </>
+            )
+          }
+        </dl>
+      </div>
+    </div>
+
+    {/* On mobile the graph sits above the intro text; on sm+ the text comes first. */}
+    <div class="flex w-full flex-col gap-8 pb-16">
+      <p
+        class="order-2 text-base text-justify animate-fade-in-up delay-200 whitespace-pre-line sm:order-1"
+      >
+        {settings.intro}
+      </p>
+      <section class="order-1 w-full animate-fade-in-up delay-300 sm:order-2">
+        <GithubCommitHistory client:load />
+      </section>
+    </div>
+  </div>
+</PageLayout>

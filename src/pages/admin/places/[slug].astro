@@ -1,0 +1,86 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { asc, eq, sql } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+import PlaceForm from "@/components/admin/PlaceForm";
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+const [[row], lists, catRows] = await Promise.all([
+  db
+    .select()
+    .from(schema.places)
+    .where(eq(schema.places.slug, slug ?? ""))
+    .limit(1),
+  db
+    .select({ name: schema.placeLists.name, icon: schema.placeLists.icon })
+    .from(schema.placeLists)
+    .orderBy(asc(schema.placeLists.position), asc(schema.placeLists.name)),
+  db
+    .selectDistinct({ category: schema.places.category })
+    .from(schema.places)
+    .where(sql`${schema.places.category} <> ''`)
+    .orderBy(asc(schema.places.category)),
+]);
+if (!row) return Astro.redirect("/404");
+const categories = catRows.map((r) => r.category);
+
+const initial = {
+  slug: row.slug,
+  name: row.name,
+  lat: row.lat,
+  lng: row.lng,
+  address: row.address,
+  list: row.list,
+  category: row.category,
+  city: row.city,
+  country: row.country,
+  status: row.status,
+  sourceUrl: row.sourceUrl || "",
+  notes: row.notes,
+  tags: row.tags,
+  addedAt: row.addedAt ? row.addedAt.toISOString() : "",
+};
+---
+
+<AdminLayout title={`${row.name} · admin`}>
+  <div>
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <a
+            href="/admin/places"
+            aria-label="Back"
+            class="inline-flex items-center justify-center w-7 h-7 rounded-md ring-1 ring-white/[0.08] text-light-secondary hover:text-white hover:ring-white/20 transition-colors shrink-0"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+          </a>
+          <h1 class="text-xl font-semibold tracking-tight truncate">
+            {row.name}
+          </h1>
+        </div>
+        <p class="mt-1 text-xs text-light-fourth">/places — {row.slug}</p>
+      </div>
+    </header>
+    <PlaceForm
+      mode="edit"
+      lists={lists}
+      categories={categories}
+      initial={initial}
+      client:load
+    />
+  </div>
+</AdminLayout>

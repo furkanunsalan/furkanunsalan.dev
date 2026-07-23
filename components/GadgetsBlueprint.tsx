@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/components/_compat";
 import type { Tool as Gadget } from "@/types";
 import { Star, ArrowUpRight } from "lucide-react";
 import GadgetGlyph from "@/components/GadgetGlyph";

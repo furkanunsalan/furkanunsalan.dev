@@ -1,5 +1,11 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
+
+function jsonError(error: string, status: number): Response {
+  return new Response(JSON.stringify({ error }), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
+}
 
 // Validate a JSON request body against a zod schema at the API boundary.
 // Returns { data } on success, or { response } — a 400 naming the first bad
@@ -11,14 +17,12 @@ import { z } from "zod";
 export async function readJson<S extends z.ZodType>(
   req: Request,
   schema: S,
-): Promise<{ data: z.infer<S> } | { response: NextResponse }> {
+): Promise<{ data: z.infer<S> } | { response: Response }> {
   let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return {
-      response: NextResponse.json({ error: "bad json" }, { status: 400 }),
-    };
+    return { response: jsonError("bad json", 400) };
   }
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -27,7 +31,7 @@ export async function readJson<S extends z.ZodType>(
     const msg = where
       ? `${where}: ${issue.message}`
       : issue?.message || "invalid input";
-    return { response: NextResponse.json({ error: msg }, { status: 400 }) };
+    return { response: jsonError(msg, 400) };
   }
   return { data: parsed.data };
 }

@@ -1,0 +1,7 @@
+node_modules
+dist
+.next
+.astro
+.uploads
+package-lock.json
+db/migrations

@@ -1,4 +1,3 @@
-import "server-only";
 import { db, schema } from "@/lib/db";
 
 // Directories the upload route allows. Mirrored from lib/uploads.ts; kept in
@@ -25,12 +24,7 @@ export const REF_COLLECTIONS = [
 export type RefCollection = (typeof REF_COLLECTIONS)[number];
 
 export type RefField =
-  | "content"
-  | "banner"
-  | "image"
-  | "images"
-  | "logo"
-  | "body";
+  "content" | "banner" | "image" | "images" | "logo" | "body";
 
 // Reference-extraction regex. Anchored to /api/img/<dir>/<filename> so we
 // don't accidentally match a stray substring. Filenames are restricted to

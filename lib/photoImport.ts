@@ -1,4 +1,3 @@
-import "server-only";
 import sharp from "sharp";
 import exifr from "exifr";
 import { randomBytes } from "node:crypto";

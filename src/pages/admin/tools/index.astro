@@ -1,0 +1,56 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import RestoreScroll from "@/components/admin/RestoreScroll";
+import ToolsAdminTabs from "@/components/admin/ToolsAdminTabs";
+import { asc, isNull } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+
+export const prerender = false;
+
+const rows = await db
+  .select()
+  .from(schema.tools)
+  .where(isNull(schema.tools.deletedAt))
+  .orderBy(asc(schema.tools.name));
+
+const items = rows.map((r) => ({
+  name: r.name,
+  brand: r.brand,
+  what: r.what,
+  category: r.category,
+  favorite: r.favorite,
+}));
+---
+
+<AdminLayout title="Tools · admin">
+  <div>
+    <RestoreScroll storageKey="admin:tools:scroll" client:load />
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <h1 class="text-xl font-semibold tracking-tight truncate">Tools</h1>
+        </div>
+        <p class="mt-1 text-xs text-light-fourth">{rows.length} entries.</p>
+      </div>
+      <a
+        href="/admin/tools/new"
+        class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs bg-accent-primary/15 text-accent-primary ring-1 ring-accent-primary/40 hover:bg-accent-primary/25 transition-colors"
+      >
+        <svg
+          class="w-3.5 h-3.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 12h14"></path>
+          <path d="M12 5v14"></path>
+        </svg>
+        New tool
+      </a>
+    </header>
+    <ToolsAdminTabs rows={items} client:load />
+  </div>
+</AdminLayout>

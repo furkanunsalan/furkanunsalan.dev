@@ -1,0 +1,24 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import RestoreScroll from "@/components/admin/RestoreScroll";
+import UploadsLibrary from "@/components/admin/UploadsLibrary";
+
+export const prerender = false;
+---
+
+<AdminLayout title="Uploads · admin">
+  <div>
+    <RestoreScroll storageKey="admin:uploads:scroll" client:load />
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <h1 class="text-xl font-semibold tracking-tight truncate">Uploads</h1>
+        <p class="mt-1 text-xs text-light-fourth">
+          Files in UPLOADS_DIR, grouped by collection. Each card shows the
+          content rows referencing it; the Orphans tab lists files that the sweep
+          would delete.
+        </p>
+      </div>
+    </header>
+    <UploadsLibrary client:load />
+  </div>
+</AdminLayout>

@@ -1,0 +1,17 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import Photos from "@/components/Photos";
+import { getPhotos } from "@/lib/content";
+
+export const prerender = false;
+const photos = await getPhotos();
+---
+
+<PageLayout
+  title="Photos | Furkan Ünsalan"
+  description="A collection of moments and scenes I've captured through my lens."
+>
+  <div class="mt-24">
+    <Photos data={photos} client:load />
+  </div>
+</PageLayout>

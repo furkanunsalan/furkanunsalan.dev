@@ -1,0 +1,62 @@
+---
+import Layout from "./Layout.astro";
+import AdminNav from "@/components/AdminNav";
+import AdminMobileNav from "@/components/AdminMobileNav";
+import LogoutButton from "@/components/LogoutButton";
+import ViewLink from "@/components/admin/ViewLink";
+
+interface Props {
+  title?: string;
+}
+const { title = "Admin · furkanunsalan.dev" } = Astro.props;
+---
+
+<Layout title={title} noindex={true}>
+  <div class="min-h-screen bg-black text-white">
+    <header
+      class="sticky top-0 z-20 border-b border-white/[0.06] bg-black/80 backdrop-blur"
+    >
+      <div
+        class="mx-auto flex h-12 max-w-6xl items-center justify-center gap-2 px-4 sm:px-6 md:justify-between"
+      >
+        <span class="hidden text-sm font-semibold tracking-tight md:inline">
+          furkanunsalan.dev
+        </span>
+        <div class="flex items-center gap-2">
+          <a
+            href="/"
+            class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-white/10 bg-white/[0.03] px-2.5 py-1 text-xs text-light-secondary transition-colors hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+          </a>
+          <ViewLink client:load />
+          <LogoutButton client:load />
+          <AdminMobileNav client:load />
+        </div>
+      </div>
+    </header>
+
+    <div
+      class="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:grid md:grid-cols-[200px_1fr] md:gap-6"
+    >
+      <aside class="hidden md:sticky md:top-16 md:block md:self-start">
+        <AdminNav client:load />
+      </aside>
+      <main class="min-w-0"><slot /></main>
+    </div>
+  </div>
+</Layout>

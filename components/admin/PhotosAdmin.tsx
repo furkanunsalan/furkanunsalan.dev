@@ -149,7 +149,6 @@ export default function PhotosAdmin({ initial }: { initial: PhotoRow[] }) {
                     backgroundColor: p.color,
                   }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/api/img/photos/thumb/${p.id}.webp`}
                     alt={p.alt}
@@ -305,7 +304,6 @@ function EditModal({
 
         <div className="grid gap-4 sm:grid-cols-[160px_1fr]">
           <div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/img/photos/thumb/${photo.id}.webp`}
               alt={photo.alt}

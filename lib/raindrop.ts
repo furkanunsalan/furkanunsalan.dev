@@ -85,7 +85,6 @@ export async function getRaindropLatest(): Promise<RaindropBookmark | null> {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    next: { revalidate: 1800 },
   });
 
   if (!response.ok) return null;

@@ -1,0 +1,206 @@
+"use client";
+
+import React, { useMemo } from "react";
+import Markdoc, { Config, Schema, Tag } from "@markdoc/markdoc";
+import TableOfContents, { type Heading } from "@/components/TableOfContents";
+import PostBentoImages from "@/components/PostBentoImages";
+import Mermaid from "@/components/Mermaid";
+
+// Astro can't hydrate React islands nested inside a server-rendered Markdoc
+// React tree, so the whole pipeline runs client-side from the raw markdown
+// string. This is a straight port of app/(pages)/writing/[slug]/page.tsx —
+// buildMarkdocConfig, collapseImageRuns, the fence->Mermaid + image-bento +
+// heading-id logic, and the renderers.react components map.
+
+function nodeText(node: any): string {
+  if (!node) return "";
+  if (typeof node === "string") return node;
+  if (Array.isArray(node)) return node.map(nodeText).join(" ");
+  if (node.type === "text") return String(node.attributes?.content ?? "");
+  return nodeText(node.children);
+}
+
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+function extractHeadings(node: any): Heading[] {
+  const items: Heading[] = [];
+  const seen = new Map<string, number>();
+  const walk = (n: any) => {
+    if (!n) return;
+    if (n.type === "heading") {
+      const text = nodeText(n).trim();
+      const level = (n.attributes?.level as number) || 1;
+      let id = slugify(text);
+      const count = seen.get(id) || 0;
+      seen.set(id, count + 1);
+      if (count > 0) id = `${id}-${count}`;
+      items.push({ id, text, level });
+    }
+    (n.children || []).forEach(walk);
+  };
+  walk(node);
+  return items;
+}
+
+// Build a fresh Markdoc config per render so heading ids dedup deterministically
+// using the same slug+counter logic as extractHeadings.
+function buildMarkdocConfig(): Config {
+  const seen = new Map<string, number>();
+  const heading: Schema = {
+    children: ["inline"],
+    attributes: {
+      id: { type: String },
+      level: { type: Number, required: true, default: 1 },
+    },
+    transform(node, config) {
+      const attributes = node.transformAttributes(config);
+      const children = node.transformChildren(config);
+      const text = nodeText(node).trim();
+      const base = slugify(text);
+      const count = seen.get(base) || 0;
+      seen.set(base, count + 1);
+      const id = attributes.id || (count > 0 ? `${base}-${count}` : base);
+      return new Tag(`h${attributes.level}`, { ...attributes, id }, children);
+    },
+  };
+  // Image-only paragraphs become a marker Tag we can later collapse into a
+  // bento grid across consecutive paragraphs. A paragraph counts as image-only
+  // when all of its meaningful inline children are images (whitespace is fine).
+  const paragraph: Schema = {
+    children: ["inline"],
+    transform(node, config) {
+      const children = node.transformChildren(config);
+      const meaningful = children.filter(
+        (c) => !(typeof c === "string" && c.trim() === ""),
+      );
+      const allImages =
+        meaningful.length > 0 &&
+        meaningful.every(
+          (c) => typeof c === "object" && (c as Tag).name === "img",
+        );
+      if (allImages) {
+        return new Tag("PostImageRun", {}, meaningful as (Tag | string)[]);
+      }
+      return new Tag("p", {}, children);
+    },
+  };
+  // Fenced code: ```mermaid becomes a <Mermaid> client component; every other
+  // language keeps Markdoc's default <pre data-language> output unchanged.
+  const fence: Schema = {
+    attributes: {
+      content: { type: String, render: false, required: true },
+      language: { type: String, render: "data-language" },
+      process: { type: Boolean, render: false, default: true },
+    },
+    transform(node, config) {
+      const content = String(node.attributes.content ?? "");
+      if ((node.attributes.language as string) === "mermaid") {
+        return new Tag("Mermaid", { chart: content });
+      }
+      const children = node.children.length
+        ? node.transformChildren(config)
+        : [content];
+      return new Tag(
+        "pre",
+        { "data-language": node.attributes.language },
+        children,
+      );
+    },
+  };
+  return { nodes: { heading, paragraph, fence } };
+}
+
+type RenderableNode = Tag | string;
+
+// Merge runs of consecutive PostImageRun tags into a single PostBentoImages
+// tag at the document level. This lets the user split images across separate
+// paragraphs and still get one bento group.
+function collapseImageRuns(node: RenderableNode): RenderableNode {
+  if (typeof node === "string" || !node || typeof node !== "object")
+    return node;
+  const tag = node as Tag;
+  const children = Array.isArray(tag.children) ? tag.children : [];
+  const out: RenderableNode[] = [];
+  let bucket: RenderableNode[] = [];
+  const flush = () => {
+    if (bucket.length === 0) return;
+    out.push(new Tag("PostBentoImages", {}, bucket as Tag["children"]));
+    bucket = [];
+  };
+  for (const child of children) {
+    if (
+      child &&
+      typeof child === "object" &&
+      (child as Tag).name === "PostImageRun"
+    ) {
+      bucket.push(...((child as Tag).children as RenderableNode[]));
+      continue;
+    }
+    flush();
+    out.push(collapseImageRuns(child as RenderableNode));
+  }
+  flush();
+  return new Tag(tag.name, tag.attributes, out as Tag["children"]);
+}
+
+export default function PostBody({ content }: { content: string }) {
+  const { rendered, headings } = useMemo(() => {
+    const node = Markdoc.parse(content || "");
+    const headings = extractHeadings(node);
+    const transformed = Markdoc.transform(node, buildMarkdocConfig());
+    const collapsed = collapseImageRuns(transformed as RenderableNode);
+    const rendered = Markdoc.renderers.react(collapsed as any, React, {
+      components: {
+        Mermaid: ({ chart }: { chart?: string }) => (
+          <Mermaid chart={chart ?? ""} />
+        ),
+        PostBentoImages: ({ children }: { children?: React.ReactNode }) => {
+          const arr = React.Children.toArray(children) as any[];
+          const images = arr
+            .map((el) => {
+              const props = (el && el.props) || {};
+              const src = props.src as string | undefined;
+              if (!src) return null;
+              return { src, alt: (props.alt as string) || "" };
+            })
+            .filter((x): x is { src: string; alt: string } => !!x);
+          if (images.length === 0) return null;
+          return <PostBentoImages images={images} />;
+        },
+      },
+    });
+    return { rendered, headings };
+  }, [content]);
+
+  return (
+    <div className="lg:grid lg:grid-cols-[1fr_220px] lg:gap-12">
+      <article className="min-w-0">
+        <div
+          className="prose prose-invert max-w-none animate-fade-in delay-150
+          prose-a:text-accent-primary prose-a:transition-colors prose-a:duration-200
+          prose-blockquote:border-l-accent-primary
+          prose-code:text-accent-primary
+          prose-headings:font-bold
+          prose-headings:text-white
+          prose-headings:scroll-mt-24
+          text-light-secondary/90"
+        >
+          {rendered}
+        </div>
+      </article>
+
+      <aside className="hidden lg:block animate-slide-in-right delay-200">
+        <TableOfContents headings={headings} />
+      </aside>
+    </div>
+  );
+}

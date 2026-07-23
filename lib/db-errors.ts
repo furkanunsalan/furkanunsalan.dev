@@ -1,5 +1,3 @@
-import "server-only";
-
 // Drizzle wraps the real PostgresError in `cause`. The user-facing `.message`
 // on the outer error is the SQL + params, which is useless to the user and
 // dangerous to leak. Pull out the PG error code + message instead.

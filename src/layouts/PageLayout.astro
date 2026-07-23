@@ -1,0 +1,25 @@
+---
+import Layout from "./Layout.astro";
+import SiteNav from "@/components/SiteNav";
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+  image?: string;
+  ogType?: "website" | "article";
+}
+const { title, description, noindex, image, ogType } = Astro.props;
+---
+
+<Layout
+  title={title}
+  description={description}
+  noindex={noindex}
+  image={image}
+  ogType={ogType}
+>
+  <slot name="head" slot="head" />
+  <SiteNav client:load />
+  <slot />
+</Layout>

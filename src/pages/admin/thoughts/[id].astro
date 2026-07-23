@@ -1,0 +1,44 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import ThoughtForm from "@/components/admin/ThoughtForm";
+import { eq } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+
+export const prerender = false;
+
+const id = Number(Astro.params.id);
+if (!Number.isInteger(id) || id <= 0) {
+  return new Response("Not found", { status: 404 });
+}
+const [row] = await db
+  .select()
+  .from(schema.thoughts)
+  .where(eq(schema.thoughts.id, id))
+  .limit(1);
+if (!row) {
+  return new Response("Not found", { status: 404 });
+}
+
+const preview = (row.body || "").replace(/\s+/g, " ").trim().slice(0, 60);
+const chrome = {
+  title: preview || `Thought #${row.id}`,
+  description: `#t-${row.id} · ${row.createdAt.toISOString().slice(0, 10)}`,
+  back: { href: "/admin/thoughts" },
+};
+const initial = {
+  body: row.body || "",
+  images: row.images || [],
+  tags: row.tags || [],
+  draft: row.draft,
+};
+---
+
+<AdminLayout title={`${chrome.title} · admin`}>
+  <ThoughtForm
+    id={row.id}
+    mode="edit"
+    chrome={chrome}
+    initial={initial}
+    client:load
+  />
+</AdminLayout>

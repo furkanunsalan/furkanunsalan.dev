@@ -535,7 +535,6 @@ export default function BookmarkGraph() {
           {hover.kind === "bookmark" ? (
             <>
               {hover.cover && (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={hover.cover}
                   alt=""

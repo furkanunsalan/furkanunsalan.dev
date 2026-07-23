@@ -1,0 +1,45 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import HomeSettingsForm, {
+  type Social,
+} from "@/components/admin/HomeSettingsForm";
+import { db, schema } from "@/lib/db";
+import { eq } from "drizzle-orm";
+
+export const prerender = false;
+
+const [row] = await db
+  .select()
+  .from(schema.homeSettings)
+  .where(eq(schema.homeSettings.id, 1))
+  .limit(1);
+
+const initial = {
+  intro: row?.intro || "",
+  location: row?.location || "",
+  focus: row?.focus || "",
+  watching: row?.watching || "",
+  timezone: row?.timezone || "Europe/Istanbul",
+  timezoneLabel: row?.timezoneLabel || "IST",
+  pgpId: row?.pgpId || "",
+  socials: (row?.socials as Social[] | undefined) || [],
+};
+---
+
+<AdminLayout title="Home page · admin">
+  <div>
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <h1 class="text-xl font-semibold tracking-tight truncate">
+            Home page
+          </h1>
+        </div>
+        <p class="mt-1 text-xs text-light-fourth">
+          Intro, socials, timezone, PGP key — drives /.
+        </p>
+      </div>
+    </header>
+    <HomeSettingsForm initial={initial} client:load />
+  </div>
+</AdminLayout>

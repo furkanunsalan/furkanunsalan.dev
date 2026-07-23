@@ -1,0 +1,19 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import LoginIsland from "@/components/admin/LoginIsland";
+
+export const prerender = false;
+const next = new URL(Astro.request.url).searchParams.get("next") ?? undefined;
+---
+
+<Layout title="Sign in · admin" noindex={true}>
+  <div class="flex min-h-screen items-center justify-center bg-black px-4 text-white">
+    <div class="w-full max-w-sm">
+      <header class="mb-6 text-center">
+        <h1 class="text-xl font-semibold tracking-tight">Admin</h1>
+        <p class="mt-1 text-xs text-light-fourth">Sign in to manage content</p>
+      </header>
+      <LoginIsland next={next} client:load />
+    </div>
+  </div>
+</Layout>

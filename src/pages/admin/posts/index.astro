@@ -1,0 +1,115 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import RestoreScroll from "@/components/admin/RestoreScroll";
+import { desc, isNull } from "drizzle-orm";
+import { db, schema } from "@/lib/db";
+
+export const prerender = false;
+
+const rows = await db
+  .select()
+  .from(schema.posts)
+  .where(isNull(schema.posts.deletedAt))
+  .orderBy(desc(schema.posts.date));
+---
+
+<AdminLayout title="Posts · admin">
+  <div>
+    <RestoreScroll storageKey="admin:posts:scroll" client:load />
+
+    <header class="mb-6 flex items-end justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <h1 class="text-xl font-semibold tracking-tight truncate">Posts</h1>
+        </div>
+        <p class="mt-1 text-xs text-light-fourth">{rows.length} entries.</p>
+      </div>
+      <a
+        href="/admin/posts/new"
+        class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs bg-accent-primary/15 text-accent-primary ring-1 ring-accent-primary/40 hover:bg-accent-primary/25 transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-3.5 h-3.5"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M5 12h14"></path>
+          <path d="M12 5v14"></path>
+        </svg>
+        New post
+      </a>
+    </header>
+
+    <ul
+      class="divide-y divide-white/[0.04] ring-1 ring-white/[0.06] rounded-xl overflow-hidden bg-zinc-950"
+    >
+      {
+        rows.length === 0 && (
+          <li class="px-4 py-6 text-sm text-light-fourth text-center">
+            No posts yet.
+          </li>
+        )
+      }
+      {
+        rows.map((p) => (
+          <li>
+            <a
+              href={`/admin/posts/${encodeURIComponent(p.slug)}`}
+              class="block px-4 py-3 hover:bg-white/[0.03] transition-colors"
+            >
+              <div class="flex items-center gap-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-4 h-4 text-light-fourth shrink-0"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
+                <div class="min-w-0 flex-1">
+                  <div class="text-sm text-white truncate flex items-center gap-2">
+                    <span class="truncate">{p.title}</span>
+                    {p.draft && (
+                      <span class="shrink-0 inline-flex items-center rounded-full px-2 py-[3px] text-[10px] leading-none uppercase tracking-wider ring-1 ring-amber-400/40 bg-amber-400/10 text-amber-300">
+                        draft
+                      </span>
+                    )}
+                  </div>
+                  <div class="text-xs text-light-fourth truncate">{p.slug}</div>
+                </div>
+                <div class="shrink-0 flex flex-col items-end gap-1 max-w-[55%]">
+                  <time class="text-xs text-light-fourth tabular-nums">
+                    {String(p.date)}
+                  </time>
+                  {p.tags.length > 0 && (
+                    <div class="flex flex-wrap justify-end gap-1">
+                      {p.tags.slice(0, 6).map((t) => (
+                        <span class="rounded-full px-2 py-0.5 text-[10px] ring-1 ring-white/[0.06] text-light-fourth">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</AdminLayout>
