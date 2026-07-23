@@ -16,17 +16,25 @@ services:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: "3000"
-      # Reach the prod db (published on the host at 127.0.0.1:5432) via the
-      # host gateway, since this is a separate compose project/network.
-      DATABASE_URL: postgres://fu_app:${PG_PASSWORD}@host.docker.internal:5432/furkanunsalan
+      # Reach the prod db by service name over the prod compose network (joined
+      # below). The prod db is published only on 127.0.0.1, so a host-gateway
+      # route can't reach it — the shared network can.
+      DATABASE_URL: postgres://fu_app:${PG_PASSWORD}@db:5432/furkanunsalan
       UPLOADS_DIR: /uploads
       NEXT_PUBLIC_SITE_URL: https://preview.furkanunsalan.dev
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     volumes:
       - uploads:/uploads
+    networks:
+      - default
+      - prod
     ports:
       - "127.0.0.1:3013:3000"
+
+networks:
+  # The prod stack's network, so `db` resolves here without publishing it wider.
+  prod:
+    external: true
+    name: furkanunsalandev_default
 
 volumes:
   # Share the exact prod uploads volume so preview serves the same images.
