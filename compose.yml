@@ -5,7 +5,7 @@
 # Data migration: this defines a FRESH `db` volume. To carry over the current
 # data, restore a dump into it once:
 #   docker compose up -d db
-#   docker compose exec -T db pg_restore -U furkan -d furkanunsalan --clean --if-exists < latest.dump
+#   docker compose exec -T db pg_restore -U fu_app -d furkanunsalan --clean --if-exists < latest.dump
 # then run migrations from the app (or `npm run db:migrate` against the exposed port).
 #
 # Secrets come from a sibling `.env` file (see .env.example). Never commit it.
@@ -19,7 +19,7 @@ services:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: "3000"
-      DATABASE_URL: postgres://furkan:${PG_PASSWORD}@db:5432/furkanunsalan
+      DATABASE_URL: postgres://fu_app:${PG_PASSWORD}@db:5432/furkanunsalan
       ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET}
       ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
       UPLOADS_DIR: /uploads
@@ -44,7 +44,7 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: furkan
+      POSTGRES_USER: fu_app
       POSTGRES_PASSWORD: ${PG_PASSWORD}
       POSTGRES_DB: furkanunsalan
     volumes:
@@ -56,7 +56,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U furkan -d furkanunsalan"]
+      test: ["CMD-SHELL", "pg_isready -U fu_app -d furkanunsalan"]
       interval: 10s
       timeout: 5s
       retries: 5
