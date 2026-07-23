@@ -86,6 +86,16 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
 
+      - name: Sync compose config to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new "$VPS_USER@$VPS_HOST" "mkdir -p $APP_DIR"
+          rsync -az -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
+            compose.yml compose.preview.yml "$VPS_USER@$VPS_HOST:$APP_DIR/"
+
       - name: Pull & start on VPS (no build)
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
