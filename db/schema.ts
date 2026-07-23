@@ -125,6 +125,7 @@ export const tools = pgTable("tools", {
   brand: text("brand").notNull().default(""),
   what: text("what").notNull().default(""),
   category: toolCategoryEnum("category").notNull().default("tech"),
+  order: integer("order").notNull().default(100),
   comment: text("comment").notNull().default(""),
   favorite: boolean("favorite").notNull().default(false),
   link: text("link"),

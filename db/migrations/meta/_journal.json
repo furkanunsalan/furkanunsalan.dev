@@ -71,6 +71,13 @@
       "when": 1784815859014,
       "tag": "0009_easy_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784824595559,
+      "tag": "0010_sour_dark_phoenix",
+      "breakpoints": true
     }
   ]
 }

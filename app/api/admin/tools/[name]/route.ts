@@ -38,6 +38,7 @@ export async function PATCH(
   if (typeof body.category === "string" && CATS.has(body.category))
     patch.category =
       body.category as (typeof schema.toolCategoryEnum.enumValues)[number];
+  if (typeof body.order === "number") patch.order = body.order;
   if (typeof body.comment === "string") patch.comment = body.comment;
   if (typeof body.favorite === "boolean") patch.favorite = body.favorite;
   if (typeof body.link === "string") patch.link = body.link || null;

@@ -12,6 +12,7 @@ export default function NewToolPage() {
           brand: "",
           what: "",
           category: "tech",
+          order: 100,
           comment: "",
           favorite: false,
           link: "",

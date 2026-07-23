@@ -44,6 +44,7 @@ export default async function EditToolPage({
           brand: row.brand,
           what: row.what,
           category: row.category,
+          order: row.order,
           comment: row.comment,
           favorite: row.favorite,
           link: row.link || "",

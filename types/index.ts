@@ -6,6 +6,7 @@ export type Tool = {
   favorite: boolean;
   what: string;
   category: string;
+  order: number;
   link?: string;
   icon?: string;
 };

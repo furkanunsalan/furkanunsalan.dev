@@ -5,6 +5,7 @@ import { useState } from "react";
 import {
   Field,
   TextInput,
+  NumberInput,
   TextArea,
   Select,
   Toggle,
@@ -17,6 +18,7 @@ export type ToolFormValue = {
   brand: string;
   what: string;
   category: "tech" | "desk" | "other";
+  order: number;
   comment: string;
   favorite: boolean;
   link: string;
@@ -108,7 +110,7 @@ export default function ToolForm({
         </Field>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Field
           label="Name (slug)"
           hint={
@@ -130,6 +132,12 @@ export default function ToolForm({
               { value: "desk", label: "Desk" },
               { value: "other", label: "Other" },
             ]}
+          />
+        </Field>
+        <Field label="Order" hint="Lower = first in its category">
+          <NumberInput
+            value={v.order}
+            onChange={(nv) => upd("order", nv ?? 100)}
           />
         </Field>
       </div>

@@ -57,7 +57,7 @@ export default function GadgetsBlueprint({ gadgets }: { gadgets: Gadget[] }) {
 }
 
 function Plate({ gadget }: { gadget: Gadget }) {
-  const { brand, name, what, comment, favorite, link, icon } = gadget;
+  const { brand, name, what, favorite, link, icon } = gadget;
   const title = [brand, name].filter(Boolean).join(" ");
 
   const inner = (
@@ -82,26 +82,13 @@ function Plate({ gadget }: { gadget: Gadget }) {
         <GadgetGlyph what={what} icon={icon} className="h-12 w-12" />
       </div>
 
-      {/* Fixed footprint: name+type by default, swapped for the note on hover
-          (no height change). */}
-      <div className="relative mt-3 min-h-[3rem]">
-        <div
-          className={`transition-opacity duration-200 ${
-            comment ? "group-hover:opacity-0" : ""
-          }`}
-        >
-          <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-white">
-            {title}
-          </h3>
-          <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-light-fourth">
-            {what}
-          </p>
-        </div>
-        {comment && (
-          <p className="absolute inset-0 line-clamp-3 pr-5 text-[11px] leading-snug text-light-secondary/90 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            {comment}
-          </p>
-        )}
+      <div className="mt-3">
+        <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-white">
+          {title}
+        </h3>
+        <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-light-fourth">
+          {what}
+        </p>
       </div>
     </article>
   );

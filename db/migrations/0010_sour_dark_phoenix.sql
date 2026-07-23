@@ -1,0 +1,1 @@
+ALTER TABLE "tools" ADD COLUMN "order" integer DEFAULT 100 NOT NULL;

@@ -479,13 +479,14 @@ async function getToolsQuery(): Promise<Tool[]> {
     .select()
     .from(schema.tools)
     .where(isNull(schema.tools.deletedAt))
-    .orderBy(asc(schema.tools.name));
+    .orderBy(asc(schema.tools.order), asc(schema.tools.name));
   return rows.map((r, i) => ({
     id: i + 1,
     name: r.name,
     brand: r.brand,
     what: r.what,
     category: r.category,
+    order: r.order,
     comment: r.comment,
     favorite: r.favorite,
     link: r.link ?? undefined,
