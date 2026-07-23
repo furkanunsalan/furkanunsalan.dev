@@ -2,20 +2,17 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [main]
+    branches: [release, develop]
   workflow_dispatch:
 
 concurrency:
-  group: deploy-vps
+  group: deploy-${{ github.ref_name }}
   cancel-in-progress: false
 
-env:
-  APP_DIR: /root/furkanunsalan.dev
-
-# The image is built ON the VPS from the synced source via docker compose, so
-# CI needs no Node toolchain and no registry — just SSH. Runtime secrets live in
-# the VPS-side compose `.env` (PG_PASSWORD, ADMIN_SESSION_SECRET,
-# ADMIN_PASSWORD_HASH, API tokens); this workflow never touches it.
+# release -> furkanunsalan.dev (prod stack, :3010, its own db + terminal)
+# develop -> preview.furkanunsalan.dev (web only, :3013, shares the prod db)
+# The image is built ON the VPS from the synced source; runtime secrets live in
+# the target's compose `.env`, which this workflow never touches.
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -24,6 +21,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Resolve target
+        run: |
+          if [ "${{ github.ref_name }}" = "release" ]; then
+            {
+              echo "APP_DIR=/root/furkanunsalan.dev"
+              echo "COMPOSE=docker compose"
+              echo "HEALTH_PORT=3010"
+            } >> "$GITHUB_ENV"
+          else
+            {
+              echo "APP_DIR=/root/furkanunsalan-preview"
+              echo "COMPOSE=docker compose -f compose.preview.yml"
+              echo "HEALTH_PORT=3013"
+            } >> "$GITHUB_ENV"
+          fi
 
       - name: Setup SSH
         run: |
@@ -39,18 +52,12 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           set -euo pipefail
-          # Ship the Docker build context. --delete keeps the tree clean, but the
-          # VPS's `.env` (compose secrets) and Docker-managed volumes (uploads,
-          # pgdata) are never files under APP_DIR, so they're untouched.
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+            "$VPS_USER@$VPS_HOST" "mkdir -p $APP_DIR"
           rsync -az --delete \
-            --exclude='.git' \
-            --exclude='.env' \
-            --exclude='.env.*' \
-            --exclude='node_modules' \
-            --exclude='dist' \
-            --exclude='.next' \
-            --exclude='.astro' \
-            --exclude='.uploads' \
+            --exclude='.git' --exclude='.env' --exclude='.env.*' \
+            --exclude='node_modules' --exclude='dist' --exclude='.next' \
+            --exclude='.astro' --exclude='.uploads' \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new" \
             ./ "$VPS_USER@$VPS_HOST:$APP_DIR/"
 
@@ -63,9 +70,10 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
             "$VPS_USER@$VPS_HOST" \
             "cd $APP_DIR && \
-              { test -f .env || { echo 'ERROR: $APP_DIR/.env missing (compose secrets) — create it from .env.example'; exit 1; }; } && \
-              docker compose up -d --build && \
-              docker image prune -f"
+              { test -f .env || { echo 'ERROR: $APP_DIR/.env missing (compose secrets)'; exit 1; }; } && \
+              $COMPOSE up -d --build && \
+              docker builder prune -f >/dev/null 2>&1 || true && \
+              docker image prune -f >/dev/null 2>&1 || true"
 
       - name: Health check
         env:
@@ -75,4 +83,4 @@ jobs:
           set -euo pipefail
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
             "$VPS_USER@$VPS_HOST" \
-            "for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3010/api/health && exit 0; sleep 2; done; echo 'health check failed'; cd $APP_DIR && docker compose logs --tail 50 app; exit 1"
+            "for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:${HEALTH_PORT}/api/health && exit 0; sleep 2; done; echo 'health check failed'; cd $APP_DIR && $COMPOSE logs --tail 50 app; exit 1"

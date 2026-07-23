@@ -1,0 +1,35 @@
+# Preview stack for preview.furkanunsalan.dev (develop branch). Web only — it
+# reuses the PROD database and uploads (single source of truth), so it's the
+# develop-branch *code* pointed at production content. Fronted by Caddy on
+# 127.0.0.1:3013. Runs as its own compose project in /root/furkanunsalan-preview.
+name: furkanunsalan-preview
+
+services:
+  app:
+    build: .
+    image: furkanunsalan-web-preview
+    restart: unless-stopped
+    # Same secrets as prod (see .env). $ in values (argon2 hash) is $$-escaped.
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      # Reach the prod db (published on the host at 127.0.0.1:5432) via the
+      # host gateway, since this is a separate compose project/network.
+      DATABASE_URL: postgres://fu_app:${PG_PASSWORD}@host.docker.internal:5432/furkanunsalan
+      UPLOADS_DIR: /uploads
+      NEXT_PUBLIC_SITE_URL: https://preview.furkanunsalan.dev
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - uploads:/uploads
+    ports:
+      - "127.0.0.1:3013:3000"
+
+volumes:
+  # Share the exact prod uploads volume so preview serves the same images.
+  uploads:
+    external: true
+    name: furkanunsalandev_uploads
