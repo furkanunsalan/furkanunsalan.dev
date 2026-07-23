@@ -15,20 +15,21 @@ services:
     build: .
     image: furkanunsalan-web
     restart: unless-stopped
+    # Secrets come from the sibling .env. Compose DOES interpolate env_file
+    # values, so any literal `$` in a value — notably the argon2 hash
+    # (`$argon2id$v=19$...`) — must be written `$$` in .env; compose un-doubles
+    # it back to a single `$` inside the container. A bare `$argon2id` is read as
+    # unset variables and blanked out, yielding a mangled hash (login always fails).
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: "3000"
+      # PG_PASSWORD is alphanumeric, so this interpolation is $-safe.
       DATABASE_URL: postgres://fu_app:${PG_PASSWORD}@db:5432/furkanunsalan
-      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET}
-      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
       UPLOADS_DIR: /uploads
       NEXT_PUBLIC_SITE_URL: ${SITE_URL:-https://furkanunsalan.dev}
-      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
-      GITHUB_TOKEN_WORK: ${GITHUB_TOKEN_WORK:-}
-      GITHUB_USERNAME_WORK: ${GITHUB_USERNAME_WORK:-}
-      KARAKEEP_API_KEY: ${KARAKEEP_API_KEY:-}
-      UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY:-}
     volumes:
       - uploads:/uploads
     depends_on:

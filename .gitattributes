@@ -1,0 +1,6 @@
+# Vendored third-party bundles — keep them out of GitHub's language statistics
+# (the pdf.js worker alone is ~1.3 MB of minified JS and otherwise dominates the
+# repo's language breakdown).
+public/pdf.worker.min.mjs linguist-vendored
+*.min.js linguist-vendored
+*.min.mjs linguist-vendored
