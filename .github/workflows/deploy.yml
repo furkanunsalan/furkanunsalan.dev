@@ -82,10 +82,14 @@ jobs:
       - name: Push app image
         run: docker push "$APP_IMAGE:$TAG"
 
+      # Non-blocking: a flaky Docker Hub base-image pull for the terminal must not
+      # block the app deploy. If it fails, the VPS keeps the previous terminal
+      # image (still in GHCR). Retry once to ride out transient Hub rate limits.
       - name: Build + push terminal image
         if: github.ref_name == 'release'
+        continue-on-error: true
         run: |
-          docker build -t "$TERM_IMAGE:$TAG" ./terminal
+          docker build -t "$TERM_IMAGE:$TAG" ./terminal || { sleep 20; docker build -t "$TERM_IMAGE:$TAG" ./terminal; }
           docker push "$TERM_IMAGE:$TAG"
 
       - name: Setup SSH
