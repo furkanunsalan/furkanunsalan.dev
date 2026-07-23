@@ -50,10 +50,10 @@ services:
       POSTGRES_DB: furkanunsalan
     volumes:
       - pgdata:/var/lib/postgresql/data
-    # Published on localhost only. The app reaches Postgres over the compose
-    # network (db:5432); this host binding is for the terminal twin (systemd,
-    # not in compose) and for `npm run db:migrate` / pg_restore during deploys.
-    # Mirrors the old host-pg exposure so nothing host-side changes.
+    # Published on localhost only. The app + terminal reach Postgres over the
+    # compose network (db:5432); this host binding is for `npm run db:migrate` /
+    # pg_restore during deploys and for the preview stack (host-gateway). Mirrors
+    # the old host-pg exposure so nothing host-side changes.
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
@@ -62,6 +62,31 @@ services:
       timeout: 5s
       retries: 5
 
+  # SSH terminal twin (ssh -p 2222 furkanunsalan.dev). Same content over the
+  # compose network from the same db, so it stays in sync with the site.
+  terminal:
+    build:
+      context: ./terminal
+    image: furkanunsalan-term
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: "2222"
+      HOST_KEY: /hostkey/term_ed25519
+      DATABASE_URL: postgres://fu_app:${PG_PASSWORD}@db:5432/furkanunsalan
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_USERNAME: furkanunsalan
+      RAINDROP_TOKEN: ${RAINDROP_TOKEN:-}
+    volumes:
+      - termkey:/hostkey
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      # Public SSH — this is the terminal visitors connect to.
+      - "2222:2222"
+
 volumes:
   uploads:
   pgdata:
+  termkey:

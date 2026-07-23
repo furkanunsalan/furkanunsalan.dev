@@ -117,9 +117,11 @@ func LoadExperiences(ctx context.Context) ([]Experience, error) {
 		// links lives as jsonb; we read its raw bytes and decode here so the
 		// shape stays in sync with the {label,url} Go struct rather than the
 		// pg-side row format.
+		// Tolerate a malformed links value (e.g. a legacy double-encoded "[]"):
+		// a single bad row must not blank the whole screen — just drop its links.
 		if len(linksRaw) > 0 {
 			if err := json.Unmarshal(linksRaw, &x.Links); err != nil {
-				return nil, fmt.Errorf("experiences links decode (%s): %w", x.ID, err)
+				x.Links = nil
 			}
 		}
 		out = append(out, x)
