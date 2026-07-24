@@ -8,8 +8,9 @@ interface Props {
   noindex?: boolean;
   image?: string;
   ogType?: "website" | "article";
+  navMaxWidth?: string;
 }
-const { title, description, noindex, image, ogType } = Astro.props;
+const { title, description, noindex, image, ogType, navMaxWidth } = Astro.props;
 ---
 
 <Layout
@@ -20,6 +21,6 @@ const { title, description, noindex, image, ogType } = Astro.props;
   ogType={ogType}
 >
   <slot name="head" slot="head" />
-  <SiteNav client:load />
+  <SiteNav maxWidth={navMaxWidth} client:load />
   <slot />
 </Layout>

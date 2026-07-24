@@ -1,6 +1,6 @@
 import { Link } from "@/components/_compat";
 import type { Tool as Gadget } from "@/types";
-import { Star, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import GadgetGlyph from "@/components/GadgetGlyph";
 
 // tech / desk / other → friendlier zone titles for the drawing.
@@ -34,7 +34,7 @@ export default function GadgetsBlueprint({ gadgets }: { gadgets: Gadget[] }) {
           return (
             <section key={zone.key}>
               <div className="mb-5 flex items-center gap-3">
-                <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-accent-primary/80">
+                <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-white/90">
                   {zone.label}
                 </span>
                 <span className="h-px flex-1 bg-gradient-to-r from-white/15 to-transparent" />
@@ -57,7 +57,7 @@ export default function GadgetsBlueprint({ gadgets }: { gadgets: Gadget[] }) {
 }
 
 function Plate({ gadget }: { gadget: Gadget }) {
-  const { brand, name, what, favorite, link, icon } = gadget;
+  const { brand, name, what, link, icon } = gadget;
   const title = [brand, name].filter(Boolean).join(" ");
 
   const inner = (
@@ -68,12 +68,6 @@ function Plate({ gadget }: { gadget: Gadget }) {
       <Tick className="bottom-1.5 left-1.5 border-b border-l" />
       <Tick className="bottom-1.5 right-1.5 border-b border-r" />
 
-      {favorite && (
-        <Star
-          className="absolute right-3 top-3 h-3 w-3 fill-amber-300/80 text-amber-300/80"
-          aria-label="favorite"
-        />
-      )}
       {link && (
         <ArrowUpRight className="absolute bottom-3 right-3 h-3.5 w-3.5 text-light-fourth/50 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent-primary" />
       )}
@@ -86,9 +80,6 @@ function Plate({ gadget }: { gadget: Gadget }) {
         <h3 className="line-clamp-2 text-[13px] font-medium leading-snug text-white">
           {title}
         </h3>
-        <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-light-fourth">
-          {what}
-        </p>
       </div>
     </article>
   );

@@ -64,6 +64,7 @@ const jsonLd = {
   description={post.excerpt || post.title}
   image={`/og/writing/${post.slug}.png`}
   ogType="article"
+  navMaxWidth="max-w-6xl"
 >
   <div class="mt-24 mb-16 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

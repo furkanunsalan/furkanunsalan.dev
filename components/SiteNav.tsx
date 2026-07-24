@@ -24,7 +24,11 @@ const topCls = (active: boolean) =>
     active ? "text-accent-primary" : "text-light-secondary hover:text-white"
   }`;
 
-export default function SiteNav() {
+export default function SiteNav({
+  maxWidth = "max-w-3xl",
+}: {
+  maxWidth?: string;
+}) {
   const pathname = usePathname();
   const [menu, setMenu] = useState<null | "work" | "hobby">(null);
 
@@ -43,7 +47,9 @@ export default function SiteNav() {
       {/* Solid black + fixed: no translucent gray seam, and it stays pinned on
           overscroll instead of floating down over the background. */}
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-dark-primary animate-fade-in-down">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <div
+          className={`mx-auto flex ${maxWidth} items-center justify-between px-4 py-3 sm:px-6 lg:px-8`}
+        >
           <Link href="/" className="shrink-0 text-sm font-semibold text-white">
             <ScrambleText text={SHORT} className="md:hidden" />
             <ScrambleText text={NAME} className="hidden md:inline" />
