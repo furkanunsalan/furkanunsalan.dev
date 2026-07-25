@@ -39,16 +39,16 @@ The server auto-loads `<CONTENT_ROOT>/.env` on boot, but won't override
 anything already in the process env. Production deployments should set these
 through systemd (or whatever runs the binary), not via `.env`.
 
-| Name              | Default             | Used for                                         |
-| ----------------- | ------------------- | ------------------------------------------------ |
-| `HOST`            | `0.0.0.0`           | Bind interface                                   |
-| `PORT`            | `2222`              | Bind port                                        |
-| `HOST_KEY`        | `.ssh/term_ed25519` | Persistent ed25519 host key path                 |
-| `CONTENT_ROOT`    | `.`                 | Path containing the `content/` folder + `.env`   |
-| `GITHUB_TOKEN`    | —                   | GitHub repos view (REST). Required for projects. |
-| `GITHUB_USERNAME` | `furkanunsalan`     | Override the user being queried                  |
-| `KARAKEEP_API_KEY`  | —                 | Bookmarks view. Required for bookmarks.          |
-| `KARAKEEP_API_URL`  | `https://bookmarks.furkanunsalan.dev` | Karakeep instance to query      |
+| Name               | Default                               | Used for                                         |
+| ------------------ | ------------------------------------- | ------------------------------------------------ |
+| `HOST`             | `0.0.0.0`                             | Bind interface                                   |
+| `PORT`             | `2222`                                | Bind port                                        |
+| `HOST_KEY`         | `.ssh/term_ed25519`                   | Persistent ed25519 host key path                 |
+| `CONTENT_ROOT`     | `.`                                   | Path containing the `content/` folder + `.env`   |
+| `GITHUB_TOKEN`     | —                                     | GitHub repos view (REST). Required for projects. |
+| `GITHUB_USERNAME`  | `furkanunsalan`                       | Override the user being queried                  |
+| `KARAKEEP_API_KEY` | —                                     | Bookmarks view. Required for bookmarks.          |
+| `KARAKEEP_API_URL` | `https://bookmarks.furkanunsalan.dev` | Karakeep instance to query                       |
 
 If `GITHUB_TOKEN` / `KARAKEEP_API_KEY` are missing, the corresponding view
 shows the underlying error inline instead of crashing.
