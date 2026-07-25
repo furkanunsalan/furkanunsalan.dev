@@ -421,7 +421,7 @@ func (m Model) renderPostDetail() string {
 
 func (m Model) renderBookmarks() string {
 	if m.bookmarksErr != nil {
-		return Dim.Render("raindrop fetch failed: " + m.bookmarksErr.Error())
+		return Dim.Render("karakeep fetch failed: " + m.bookmarksErr.Error())
 	}
 	if len(m.bookmarks) == 0 {
 		return Dim.Render("loading bookmarks...")
@@ -430,7 +430,7 @@ func (m Model) renderBookmarks() string {
 	for _, bm := range m.bookmarks {
 		b.WriteString(Item.Render("• "+bm.Title) + "\n")
 		b.WriteString(Mono.Render("  "+bm.Link) + "\n")
-		if bm.Created != "" {
+		if len(bm.Created) >= 10 {
 			b.WriteString(Dim.Render("  "+bm.Created[:10]) + "\n")
 		}
 		b.WriteString("\n")

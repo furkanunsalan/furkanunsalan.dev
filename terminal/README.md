@@ -13,7 +13,7 @@ terminal/
 └── internal/data/
     ├── loaders.go                # ../content/{posts,experiences,tools}
     ├── github.go                 # GitHub repos via REST
-    ├── raindrop.go               # Raindrop bookmarks via REST
+    ├── karakeep.go               # Karakeep bookmarks via REST
     └── dotenv.go                 # tiny KEY=value loader (no extra dep)
 ```
 
@@ -47,10 +47,15 @@ through systemd (or whatever runs the binary), not via `.env`.
 | `CONTENT_ROOT`    | `.`                 | Path containing the `content/` folder + `.env`   |
 | `GITHUB_TOKEN`    | —                   | GitHub repos view (REST). Required for projects. |
 | `GITHUB_USERNAME` | `furkanunsalan`     | Override the user being queried                  |
-| `RAINDROP_TOKEN`  | —                   | Bookmarks view. Required for bookmarks.          |
+| `KARAKEEP_API_KEY`  | —                 | Bookmarks view. Required for bookmarks.          |
+| `KARAKEEP_API_URL`  | `https://bookmarks.furkanunsalan.dev` | Karakeep instance to query      |
 
-If `GITHUB_TOKEN` / `RAINDROP_TOKEN` are missing, the corresponding view
+If `GITHUB_TOKEN` / `KARAKEEP_API_KEY` are missing, the corresponding view
 shows the underlying error inline instead of crashing.
+
+The bookmarks view queries the same two curated Karakeep lists the site
+publishes (`bookmarkLists` in `internal/data/karakeep.go` mirrors
+`BOOKMARK_LISTS` in `lib/karakeep.ts`) — adding a list means editing both.
 
 ## Keybindings
 
@@ -94,7 +99,7 @@ you can use whichever feels natural.
    Environment=PORT=2222
    Environment=CONTENT_ROOT=/root/furkanunsalan-term
    Environment=GITHUB_TOKEN=...
-   Environment=RAINDROP_TOKEN=...
+   Environment=KARAKEEP_API_KEY=...
    ExecStart=/root/furkanunsalan-term/bin/term
    Restart=on-failure
 

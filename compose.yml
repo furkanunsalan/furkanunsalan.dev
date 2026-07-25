@@ -76,7 +76,8 @@ services:
       DATABASE_URL: postgres://fu_app:${PG_PASSWORD}@db:5432/furkanunsalan
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       GITHUB_USERNAME: furkanunsalan
-      RAINDROP_TOKEN: ${RAINDROP_TOKEN:-}
+      KARAKEEP_API_KEY: ${KARAKEEP_API_KEY:-}
+      KARAKEEP_API_URL: ${KARAKEEP_API_URL:-}
     volumes:
       - termkey:/hostkey
     depends_on:
