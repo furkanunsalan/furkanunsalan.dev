@@ -2,15 +2,15 @@
 
 import React, { useMemo } from "react";
 import Markdoc, { type Config, type Schema, Tag } from "@markdoc/markdoc";
-import TableOfContents, { type Heading } from "@/components/TableOfContents";
 import PostBentoImages from "@/components/PostBentoImages";
 import Mermaid from "@/components/Mermaid";
 
 // Client-only renderer for a custom project's Markdoc body. Astro can't hydrate
 // React nested inside a server-rendered Markdoc React tree, so the parse +
 // transform + renderers.react all happen in the browser here from the raw
-// content string. Ports the fence -> Mermaid, image-bento, and heading-TOC
-// logic from the Next writing/[slug] page.
+// content string. Ports the fence -> Mermaid and image-bento logic from the
+// Next writing/[slug] page. No TOC: the project column is narrow (max-w-3xl,
+// matching the bespoke showcases) and has no room for a sidebar.
 
 function nodeText(node: any): string {
   if (!node) return "";
@@ -31,28 +31,7 @@ function slugify(s: string): string {
     .replace(/-+/g, "-");
 }
 
-function extractHeadings(node: any): Heading[] {
-  const items: Heading[] = [];
-  const seen = new Map<string, number>();
-  const walk = (n: any) => {
-    if (!n) return;
-    if (n.type === "heading") {
-      const text = nodeText(n).trim();
-      const level = (n.attributes?.level as number) || 1;
-      let id = slugify(text);
-      const count = seen.get(id) || 0;
-      seen.set(id, count + 1);
-      if (count > 0) id = `${id}-${count}`;
-      items.push({ id, text, level });
-    }
-    (n.children || []).forEach(walk);
-  };
-  walk(node);
-  return items;
-}
-
-// Fresh config per render so heading ids dedup deterministically with the same
-// slug+counter logic as extractHeadings.
+// Fresh config per render so heading ids dedup deterministically run to run.
 function buildMarkdocConfig(): Config {
   const seen = new Map<string, number>();
   const heading: Schema = {
@@ -147,9 +126,8 @@ function collapseImageRuns(node: RenderableNode): RenderableNode {
 }
 
 export default function ProjectBody({ content }: { content: string }) {
-  const { headings, rendered } = useMemo(() => {
+  const rendered = useMemo(() => {
     const node = Markdoc.parse(content || "");
-    const headings = extractHeadings(node);
     const transformed = Markdoc.transform(node, buildMarkdocConfig());
     const collapsed = collapseImageRuns(transformed as RenderableNode);
     const rendered = Markdoc.renderers.react(collapsed as any, React, {
@@ -172,29 +150,23 @@ export default function ProjectBody({ content }: { content: string }) {
         },
       },
     });
-    return { headings, rendered };
+    return rendered;
   }, [content]);
 
   return (
-    <div className="lg:grid lg:grid-cols-[1fr_220px] lg:gap-12">
-      <article className="min-w-0">
-        <div
-          className="prose prose-invert max-w-none animate-fade-in delay-150
-          prose-a:text-accent-primary prose-a:transition-colors prose-a:duration-200
-          prose-blockquote:border-l-accent-primary
-          prose-code:text-accent-primary
-          prose-headings:font-bold
-          prose-headings:text-white
-          prose-headings:scroll-mt-24
-          text-light-secondary/90"
-        >
-          {rendered}
-        </div>
-      </article>
-
-      <aside className="hidden lg:block animate-slide-in-right delay-200">
-        <TableOfContents headings={headings} />
-      </aside>
-    </div>
+    <article className="min-w-0">
+      <div
+        className="prose prose-invert max-w-none animate-fade-in delay-150
+        prose-a:text-accent-primary prose-a:transition-colors prose-a:duration-200
+        prose-blockquote:border-l-accent-primary
+        prose-code:text-accent-primary
+        prose-headings:font-bold
+        prose-headings:text-white
+        prose-headings:scroll-mt-24
+        text-light-secondary/90"
+      >
+        {rendered}
+      </div>
+    </article>
   );
 }

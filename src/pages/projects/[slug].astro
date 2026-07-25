@@ -8,7 +8,18 @@ import { getCustomProjectContentBySlug } from "@/lib/content";
 
 export const prerender = false;
 
+// Slugs these projects shipped under before they were renamed; inbound links
+// and search results still point at them.
+const RENAMED: Record<string, string> = {
+  togather: "gathin",
+  socialhive: "huddin",
+};
+
 const { slug } = Astro.params;
+if (slug && RENAMED[slug]) {
+  return Astro.redirect(`/projects/${RENAMED[slug]}`, 301);
+}
+
 const project = slug ? await getCustomProjectContentBySlug(slug) : null;
 if (!project) return Astro.redirect("/404");
 
@@ -36,8 +47,8 @@ const description = project.description || `Details for ${project.name}`;
     ) : slug === "teachfluence-studio" ? (
       <TeachfluenceStudioShowcase project={projectMeta} />
     ) : (
-      <div class="mt-24 mb-16 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <header class="mb-8 max-w-3xl animate-fade-in-up">
+      <div class="mt-24 max-w-3xl mx-auto px-4 pb-24 sm:px-6 lg:px-8">
+        <header class="mb-8 animate-fade-in-up">
           <h1 class="text-3xl font-bold text-white">{project.name}</h1>
           {project.description && (
             <p class="mt-2 text-light-secondary/80">{project.description}</p>
