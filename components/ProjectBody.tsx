@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import Markdoc, { type Config, type Schema, Tag } from "@markdoc/markdoc";
 import PostBentoImages from "@/components/PostBentoImages";
 import Mermaid from "@/components/Mermaid";
+import { slugifyHeading as slugify } from "@/lib/headings";
 
 // Client-only renderer for a custom project's Markdoc body. Astro can't hydrate
 // React nested inside a server-rendered Markdoc React tree, so the parse +
@@ -18,17 +19,6 @@ function nodeText(node: any): string {
   if (Array.isArray(node)) return node.map(nodeText).join(" ");
   if (node.type === "text") return String(node.attributes?.content ?? "");
   return nodeText(node.children);
-}
-
-function slugify(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
 }
 
 // Fresh config per render so heading ids dedup deterministically run to run.

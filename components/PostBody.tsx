@@ -5,6 +5,7 @@ import Markdoc, { Config, Schema, Tag } from "@markdoc/markdoc";
 import TableOfContents, { type Heading } from "@/components/TableOfContents";
 import PostBentoImages from "@/components/PostBentoImages";
 import Mermaid from "@/components/Mermaid";
+import { slugifyHeading as slugify } from "@/lib/headings";
 
 // Astro can't hydrate React islands nested inside a server-rendered Markdoc
 // React tree, so the whole pipeline runs client-side from the raw markdown
@@ -18,17 +19,6 @@ function nodeText(node: any): string {
   if (Array.isArray(node)) return node.map(nodeText).join(" ");
   if (node.type === "text") return String(node.attributes?.content ?? "");
   return nodeText(node.children);
-}
-
-function slugify(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
 }
 
 function extractHeadings(node: any): Heading[] {

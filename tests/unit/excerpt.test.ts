@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { excerptFromMarkdoc } from "@/lib/excerpt";
+import { excerptFromMarkdoc, plainTextFromMarkdoc } from "@/lib/excerpt";
 
 describe("excerptFromMarkdoc", () => {
   it("strips markdown decoration and code, keeps link labels", () => {
@@ -25,5 +25,18 @@ describe("excerptFromMarkdoc", () => {
 
   it("does not add an ellipsis when under the limit", () => {
     expect(excerptFromMarkdoc("short one", 32)).toBe("short one");
+  });
+});
+
+describe("plainTextFromMarkdoc", () => {
+  it("keeps hyphenated words intact", () => {
+    expect(plainTextFromMarkdoc("a health-check runs post-deploy")).toBe(
+      "a health-check runs post-deploy",
+    );
+  });
+
+  it("still strips list bullets, blockquotes and rules", () => {
+    const md = "- one\n- two\n\n> quoted\n\n---\n\ntail";
+    expect(plainTextFromMarkdoc(md)).toBe("one two quoted tail");
   });
 });
