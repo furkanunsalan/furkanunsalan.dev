@@ -52,6 +52,8 @@ type ColumnMeta = {
   pk: boolean;
 };
 
+// Generated columns (the search_vector tsvectors) are excluded: they can't be
+// updated, and their serialized form is far too large to ship to the browser.
 async function columnMeta(
   table: string,
   known: ReturnType<typeof getKnownTable>,
@@ -60,6 +62,7 @@ async function columnMeta(
     select column_name, data_type, is_nullable
     from information_schema.columns
     where table_schema = 'public' and table_name = ${table}
+      and is_generated = 'NEVER'
     order by ordinal_position
   `)) as unknown as Array<{
     column_name: string;
@@ -109,6 +112,10 @@ export const GET: APIRoute = async ({ request }) => {
       .map((c) => c.name);
 
     const tableIdent = sql.identifier(table);
+    const selectList = sql.join(
+      columns.map((c) => sql.identifier(c.name)),
+      sql`, `,
+    );
 
     // Build the optional WHERE clause for search. We embed identifiers via
     // sql.identifier (escaped) and the user value via the parameter ${pattern}.
@@ -133,7 +140,7 @@ export const GET: APIRoute = async ({ request }) => {
     const offset = (page - 1) * PAGE_SIZE;
     const orderIdent = sql.identifier(orderCol);
     const rows = (await db.execute(
-      sql`select * from ${tableIdent}${whereSql} order by ${orderIdent} asc limit ${PAGE_SIZE} offset ${offset}`,
+      sql`select ${selectList} from ${tableIdent}${whereSql} order by ${orderIdent} asc limit ${PAGE_SIZE} offset ${offset}`,
     )) as unknown as Array<Record<string, unknown>>;
 
     return json({
@@ -301,16 +308,20 @@ export const PATCH: APIRoute = async ({ request }) => {
     }
 
     const tableIdent = sql.identifier(table);
+    const selectList = sql.join(
+      columns.map((c) => sql.identifier(c.name)),
+      sql`, `,
+    );
 
     const beforeRows = (await db.execute(
-      sql`select * from ${tableIdent} where ${whereCombined} limit 1`,
+      sql`select ${selectList} from ${tableIdent} where ${whereCombined} limit 1`,
     )) as unknown as Array<Record<string, unknown>>;
     if (beforeRows.length === 0) {
       return json({ error: "row not found" }, 404);
     }
 
     const updated = (await db.execute(
-      sql`update ${tableIdent} set ${setCombined} where ${whereCombined} returning *`,
+      sql`update ${tableIdent} set ${setCombined} where ${whereCombined} returning ${selectList}`,
     )) as unknown as Array<Record<string, unknown>>;
 
     const collection = TABLE_TO_COLLECTION[table];
