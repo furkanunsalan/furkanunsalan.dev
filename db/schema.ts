@@ -47,6 +47,19 @@ export const experienceKindEnum = pgEnum("experience_kind", [
   "volunteer",
 ]);
 
+// ---- global search -------------------------------------------------------
+
+// posts, projects, experiences, tools, places and thoughts each carry a
+// `search_vector` tsvector column (weighted A=title, B=facets, C=body) with a
+// GIN index, added by migration 0011 and queried through lib/search.ts.
+//
+// They are deliberately NOT modeled here. They're STORED GENERATED columns, so
+// Postgres maintains them and nothing in the app ever writes one; leaving them
+// out keeps `db.select()` payloads (and the backup export) free of multi-KB
+// lexeme blobs. Do not add them to a table below — drizzle-kit diffs schema.ts
+// against its snapshot, which has never seen these columns, so declaring them
+// would emit a duplicate ADD COLUMN that fails against a migrated database.
+
 // ---- posts ---------------------------------------------------------------
 
 export const posts = pgTable("posts", {

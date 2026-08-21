@@ -5,6 +5,7 @@ import { usePathname } from "@/components/_compat";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import ScrambleText from "@/components/ScrambleText";
+import { Search as SearchIcon } from "lucide-react";
 
 const NAME = "Furkan Ünsalan";
 const SHORT = "FÜ";
@@ -55,6 +56,13 @@ export default function SiteNav({
             <ScrambleText text={NAME} className="hidden md:inline" />
           </Link>
           <nav className="flex items-center gap-4 sm:gap-5">
+            <Link
+              href="/search"
+              aria-label="Search"
+              className={topCls(isActive("/search"))}
+            >
+              <SearchIcon className="h-4 w-4" />
+            </Link>
             <NavDropdown
               label="Work"
               items={WORK}

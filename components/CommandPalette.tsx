@@ -11,30 +11,12 @@ import {
   Wrench,
   Briefcase,
   MessageSquare,
+  CornerDownLeft,
 } from "lucide-react";
+import type { HitKind, SearchHit } from "@/lib/search-query";
+import { KIND_LABEL, highlightTerms, queryTerms } from "@/components/search-ui";
 
-type Kind =
-  "post" | "project" | "repo" | "place" | "tool" | "experience" | "thought";
-
-type SearchItem = {
-  kind: Kind;
-  title: string;
-  snippet: string;
-  href: string;
-  date?: string;
-};
-
-const KIND_LABEL: Record<Kind, string> = {
-  post: "POST",
-  project: "PROJECT",
-  repo: "REPO",
-  place: "PLACE",
-  tool: "TOOL",
-  experience: "EXPERIENCE",
-  thought: "THOUGHT",
-};
-
-function KindIcon({ kind }: { kind: Kind }) {
+function KindIcon({ kind }: { kind: HitKind }) {
   const cls = "w-3.5 h-3.5 text-light-fourth";
   switch (kind) {
     case "post":
@@ -61,96 +43,64 @@ function isEditable(el: Element | null): boolean {
   return (el as HTMLElement).isContentEditable === true;
 }
 
-// Subsequence-match scorer. Higher score = better. Returns -Infinity for misses.
-function scoreItem(query: string, item: SearchItem): number {
-  if (!query) return 0;
-  const q = query.toLowerCase();
-  const title = item.title.toLowerCase();
-  const snippet = item.snippet.toLowerCase();
+const KEYCAP =
+  "grid h-5 min-w-[1.25rem] place-items-center rounded-[5px] px-1 text-[10px] font-medium text-light-fourth ring-1 ring-white/10 bg-white/[0.04] shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)]";
 
-  const sub = (haystack: string) => {
-    let i = 0;
-    let score = 0;
-    let streak = 0;
-    let prevIdx = -1;
-    for (const ch of q) {
-      const found = haystack.indexOf(ch, i);
-      if (found === -1) return null;
-      if (found === prevIdx + 1) {
-        streak += 1;
-        score += 2 + streak;
-      } else {
-        streak = 0;
-        score += 1;
-      }
-      if (found === 0) score += 3;
-      prevIdx = found;
-      i = found + 1;
-    }
-    return score;
-  };
-
-  const titleScore = sub(title);
-  const snippetScore = sub(snippet);
-
-  if (titleScore === null && snippetScore === null) return -Infinity;
-
-  let total = 0;
-  if (titleScore !== null) total += titleScore * 4;
-  if (snippetScore !== null) total += snippetScore * 1;
-
-  if (title === q) total += 100;
-  else if (title.startsWith(q)) total += 30;
-  else if (title.includes(q)) total += 15;
-
-  return total;
-}
-
-function highlight(text: string, query: string): React.ReactNode {
-  if (!query || !text) return text;
-  const q = query.trim();
-  if (!q) return text;
-  const idx = text.toLowerCase().indexOf(q.toLowerCase());
-  if (idx === -1) return text;
-  return (
-    <>
-      {text.slice(0, idx)}
-      <mark className="bg-transparent text-white font-medium">
-        {text.slice(idx, idx + q.length)}
-      </mark>
-      {text.slice(idx + q.length)}
-    </>
-  );
-}
+const DEBOUNCE_MS = 140;
 
 export default function CommandPalette() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchHit[]>([]);
+  const [pending, setPending] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [loaded, setLoaded] = useState(false);
-  const itemsRef = useRef<SearchItem[] | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const seqRef = useRef(0);
 
-  const loadIndex = useCallback(async () => {
-    if (itemsRef.current) return;
+  const terms = useMemo(() => queryTerms(query), [query]);
+
+  // One in-flight request at a time; a stale response never overwrites a newer
+  // one, which is what makes fast typing feel stable.
+  const run = useCallback(async (q: string) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const seq = ++seqRef.current;
+
+    setPending(true);
     try {
-      const res = await fetch("/api/search", { cache: "force-cache" });
+      const res = await fetch(
+        `/api/search?q=${encodeURIComponent(q)}&limit=8`,
+        {
+          signal: controller.signal,
+        },
+      );
       if (!res.ok) return;
       const json = await res.json();
-      if (json && Array.isArray(json.items)) {
-        itemsRef.current = json.items as SearchItem[];
-        setLoaded(true);
-      }
+      if (seq !== seqRef.current) return;
+      setResults(Array.isArray(json.items) ? (json.items as SearchHit[]) : []);
     } catch (e) {
-      console.error("[CommandPalette] index fetch failed:", e);
+      if ((e as Error)?.name !== "AbortError") {
+        console.error("[CommandPalette] search failed:", e);
+      }
+    } finally {
+      if (seq === seqRef.current) setPending(false);
     }
   }, []);
 
   useEffect(() => {
-    loadIndex();
-  }, [loadIndex]);
+    if (!open) return;
+    const q = query.trim();
+    if (!q) {
+      run("");
+      return;
+    }
+    const t = setTimeout(() => run(q), DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [query, open, run]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -176,33 +126,15 @@ export default function CommandPalette() {
   }, [open]);
 
   useEffect(() => {
-    if (open) {
-      loadIndex();
-      setQuery("");
-      setSelectedIndex(0);
-      const t = setTimeout(() => inputRef.current?.focus(), 0);
-      return () => clearTimeout(t);
+    if (!open) {
+      abortRef.current?.abort();
+      return;
     }
-  }, [open, loadIndex]);
-
-  const results = useMemo<SearchItem[]>(() => {
-    const all = itemsRef.current || [];
-    const q = query.trim();
-    if (!q) {
-      const withDate = all
-        .filter((i) => i.kind === "post" || i.kind === "thought")
-        .filter((i) => i.date)
-        .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-      return withDate.slice(0, 5);
-    }
-    const scored = all
-      .map((item) => ({ item, score: scoreItem(q, item) }))
-      .filter((s) => s.score > -Infinity)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 10)
-      .map((s) => s.item);
-    return scored;
-  }, [query, loaded]);
+    setQuery("");
+    setSelectedIndex(0);
+    const t = setTimeout(() => inputRef.current?.focus(), 0);
+    return () => clearTimeout(t);
+  }, [open]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -217,7 +149,7 @@ export default function CommandPalette() {
   }, [selectedIndex, results.length]);
 
   const navigate = useCallback(
-    (item: SearchItem) => {
+    (item: SearchHit) => {
       setOpen(false);
       if (/^https?:\/\//i.test(item.href)) {
         window.open(item.href, "_blank", "noopener,noreferrer");
@@ -228,6 +160,13 @@ export default function CommandPalette() {
     [router],
   );
 
+  const seeAll = useCallback(() => {
+    const q = query.trim();
+    if (!q) return;
+    setOpen(false);
+    router.push(`/search?q=${encodeURIComponent(q)}`);
+  }, [query, router]);
+
   function onInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -237,12 +176,17 @@ export default function CommandPalette() {
       setSelectedIndex((i) => Math.max(0, i - 1));
     } else if (e.key === "Enter") {
       e.preventDefault();
+      // Cmd-Enter always goes to the full results page.
+      if (e.metaKey || e.ctrlKey) return seeAll();
       const item = results[selectedIndex];
       if (item) navigate(item);
+      else seeAll();
     }
   }
 
   if (!open) return null;
+
+  const hasQuery = query.trim().length > 0;
 
   return (
     <div
@@ -266,10 +210,12 @@ export default function CommandPalette() {
             className="flex-1 bg-transparent border-0 outline-none focus:outline-none focus-visible:outline-none py-4 text-base text-white placeholder:text-light-fourth"
             autoComplete="off"
             spellCheck={false}
+            aria-label="Search query"
           />
-          <kbd className="text-[10px] uppercase tracking-wider text-light-fourth ring-1 ring-white/10 rounded px-1.5 py-[2px]">
-            ⌘K
-          </kbd>
+          <span className="flex shrink-0 items-center gap-1">
+            <kbd className={KEYCAP}>⌘</kbd>
+            <kbd className={KEYCAP}>K</kbd>
+          </span>
         </div>
 
         <div
@@ -278,7 +224,7 @@ export default function CommandPalette() {
         >
           {results.length === 0 ? (
             <div className="px-4 py-6 text-sm text-light-fourth">
-              {itemsRef.current === null ? "Loading…" : "No results."}
+              {pending ? "Searching…" : hasQuery ? "No results." : "Loading…"}
             </div>
           ) : (
             results.map((item, idx) => {
@@ -303,11 +249,11 @@ export default function CommandPalette() {
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm truncate">
-                      {highlight(item.title, query)}
+                      {highlightTerms(item.title, terms)}
                     </span>
                     {item.snippet ? (
                       <span className="block text-xs text-light-fourth truncate">
-                        {highlight(item.snippet, query)}
+                        {highlightTerms(item.snippet, terms)}
                       </span>
                     ) : null}
                   </span>
@@ -319,6 +265,19 @@ export default function CommandPalette() {
             })
           )}
         </div>
+
+        {hasQuery ? (
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault();
+              seeAll();
+            }}
+            className="w-full flex items-center justify-between gap-3 px-4 py-2.5 border-t border-white/[0.06] text-xs text-light-fourth hover:text-white"
+          >
+            <span>See all results for “{query.trim()}”</span>
+            <CornerDownLeft className="w-3.5 h-3.5" />
+          </button>
+        ) : null}
       </div>
     </div>
   );

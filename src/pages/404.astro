@@ -1,8 +1,14 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import MainNavbar from "@/components/MainNavbar";
+import { search } from "@/lib/search";
 
 export const prerender = false;
+
+// Reached by rewrite from writing/[slug] and projects/[slug], which would
+// otherwise render with a 200.
+Astro.response.status = 404;
+
 const routes = [
   "/",
   "/experience",
@@ -11,10 +17,67 @@ const routes = [
   "/bookmarks",
   "/writing",
 ];
+
+const ROUTES = [
+  "/writing",
+  "/projects",
+  "/experience",
+  "/photos",
+  "/places",
+  "/gadgets",
+  "/bookmarks",
+  "/resume",
+  "/search",
+];
+
+// Astro.rewrite does not carry the original Request through, so routes that
+// rewrite here pass the path they were asked for as ?from.
+const from = Astro.url.searchParams.get("from");
+const requested = from && from.startsWith("/") ? from : Astro.url.pathname;
+const isDirect = requested === "/404";
+const segments = requested.split("/").filter(Boolean);
+
+function distance(a: string, b: string): number {
+  const rows = Array.from({ length: b.length + 1 }, (_, i) => [i]);
+  for (let j = 0; j <= a.length; j++) rows[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      rows[i][j] =
+        b[i - 1] === a[j - 1]
+          ? rows[i - 1][j - 1]
+          : 1 + Math.min(rows[i - 1][j - 1], rows[i][j - 1], rows[i - 1][j]);
+    }
+  }
+  return rows[b.length][a.length];
+}
+
+const first = segments[0] ? `/${segments[0]}` : "";
+const nearRoute =
+  first && !ROUTES.includes(first)
+    ? (ROUTES.map((r) => ({ r, d: distance(first, r) }))
+        .sort((a, b) => a.d - b.d)
+        .find((c) => c.d <= 3)?.r ?? null)
+    : null;
+
+// Route words are navigation, not content: matching them adds noise and stops
+// the typo-tolerant fallback from firing on the part that was misspelled.
+const routeWords = new Set(ROUTES.map((r) => r.slice(1)));
+const terms = segments
+  .filter((seg) => !routeWords.has(seg))
+  .join(" ")
+  .replace(/[-_]+/g, " ")
+  .trim();
+
+const found =
+  !isDirect && terms ? await search(terms, { limit: 6, match: "any" }) : [];
+
+// "any" matching casts a wide net, so keep only what's close to the best hit.
+const best = found[0]?.score ?? 0;
+const hits = found.filter((h) => h.score >= best * 0.5).slice(0, 3);
 ---
 
 <Layout title="404 · Furkan Ünsalan">
-  <div class="flex h-screen items-center justify-center">
+  <div class="flex min-h-screen items-center justify-center">
     <div class="stagger flex flex-col items-center">
       <div
         class="glitch select-none text-6xl font-thin tracking-[0.2em] sm:text-7xl"
@@ -27,6 +90,39 @@ const routes = [
       <div class="text-l mt-6 text-light-secondary/80">
         This is not the page you are looking for
       </div>
+
+      {
+        (nearRoute || hits.length > 0) && (
+          <div class="mt-8 flex flex-col items-center">
+            <p class="text-xs uppercase tracking-wider text-light-fourth">
+              did you mean
+            </p>
+            <ul class="mt-3 flex flex-col items-center gap-2">
+              {nearRoute && (
+                <li>
+                  <a
+                    href={nearRoute}
+                    class="text-sm text-light-secondary transition-colors hover:text-accent-primary"
+                  >
+                    {nearRoute}
+                  </a>
+                </li>
+              )}
+              {hits.map((hit) => (
+                <li>
+                  <a
+                    href={hit.href}
+                    class="text-sm text-light-secondary transition-colors hover:text-accent-primary"
+                  >
+                    {hit.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+
       <MainNavbar routes={routes} client:load />
     </div>
   </div>

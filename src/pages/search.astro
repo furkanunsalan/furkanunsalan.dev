@@ -1,0 +1,22 @@
+---
+import PageLayout from "../layouts/PageLayout.astro";
+import SearchResults from "@/components/SearchResults";
+import { search } from "@/lib/search";
+
+export const prerender = false;
+
+const q = (Astro.url.searchParams.get("q") || "").slice(0, 200);
+const initialResults = q.trim() ? await search(q, { limit: 30 }) : [];
+---
+
+<PageLayout
+  title={q ? `Search: ${q} | Furkan Ünsalan` : "Search | Furkan Ünsalan"}
+  description="Search everything on the site — writing, projects, places, gadgets and more."
+  noindex
+>
+  <SearchResults
+    initialQuery={q}
+    initialResults={initialResults}
+    client:load
+  />
+</PageLayout>

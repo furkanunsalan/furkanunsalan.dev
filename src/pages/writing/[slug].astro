@@ -2,13 +2,16 @@
 import PageLayout from "../../layouts/PageLayout.astro";
 import PostBody from "@/components/PostBody";
 import { getPostContentBySlug } from "@/lib/content";
+import { getRelatedPosts } from "@/lib/search";
 
 export const prerender = false;
 
 const { slug } = Astro.params;
 const post = slug ? await getPostContentBySlug(slug) : null;
+// rewrite, not redirect: keeps the requested URL so /404 can suggest
+// near-matches, and answers with a real 404 status instead of a 302.
 if (!post) {
-  return Astro.redirect("/404");
+  return Astro.rewrite(`/404?from=/writing/${encodeURIComponent(slug ?? "")}`);
 }
 
 const SITE_BASE =
@@ -24,6 +27,8 @@ const words = post.content.split(/\s+/).filter(Boolean).length;
 const readingTime = `${Math.max(1, Math.ceil(words / 200))} min read`;
 
 const postUrl = `${SITE_BASE}/writing/${post.slug}`;
+
+const related = await getRelatedPosts(post.slug, post.title, post.tags, 3);
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -104,5 +109,49 @@ const jsonLd = {
     </header>
 
     <PostBody content={post.content} client:only="react" />
+
+    {
+      related.length > 0 && (
+        <aside class="mt-16 border-t border-white/[0.06] pt-8">
+          <h2 class="text-xs uppercase tracking-wider text-light-fourth">
+            Related
+          </h2>
+          <ul class="mt-4 divide-y divide-white/[0.06]">
+            {related.map((r) => (
+              <li>
+                <a
+                  href={`/writing/${r.slug}`}
+                  class="group block py-4 transition-colors"
+                >
+                  <span class="text-sm text-white transition-colors group-hover:text-accent-primary">
+                    {r.title}
+                  </span>
+                  {r.excerpt && (
+                    <p class="mt-1 line-clamp-2 text-xs leading-relaxed text-light-fourth">
+                      {r.excerpt}
+                    </p>
+                  )}
+                  <span class="mt-1.5 block text-[10px] uppercase tracking-wider text-light-fourth">
+                    <time datetime={r.date}>
+                      {new Date(r.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </time>
+                    {r.tags.length > 0 && (
+                      <span class="normal-case tracking-normal opacity-70">
+                        {" · "}
+                        {r.tags.join(" · ")}
+                      </span>
+                    )}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )
+    }
   </div>
 </PageLayout>

@@ -21,7 +21,8 @@ if (slug && RENAMED[slug]) {
 }
 
 const project = slug ? await getCustomProjectContentBySlug(slug) : null;
-if (!project) return Astro.redirect("/404");
+if (!project)
+  return Astro.rewrite(`/404?from=/projects/${encodeURIComponent(slug ?? "")}`);
 
 // Bespoke slugs only need the metadata; the two showcase components are static
 // (no hooks/handlers) so they server-render with no client directive.
