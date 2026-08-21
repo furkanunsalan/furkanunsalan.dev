@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Photo } from "@/lib/content";
 import "./Photos.css";
+import { createPortal } from "react-dom";
 
 const clean = (v: string | null) => v?.replace(/\.0$/, "") ?? null;
 
@@ -76,99 +77,110 @@ export default function Photos({ data }: { data: Photo[] }) {
         ))}
       </Masonry>
 
-      {active && (
-        <div
-          className="fixed inset-0 z-[80] flex animate-fade-in bg-black/95 backdrop-blur-sm"
-          style={{ animationDuration: "150ms" }}
-          onClick={close}
-        >
-          <button
-            type="button"
-            onClick={close}
-            aria-label="Close"
-            className="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-zinc-950/70 p-2 text-light-secondary transition-colors hover:text-white"
-          >
-            <X className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              step(-1);
-            }}
-            aria-label="Previous"
-            className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-zinc-950/70 p-2 text-light-secondary transition-colors hover:text-white"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              step(1);
-            }}
-            aria-label="Next"
-            className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-zinc-950/70 p-2 text-light-secondary transition-colors hover:text-white"
-          >
-            <ChevronRight className="h-6 w-6" />
-          </button>
-
+      {/*
+        Portaled to <body> on purpose. This component's wrapper carries
+        `animate-fade-in`, and a finished animation with fill-mode `both` on
+        opacity keeps a stacking context alive — which traps the overlay's
+        z-index inside a parent that has none, letting the z-40 site nav paint
+        over the close button. Layering is nav (40) < lightbox (45) < ⌘K (50).
+      */}
+      {active &&
+        createPortal(
           <div
-            className="m-auto flex max-h-[92vh] w-full max-w-6xl flex-col gap-5 p-4 md:flex-row md:items-center"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[45] flex animate-fade-in bg-black/95 backdrop-blur-sm"
+            style={{ animationDuration: "150ms" }}
+            onClick={close}
           >
-            <div className="flex min-h-0 flex-1 items-center justify-center">
-              {/* key forces the <img> to swap when navigating */}
-              <img
-                key={active.id}
-                src={active.display}
-                alt={active.alt}
-                className="max-h-[82vh] w-auto max-w-full rounded-lg object-contain"
-                style={{ backgroundColor: active.color }}
-              />
-            </div>
+            <button
+              type="button"
+              onClick={close}
+              aria-label="Close"
+              className="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-zinc-950/70 p-2 text-light-secondary transition-colors hover:text-white"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                step(-1);
+              }}
+              aria-label="Previous"
+              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-zinc-950/70 p-2 text-light-secondary transition-colors hover:text-white"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                step(1);
+              }}
+              aria-label="Next"
+              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-zinc-950/70 p-2 text-light-secondary transition-colors hover:text-white"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
 
-            <aside className="w-full shrink-0 md:w-64">
-              <dl className="space-y-1.5 font-mono text-xs">
-                {active.camera && <Row k="camera" v={active.camera} />}
-                {clean(active.focalLength) && (
-                  <Row k="focal" v={`${clean(active.focalLength)}mm`} />
+            <div
+              className="m-auto flex max-h-[92vh] w-full max-w-6xl flex-col gap-5 p-4 md:flex-row md:items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex min-h-0 flex-1 items-center justify-center">
+                {/* key forces the <img> to swap when navigating */}
+                <img
+                  key={active.id}
+                  src={active.display}
+                  alt={active.alt}
+                  className="max-h-[82vh] w-auto max-w-full rounded-lg object-contain"
+                  style={{ backgroundColor: active.color }}
+                />
+              </div>
+
+              <aside className="w-full shrink-0 md:w-64">
+                <dl className="space-y-1.5 font-mono text-xs">
+                  {active.camera && <Row k="camera" v={active.camera} />}
+                  {clean(active.focalLength) && (
+                    <Row k="focal" v={`${clean(active.focalLength)}mm`} />
+                  )}
+                  {clean(active.aperture) && (
+                    <Row k="aperture" v={`ƒ/${clean(active.aperture)}`} />
+                  )}
+                  {active.shutter && (
+                    <Row k="shutter" v={`${active.shutter}s`} />
+                  )}
+                  {active.iso != null && <Row k="iso" v={String(active.iso)} />}
+                  {active.takenAt && (
+                    <Row
+                      k="date"
+                      v={new Date(active.takenAt).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    />
+                  )}
+                </dl>
+                {active.tags.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {active.tags.slice(0, 8).map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] text-light-fourth"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
                 )}
-                {clean(active.aperture) && (
-                  <Row k="aperture" v={`ƒ/${clean(active.aperture)}`} />
-                )}
-                {active.shutter && <Row k="shutter" v={`${active.shutter}s`} />}
-                {active.iso != null && <Row k="iso" v={String(active.iso)} />}
-                {active.takenAt && (
-                  <Row
-                    k="date"
-                    v={new Date(active.takenAt).toLocaleDateString("en-US", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  />
-                )}
-              </dl>
-              {active.tags.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {active.tags.slice(0, 8).map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] text-light-fourth"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              )}
-              <p className="mt-4 font-mono text-[11px] text-light-fourth/50">
-                {open! + 1} / {data.length}
-              </p>
-            </aside>
-          </div>
-        </div>
-      )}
+                <p className="mt-4 font-mono text-[11px] text-light-fourth/50">
+                  {open! + 1} / {data.length}
+                </p>
+              </aside>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
