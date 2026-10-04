@@ -14,6 +14,12 @@ import {
 } from "@/lib/place-list-icons";
 import { PLACE_LIST_ICON_COMPONENTS } from "@/lib/place-list-icons-react";
 
+// CARTO stopped serving its raster basemaps unauthenticated — without a key
+// every tile comes back stamped with an "API KEY REQUIRED" watermark. This is a
+// browser-side key by design (it ships in the island's bundle either way) and
+// the free tier is 5M tiles/month, so it lives here rather than in env.
+const CARTO_BASEMAP_KEY = "cb1_497k_1_90406e18a9d61d319e712710";
+
 // Status drives the pin's ring color (kept in sync with PlacesList's chips).
 const STATUS_COLOR: Record<PlaceStatus, string> = {
   "want-to-go": "#6366F1", // accent-primary (indigo-500)
@@ -111,7 +117,7 @@ export default function PlacesMapView({
         markerRefs={markerRefs}
       />
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        url={`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_BASEMAP_KEY}`}
         subdomains="abcd"
         maxZoom={19}
       />
