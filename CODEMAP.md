@@ -152,16 +152,16 @@ It runs on the host (not in compose) and reaches Postgres at `127.0.0.1:5432`, s
 
 ## Scripts & workflows
 
-| Path                                    | What                                                                           |
-| --------------------------------------- | ------------------------------------------------------------------------------ |
-| `scripts/db-migrate.mjs`                | Applies Drizzle migrations against `DATABASE_URL`.                             |
-| `scripts/admin-set-password.mjs`        | Hashes a password with argon2id and writes the plain PHC hash to `.env.local`. |
-| `scripts/dev-tunnel.mjs`                | Idempotent SSH tunnel to the VPS Postgres for local dev (`predev`).            |
-| `scripts/compress-uploads.mjs`          | Re-compresses stored uploads (dry-run by default; `--apply` backs up first).   |
-| `scripts/perf-check.mjs`                | Live transfer-size / cache-header / compression budget check (`--base`).       |
-| `.github/workflows/ci.yml`              | Typecheck (`astro check`) + unit tests + build on PRs and `main`.              |
-| `.github/workflows/deploy.yml`          | rsync build context to VPS → `docker compose up -d --build` → health check.    |
-| `.github/workflows/deploy-terminal.yml` | Cross-compile Go binary → ship to VPS → restart systemd unit.                  |
+| Path                                    | What                                                                            |
+| --------------------------------------- | ------------------------------------------------------------------------------- |
+| `scripts/db-migrate.mjs`                | Applies Drizzle migrations against `DATABASE_URL`.                              |
+| `scripts/admin-set-password.mjs`        | Hashes a password with argon2id and writes the plain PHC hash to `.env.local`.  |
+| `scripts/dev-tunnel.mjs`                | Idempotent SSH tunnel to the VPS Postgres for local dev (`predev`).             |
+| `scripts/compress-uploads.mjs`          | Re-compresses stored uploads (dry-run by default; `--apply` backs up first).    |
+| `scripts/perf-check.mjs`                | Live transfer-size / cache-header / compression budget check (`--base`).        |
+| `.github/workflows/ci.yml`              | Typecheck (`astro check`) + unit tests + build on PRs, `develop` and `release`. |
+| `.github/workflows/deploy.yml`          | Build image in CI → push GHCR → VPS pulls (`--no-build`) → health check.        |
+| `.github/workflows/deploy-terminal.yml` | Cross-compile Go binary → ship to VPS → restart systemd unit.                   |
 
 ## Routes at a glance
 

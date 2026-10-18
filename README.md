@@ -145,11 +145,13 @@ terminal/    Go SSH twin (its own module and deploy)
 
 ## Deploy
 
-Push to `main`. GitHub Actions rsyncs the build context to the VPS and brings up
-the Docker Compose stack (`docker compose up -d --build`) — the distroless image
-is built on the server, then health-checked. The Go terminal twin ships from its
-own workflow to a systemd unit. Uploads, secrets, and the database volume live
-outside the rsync target, so deploys never touch them.
+Push to **`release`** for production, or **`develop`** for the preview stack.
+GitHub Actions builds the distroless image on its own runners and pushes it to
+GHCR; the VPS only pulls (`docker compose up -d --no-build`) and then health-checks
+the app. `main` has been retired — `release` and `develop` are the only branches.
+The Go terminal twin ships from its own workflow to a systemd unit. Uploads,
+secrets, and the database volume live outside the compose pull, so deploys never
+touch them.
 
 ## License
 
