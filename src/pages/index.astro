@@ -6,7 +6,6 @@ import HeroBanner from "@/components/HeroBanner";
 import CopyPgpKey from "@/components/CopyPgpKey";
 import GithubCommitHistory from "@/components/GithubCommitHistory";
 import Time from "@/components/Time";
-import { Clock } from "lucide-react";
 
 export const prerender = false;
 
@@ -84,13 +83,11 @@ const personLd = {
             <h1 class="text-lg font-bold text-white sm:text-xl">
               Furkan Ünsalan
             </h1>
-            {/* [clock] @handle · live Istanbul time. The Time island owns the
-                digits and its own timezone suffix, so only the separator lives
-                here. */}
+            {/* @handle · live Istanbul time. The Time island owns the digits and
+                its own timezone suffix, so only the separator lives here. */}
             <p
               class="flex flex-wrap items-center gap-x-1.5 font-mono text-xs text-light-fourth"
             >
-              <Clock className="h-3 w-3 shrink-0 text-zinc-500" />
               {
                 handle && (
                   <>
