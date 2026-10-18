@@ -406,7 +406,7 @@ export default function PlacesList({ places, lists, onSelect }: Props) {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="shrink-0 self-center text-accent-primary transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    className="shrink-0 self-center text-light-fourth opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                     aria-label="Open in Google Maps"
                     title="Open in Google Maps"
                   >
