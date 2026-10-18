@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import {
-  getCustomProjects,
+  getCustomProjectSlugs,
   getGithubProjectVisibility,
   getPosts,
   getThoughts,
@@ -39,12 +39,12 @@ async function repoHits(q: string, limit: number): Promise<SearchHit[]> {
   // GitHub is a network dependency: a missing token or an API blip must not
   // take the Postgres-backed results down with it.
   let repos: Awaited<ReturnType<typeof getGithubRepos>>;
-  let customProjects: Awaited<ReturnType<typeof getCustomProjects>>;
+  let customSlugs: Awaited<ReturnType<typeof getCustomProjectSlugs>>;
   let visibility: Awaited<ReturnType<typeof getGithubProjectVisibility>>;
   try {
-    [repos, customProjects, visibility] = await Promise.all([
+    [repos, customSlugs, visibility] = await Promise.all([
       getGithubRepos(),
-      getCustomProjects(),
+      getCustomProjectSlugs(),
       getGithubProjectVisibility(),
     ]);
   } catch (e) {
@@ -52,11 +52,13 @@ async function repoHits(q: string, limit: number): Promise<SearchHit[]> {
     return [];
   }
 
-  const customSlugs = new Set(customProjects.map((p) => p.slug.toLowerCase()));
+  // Hidden custom projects keep suppressing their same-named repo (see
+  // getCustomProjectSlugs) so a hidden project doesn't resurface as a repo hit.
+  const customSlugSet = new Set(customSlugs);
 
   const scored = repos.flatMap((r) => {
     const name = r.name.toLowerCase();
-    if (customSlugs.has(name)) return [];
+    if (customSlugSet.has(name)) return [];
     if (visibility.byName.get(name)?.visible === false) return [];
 
     const description = (r.description || "").toLowerCase();

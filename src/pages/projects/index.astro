@@ -3,19 +3,29 @@ import PageLayout from "../../layouts/PageLayout.astro";
 import GithubCommitHistory from "@/components/GithubCommitHistory";
 import ProjectsExplorer from "@/components/ProjectsExplorer";
 import SshChip from "@/components/SshChip";
-import { getCustomProjects, getGithubProjectVisibility } from "@/lib/content";
+import {
+  getCustomProjects,
+  getCustomProjectSlugs,
+  getGithubProjectVisibility,
+} from "@/lib/content";
 import { getGithubRepos, getRepoCommitActivity } from "@/lib/github";
 import type { ProjectCardData } from "@/types";
 
 export const prerender = false;
 
-const [repos, custom, visibility] = await Promise.all([
+const [repos, custom, allCustomSlugs, visibility] = await Promise.all([
   getGithubRepos().catch((e) => {
     console.error("[/projects] getGithubRepos failed:", e);
     return [];
   }),
   getCustomProjects().catch((e) => {
     console.error("[/projects] getCustomProjects failed:", e);
+    return [];
+  }),
+  // Hidden custom projects still claim their name, so hiding one never brings
+  // back a same-named repo card.
+  getCustomProjectSlugs().catch((e) => {
+    console.error("[/projects] getCustomProjectSlugs failed:", e);
     return [];
   }),
   getGithubProjectVisibility().catch((e) => {
@@ -37,10 +47,10 @@ const customCards: ProjectCardData[] = custom.map((p) => ({
 }));
 
 // A repo is excluded if:
-//   - a custom project has the same slug (custom wins), OR
+//   - a custom project has the same slug (custom wins, hidden ones included), OR
 //   - the visibility singleton has it as visible=false.
 // Repos missing from the singleton default to visible (newly-discovered).
-const customSlugs = new Set(custom.map((p) => p.slug.toLowerCase()));
+const customSlugs = new Set(allCustomSlugs);
 const visibleRepos = repos.filter((r) => {
   if (customSlugs.has(r.name.toLowerCase())) return false;
   const entry = visibility.byName.get(r.name.toLowerCase());
