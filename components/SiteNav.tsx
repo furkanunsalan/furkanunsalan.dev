@@ -28,10 +28,12 @@ const topCls = (active: boolean) =>
 
 export default function SiteNav({
   maxWidth = "max-w-3xl",
+  initialPathname,
 }: {
   maxWidth?: string;
+  initialPathname?: string;
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname(initialPathname);
   const [menu, setMenu] = useState<null | "work" | "hobby">(null);
 
   // Close any open dropdown after navigating (the layout persists across routes).

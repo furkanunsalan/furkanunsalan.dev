@@ -118,9 +118,12 @@ export function useRouter(): Router {
   };
 }
 
-export function usePathname(): string {
+export function usePathname(initialPathname?: string): string {
+  // `initialPathname` is the path the server rendered, so the first client
+  // render matches the SSR markup instead of always assuming "/".
   const [pathname, setPathname] = React.useState<string>(
-    typeof window !== "undefined" ? window.location.pathname : "/",
+    initialPathname ??
+      (typeof window !== "undefined" ? window.location.pathname : "/"),
   );
   React.useEffect(() => {
     const on = () => setPathname(window.location.pathname);
