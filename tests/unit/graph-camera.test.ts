@@ -3,10 +3,14 @@ import {
   CAMERA_TWEEN_MS,
   K_MAX,
   K_MIN,
+  ZOOM_SETTLE_EPS,
+  ZOOM_SMOOTH_TAU_MS,
   clampK,
   easeOutCubic,
   fitTransform,
+  smoothTransform,
   tweenTransform,
+  zoomSettled,
 } from "@/lib/graph/camera";
 
 describe("easeOutCubic", () => {
@@ -122,5 +126,78 @@ describe("fitTransform", () => {
     expect(withOutlier.k).toBe(1.5);
     expect(withOutlier.k).toBe(without.k);
     expect(withOutlier.x).toBeCloseTo(without.x, 6);
+  });
+});
+
+// The wheel's smoothing, which replaced a fixed-duration tween per wheel event.
+// A tween has to be retargeted from scratch on every event; an exponential keeps
+// its velocity across events, which is the whole reason a mouse wheel stopped
+// stuttering.
+describe("smoothTransform", () => {
+  const from = { x: 0, y: 0, k: 1 };
+  const to = { x: 100, y: -40, k: 4 };
+
+  it("moves toward the target and never past it", () => {
+    for (const dt of [1, 8, 16, 33, 64]) {
+      const next = smoothTransform(from, to, dt);
+      expect(next.x).toBeGreaterThan(from.x);
+      expect(next.x).toBeLessThanOrEqual(to.x);
+      expect(next.y).toBeLessThan(from.y);
+      expect(next.y).toBeGreaterThanOrEqual(to.y);
+      expect(next.k).toBeGreaterThan(from.k);
+      expect(next.k).toBeLessThanOrEqual(to.k);
+    }
+  });
+
+  it("does not move at all for a zero or negative frame", () => {
+    expect(smoothTransform(from, to, 0)).toEqual(from);
+    expect(smoothTransform(from, to, -16)).toEqual(from);
+  });
+
+  it("converges on the target under repeated frames", () => {
+    let v = from;
+    for (let i = 0; i < 200; i++) v = smoothTransform(v, to, 16);
+    expect(zoomSettled(v, to)).toBe(true);
+    expect(v.x).toBeCloseTo(to.x, 1);
+    expect(v.k).toBeCloseTo(to.k, 3);
+  });
+
+  it("is frame-rate independent: two half frames equal one whole frame", () => {
+    const once = smoothTransform(from, to, 32);
+    const twice = smoothTransform(smoothTransform(from, to, 16), to, 16);
+    expect(twice.x).toBeCloseTo(once.x, 6);
+    expect(twice.k).toBeCloseTo(once.k, 6);
+  });
+
+  it("interpolates zoom geometrically, not linearly", () => {
+    // Half of the motion is at a = 0.5, which happens at tau * ln 2 — that is
+    // the point where a linear ramp and a geometric one disagree most (2.5 vs 2
+    // for a 1x -> 4x move), and the geometric answer is the one that reads as an
+    // even zoom rate.
+    const v = smoothTransform(from, to, ZOOM_SMOOTH_TAU_MS * Math.LN2);
+    expect(v.k).toBeCloseTo(Math.sqrt(from.k * to.k), 6);
+    expect(v.k).not.toBeCloseTo((from.k + to.k) / 2, 3);
+  });
+
+  it("has a time constant in the attached-but-not-jumpy band", () => {
+    expect(ZOOM_SMOOTH_TAU_MS).toBeGreaterThanOrEqual(60);
+    expect(ZOOM_SMOOTH_TAU_MS).toBeLessThanOrEqual(200);
+  });
+});
+
+describe("zoomSettled", () => {
+  it("is false while the camera is still visibly away", () => {
+    expect(zoomSettled({ x: 0, y: 0, k: 1 }, { x: 40, y: 0, k: 1.2 })).toBe(
+      false,
+    );
+  });
+
+  it("is true for sub-pixel, sub-epsilon differences", () => {
+    expect(
+      zoomSettled(
+        { x: 0.2, y: -0.1, k: 1 },
+        { x: 0, y: 0, k: 1 + ZOOM_SETTLE_EPS / 2 },
+      ),
+    ).toBe(true);
   });
 });

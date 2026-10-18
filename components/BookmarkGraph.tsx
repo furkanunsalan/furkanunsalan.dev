@@ -7,7 +7,9 @@ import {
   K_MIN,
   clampK,
   fitTransform,
+  smoothTransform,
   tweenTransform,
+  zoomSettled,
 } from "@/lib/graph/camera";
 import {
   isEdgeVisible,
@@ -91,6 +93,9 @@ type GraphState = {
   matches: Set<string> | null;
   view: ViewTransform;
   tween: CameraTween | null;
+  /** The wheel's destination, when one is pending. The wheel writes here and
+   *  the loop eases `view` toward it; a tween and a zoom target never coexist. */
+  zoomTarget: ViewTransform | null;
   /** The highlight the pointer is on, or null. */
   hover: HoverHighlight | null;
   /** The classification the dim layer is (or was) blending toward. Retained
@@ -150,6 +155,7 @@ export default function BookmarkGraph() {
     matches: null,
     view: { x: 0, y: 0, k: 1 },
     tween: null,
+    zoomTarget: null,
     hover: null,
     dimSource: null,
     dim: 0,
@@ -179,6 +185,9 @@ export default function BookmarkGraph() {
    *  gate snaps, and only a gesture bypasses it (by writing `view` directly). */
   const startCamera = (to: ViewTransform, fit = false) => {
     const s = g.current;
+    // A programmatic move supersedes a wheel in flight: two writers on `view`
+    // would fight, and the move is the more deliberate of the two.
+    s.zoomTarget = null;
     if (s.reduce) {
       s.tween = null;
       s.view = to;
@@ -338,8 +347,8 @@ export default function BookmarkGraph() {
       const dt = s.frameAt === 0 ? 16 : Math.min(64, now - s.frameAt);
       s.frameAt = now;
 
-      // --- camera: a programmatic move tweens; a gesture has already written
-      // the view, and cancelled any move that was in flight ---
+      // --- camera: a programmatic move tweens, the wheel eases toward its
+      // target, and a gesture has already written the view directly ---
       if (s.tween) {
         const tw = s.tween;
         const t = Math.min(1, (now - tw.start) / CAMERA_TWEEN_MS);
@@ -348,6 +357,13 @@ export default function BookmarkGraph() {
           s.tween = null;
         } else {
           s.view = tweenTransform(tw.from, tw.to, t);
+        }
+      } else if (s.zoomTarget) {
+        if (s.reduce || zoomSettled(s.view, s.zoomTarget)) {
+          s.view = s.zoomTarget;
+          s.zoomTarget = null;
+        } else {
+          s.view = smoothTransform(s.view, s.zoomTarget, dt);
         }
       }
 
@@ -407,7 +423,11 @@ export default function BookmarkGraph() {
       const culling = raw >= 1;
       const inView = (n: N) => !culling || isNodeVisible(n, bounds);
 
-      ctx.lineWidth = 1 / s.view.k;
+      // 1.25 CSS px, not 1: a one-pixel hairline at a shallow angle has its
+      // antialiased coverage split across two device rows, and at the resting
+      // alpha that reads as a dotted trail rather than a line. The extra quarter
+      // pixel is what makes the stroke cover a row cleanly.
+      ctx.lineWidth = 1.25 / s.view.k;
       for (const l of s.links) {
         if (culling && !isEdgeVisible(l.a, l.b, bounds)) continue;
         const alpha =
@@ -651,6 +671,7 @@ export default function BookmarkGraph() {
         // press that turns out to be a click cannot freeze a move in progress
         // (the opening framing is a move in progress).
         s.tween = null;
+        s.zoomTarget = null;
       }
       if (s.moved) {
         // 1:1 with the hand. A tween here would read as the interface lagging.
@@ -687,18 +708,24 @@ export default function BookmarkGraph() {
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const mx = e.clientX - r.left;
     const my = e.clientY - r.top;
-    // Zoom is accumulated on the TARGET, so a fast wheel spins through the
-    // steps instead of every event restarting from wherever the tween is —
-    // while the visible move stays smooth.
-    const from = s.tween ? s.tween.to : s.view;
+    // The wheel is a STREAM of events, so it accumulates on the target and lets
+    // the loop ease toward it. Restarting a fixed-duration ease per notch is what
+    // made a mouse wheel stutter: each event re-accelerated and re-decelerated
+    // before the next one arrived. Velocity now carries across events.
+    s.tween = null;
+    const from = s.zoomTarget ?? s.view;
     const k2 = clampK(from.k * Math.exp(-e.deltaY * 0.0015));
     // Still anchored at the pointer: the graph point under the cursor is the
     // one that stays under it once the zoom lands.
-    startCamera({
+    s.zoomTarget = {
       x: mx - (mx - from.x) * (k2 / from.k),
       y: my - (my - from.y) * (k2 / from.k),
       k: k2,
-    });
+    };
+    if (s.reduce) {
+      s.view = s.zoomTarget;
+      s.zoomTarget = null;
+    }
   };
 
   return (

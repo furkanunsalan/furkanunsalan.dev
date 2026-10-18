@@ -38,13 +38,18 @@ describe("node size", () => {
   it("grows a bookmark with its tag count, up to the cap", () => {
     const r = (d: number) =>
       resolveNodeRadius(NODE_SIZE, NODE_SIZE_STRENGTH, d, MAX_DEGREE_FOR_SIZE);
-    expect(r(0)).toBe(6);
-    expect(r(1)).toBeCloseTo(7.2, 6);
-    expect(r(3)).toBeCloseTo(9.6, 6);
+    // Derived from the constants, so retuning the size model does not require
+    // rewriting the arithmetic here.
+    expect(r(0)).toBe(NODE_SIZE);
+    expect(r(1)).toBeCloseTo(NODE_SIZE + NODE_SIZE_STRENGTH, 6);
+    expect(r(3)).toBeCloseTo(NODE_SIZE + NODE_SIZE_STRENGTH * 3, 6);
     // The cap: a node claimed by a hundred tags is drawn no larger than one
     // claimed by twenty.
     expect(r(20)).toBe(r(100));
-    expect(r(20)).toBeCloseTo(30, 6);
+    expect(r(20)).toBeCloseTo(
+      NODE_SIZE + NODE_SIZE_STRENGTH * MAX_DEGREE_FOR_SIZE,
+      6,
+    );
   });
 
   it("keeps a tag hub markedly larger than its own leaves, without a planet", () => {

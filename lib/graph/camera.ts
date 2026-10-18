@@ -33,6 +33,54 @@ export const CAMERA_TWEEN_MS = 280;
 export const K_MIN = 0.15;
 export const K_MAX = 4;
 
+/** Time constant for the wheel's zoom, in ms.
+ *
+ *  The wheel is a STREAM of events, not one move, so it cannot use
+ *  {@link CAMERA_TWEEN_MS}: a fresh 280 ms ease-out per notch repeatedly
+ *  accelerates and decelerates, and a mouse wheel (one event every 50-100 ms
+ *  with a large delta) reads as a stutter. Instead the wheel writes a target and
+ *  the camera eases toward it every frame with an exponential — velocity carries
+ *  across events, so the motion flows and stops when the events stop.
+ *
+ *  110 ms is short enough that the zoom still feels attached to the wheel and
+ *  long enough that a single notch is not a jump. */
+export const ZOOM_SMOOTH_TAU_MS = 110;
+
+/** How close the camera has to be to the zoom target to snap onto it and stop
+ *  the loop. Sub-pixel in position, and a zoom step no one can see. */
+export const ZOOM_SETTLE_EPS = 0.0015;
+
+/** One frame of exponential smoothing toward `to`. Position interpolates
+ *  linearly and zoom geometrically, so the perceived zoom rate is even — the
+ *  same reasoning as {@link tweenTransform}. */
+export function smoothTransform(
+  from: ViewTransform,
+  to: ViewTransform,
+  dt: number,
+  tau: number = ZOOM_SMOOTH_TAU_MS,
+): ViewTransform {
+  const a = 1 - Math.exp(-Math.max(0, dt) / tau);
+  return {
+    x: from.x + (to.x - from.x) * a,
+    y: from.y + (to.y - from.y) * a,
+    k: from.k * (to.k / from.k) ** a,
+  };
+}
+
+/** Whether the camera has arrived at the zoom target, so the smoothing can stop
+ *  rather than asymptote forever. */
+export function zoomSettled(
+  from: ViewTransform,
+  to: ViewTransform,
+  eps: number = ZOOM_SETTLE_EPS,
+): boolean {
+  return (
+    Math.abs(from.x - to.x) < 0.5 &&
+    Math.abs(from.y - to.y) < 0.5 &&
+    Math.abs(from.k / to.k - 1) < eps
+  );
+}
+
 /** Clamp a zoom level into the supported range. */
 export function clampK(k: number): number {
   return Math.max(K_MIN, Math.min(K_MAX, k));
