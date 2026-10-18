@@ -116,10 +116,24 @@ export default function PlacesMapView({
         selectionNonce={selectionNonce}
         markerRefs={markerRefs}
       />
+      {/* Two CARTO layers instead of one `dark_all`. `dark_all` bakes its
+          labels in at #3b3b3b–#585858, which lands around 1.6:1 contrast
+          against this basemap's ~#1a1b1d — street names are effectively
+          invisible. Splitting the label layer out lets us lift ONLY the text
+          (see `.places-map__labels` in PlacesMapView.css) while the base stays
+          deep black, which is both more readable and better on an AMOLED
+          panel. It is also cheaper: dark_nolabels (12KB) + dark_only_labels
+          (3KB) is less than the 18KB dark_all tile it replaces. */}
       <TileLayer
-        url={`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_BASEMAP_KEY}`}
+        url={`https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png?key=${CARTO_BASEMAP_KEY}`}
         subdomains="abcd"
         maxZoom={19}
+      />
+      <TileLayer
+        url={`https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png?key=${CARTO_BASEMAP_KEY}`}
+        subdomains="abcd"
+        maxZoom={19}
+        className="places-map__labels"
       />
       <PlaceMarkers
         places={places}
