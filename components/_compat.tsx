@@ -52,7 +52,7 @@ export const Image = React.forwardRef<HTMLImageElement, ImgProps>(
       fill,
       priority,
       quality: _q,
-      sizes: _sz,
+      sizes,
       loading,
       style,
       ...rest
@@ -75,6 +75,7 @@ export const Image = React.forwardRef<HTMLImageElement, ImgProps>(
         ref={ref}
         src={s}
         alt={alt}
+        sizes={sizes}
         loading={priority ? "eager" : loading || "lazy"}
         style={fillStyle}
         {...rest}
