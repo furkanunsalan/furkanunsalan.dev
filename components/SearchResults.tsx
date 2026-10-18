@@ -276,11 +276,16 @@ export default function SearchResults({
           {status}
         </p>
 
-        <div ref={listRef} className="mt-4 divide-y divide-white/[0.06]">
+        <div ref={listRef} className="mt-4 space-y-1">
           {results.map((item, idx) => {
             const Icon = ICONS[item.kind];
             const external = /^https?:\/\//i.test(item.href);
             const active = idx === selected;
+            // The highlight is its own rounded surface rather than a full-bleed
+            // band: -mx-3 px-3 gives the fill breathing room while the text
+            // stays on the container's original left edge, and the hairline ring
+            // replaces the divider the list used to lean on — a divider can't
+            // coexist with a rounded hover without showing through its corners.
             return (
               <a
                 key={`${item.kind}-${item.href}-${idx}`}
@@ -290,8 +295,10 @@ export default function SearchResults({
                 rel={external ? "noopener noreferrer" : undefined}
                 onMouseEnter={() => setSelected(idx)}
                 onClick={() => onActivate?.(item)}
-                className={`group flex gap-4 py-4 transition-colors ${
-                  active ? "bg-white/[0.03]" : ""
+                className={`group -mx-3 flex gap-4 rounded-xl px-3 py-3 transition-[background-color,box-shadow,color] duration-200 ${
+                  active
+                    ? "bg-white/[0.055] ring-1 ring-white/[0.08]"
+                    : "ring-1 ring-transparent hover:bg-white/[0.055] hover:ring-white/[0.08]"
                 }`}
               >
                 <Icon className="w-4 h-4 mt-1 shrink-0 text-light-fourth" />
