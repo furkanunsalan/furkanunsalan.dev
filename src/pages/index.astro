@@ -62,11 +62,14 @@ const personLd = {
           both sit on the container's own padding, so an extra layer made the
           text column narrower than both and left the three edges misaligned. */}
       <div class="relative">
+        {/* Decorative like the banner beside it: the avatar is not something to
+            open, so the cursor stays `idle` instead of offering a View pill. */}
         <img
           src="/hero/portrait.webp"
           alt="Furkan Ünsalan"
           width="460"
           height="460"
+          data-cursor="idle"
           class="animate-fade-in absolute left-4 -top-10 h-20 w-20 rounded-[15%] object-cover ring-4 ring-dark-primary sm:left-6 sm:-top-12 sm:h-24 sm:w-24"
         />
 
