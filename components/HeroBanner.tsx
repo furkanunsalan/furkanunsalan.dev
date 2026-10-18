@@ -201,6 +201,11 @@ export default function HeroBanner({
   return (
     <div
       ref={boxRef}
+      // The banner is pure decoration whose only hover response is the cipher
+      // scramble below, so the cursor is pinned to `idle`: no View pill over an
+      // image that has nothing to open. Explicit beats the image → view rule in
+      // CustomCursor's resolver.
+      data-cursor="idle"
       className={`relative aspect-[3/1] w-full overflow-hidden bg-zinc-950 ${className}`}
     >
       <img
