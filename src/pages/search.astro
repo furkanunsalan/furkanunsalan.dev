@@ -5,6 +5,10 @@ import { search } from "@/lib/search";
 
 export const prerender = false;
 
+// /search is a deep-link surface, not a page you browse to: the layout's
+// SearchOverlay opens on this path with ?q= seeded, and this server-rendered
+// panel stays behind it. Closing the modal (or landing here without JS) reveals
+// a working search page instead of an empty shell.
 const q = (Astro.url.searchParams.get("q") || "").slice(0, 200);
 const initialResults = q.trim() ? await search(q, { limit: 30 }) : [];
 ---
@@ -15,8 +19,10 @@ const initialResults = q.trim() ? await search(q, { limit: 30 }) : [];
   noindex
 >
   <SearchResults
+    variant="page"
     initialQuery={q}
     initialResults={initialResults}
+    autoFocus
     client:load
   />
 </PageLayout>
