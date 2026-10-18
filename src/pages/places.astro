@@ -1,6 +1,7 @@
 ---
 import PageLayout from "../layouts/PageLayout.astro";
-import PlacesSection from "@/components/PlacesSection";
+import PlacesMap from "@/components/PlacesMap";
+import PlacesList from "@/components/PlacesList";
 import { getPlaces, getPlaceLists } from "@/lib/content";
 
 export const prerender = false;
@@ -19,7 +20,17 @@ const [places, lists] = await Promise.all([getPlaces(), getPlaceLists()]);
           <code class="text-accent-primary">/admin/places/new</code>.
         </div>
       ) : (
-        <PlacesSection places={places} lists={lists} client:only="react" />
+        <>
+          {/* Two islands, not one. The map must be client-only (Leaflet touches
+              `window` at import time), but the list does not need it — so the
+              list is server-rendered and its content is in the HTML before any
+              JS runs, instead of waiting on the ~128 KB that also carries
+              Leaflet. A row click reaches the map over lib/places-select. */}
+          <PlacesMap places={places} lists={lists} client:only="react" />
+          <div class="mt-10">
+            <PlacesList places={places} lists={lists} client:load />
+          </div>
+        </>
       )
     }
   </div>

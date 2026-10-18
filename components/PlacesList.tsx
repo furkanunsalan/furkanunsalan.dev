@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { Place, PlaceStatus } from "@/types";
 import { iconKey, type ListIconKey } from "@/lib/place-list-icons";
+import { selectPlace } from "@/lib/places-select";
 import { PLACE_LIST_ICON_COMPONENTS } from "@/lib/place-list-icons-react";
 
 const PAGE_SIZE = 20;
@@ -322,7 +323,12 @@ export default function PlacesList({ places, lists, onSelect }: Props) {
             const meta = STATUS_META[p.status];
             const ik = iconByList.get(p.list || "") ?? iconKey(null);
             const RowIcon = PLACE_LIST_ICON_COMPONENTS[ik];
-            const handleRowActivate = () => onSelect?.(p.slug);
+            // Publish on the bus so the map — a separate island — hears the
+            // click; the prop stays for a caller that wants it inline.
+            const handleRowActivate = () => {
+              selectPlace(p.slug);
+              onSelect?.(p.slug);
+            };
             return (
               <li
                 key={p.slug}
