@@ -746,23 +746,37 @@ html {
 
 /* ---------- coast cipher footer band ---------- */
 
-/* The band is the last thing on the page and is revealed by scroll, so its own
-   box is the reveal window: the art rises and fades in from below on the final
-   band-height of scrolling (see components/CoastCipher.tsx). The plane's colour
-   is the art's own background, which is what keeps the reserved box reading as
-   plain page instead of an empty footer. `overflow: hidden` clips the rise. */
+/* The art is 2.9559:1, so bounding the width bounds the height — and the height
+   is what the sticky reveal and the scroll arithmetic both key off. Deriving it
+   once here keeps CSS and components/CoastCipher.tsx from disagreeing. */
+:root {
+  --coast-band-width: min(1440px, 100vw, 175vh);
+  --coast-band-height: calc(var(--coast-band-width) / 2.9559);
+}
+
+/* Scroll room for the reveal. The page's natural end lands with the band fully
+   parked, so reaching the bottom shows no footer at all; the extra 0.35 of a
+   band is the deliberate "keep scrolling and it appears". */
+.coast-reveal {
+  height: calc(var(--coast-band-height) * 1.35);
+  margin-top: 4rem;
+}
+
+/* Pinned to the bottom of the viewport and clipped: the art slides up inside a
+   window that is already where it needs to be. Sticky rather than fixed keeps
+   it confined to the reveal box, so it can never cover the content above it —
+   including on pages short enough that no scrolling happens at all. */
 .coast-band {
-  position: relative;
+  position: sticky;
+  bottom: 0;
+  height: var(--coast-band-height);
   overflow: hidden;
-  background-color: #07070a;
-  border-top: 1px solid #27272a;
 }
 
 /* cqw is measured against this box, so the glyph size follows the real width
    rather than a breakpoint guess. */
 .coast-band__container {
-  width: 100%;
-  max-width: 1440px;
+  width: var(--coast-band-width);
   margin-inline: auto;
   container-type: inline-size;
 }
@@ -773,7 +787,9 @@ html {
   position: relative;
   width: 100%;
   aspect-ratio: 1206 / 408;
-  will-change: transform, opacity;
+  will-change: transform;
+  /* Contains the bloom's mix-blend-mode so it can only ever blend with the art. */
+  isolation: isolate;
 }
 
 .coast-band__pre {
@@ -791,4 +807,26 @@ html {
   position: absolute;
   inset: 0;
   display: block;
+}
+
+/* The bloom, as a layer that is never repainted. Compositing it onto the canvas
+   meant re-applying it whenever a cell changed, and because a repaint region is
+   a bounding box, cells inside that box which had *not* changed were screened a
+   second (and third, …) time — the crest accumulated toward white. A static
+   layer cannot accumulate, and it costs nothing per frame. */
+.coast-band__glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* Instead of a separator line: the art's top edge dissolves into the page. */
+.coast-band__fade {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 110px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0) 100%);
 }
