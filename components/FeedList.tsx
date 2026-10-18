@@ -287,6 +287,7 @@ function PostRow({ post }: { post: BlogPost }) {
     <li>
       <Link
         href={`/writing/${post.slug}`}
+        data-astro-prefetch=""
         className="group block py-5 -mx-3 px-3 rounded transition-colors hover:bg-white/[0.02]"
       >
         <div className="flex items-baseline gap-2 mb-1.5 text-[12px]">

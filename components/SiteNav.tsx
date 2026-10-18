@@ -54,13 +54,18 @@ export default function SiteNav({
         <div
           className={`mx-auto flex ${maxWidth} items-center justify-between px-4 py-3 sm:px-6 lg:px-8`}
         >
-          <Link href="/" className="shrink-0 text-sm font-semibold text-white">
+          <Link
+            href="/"
+            data-astro-prefetch=""
+            className="shrink-0 text-sm font-semibold text-white"
+          >
             <ScrambleText text={SHORT} className="md:hidden" />
             <ScrambleText text={NAME} className="hidden md:inline" />
           </Link>
           <nav className="flex items-center gap-4 sm:gap-5">
             <Link
               href="/search"
+              data-astro-prefetch=""
               aria-label="Search"
               className={topCls(false)}
               onClick={(e) => {
@@ -87,7 +92,11 @@ export default function SiteNav({
               onToggle={() => setMenu((m) => (m === "work" ? null : "work"))}
               onClose={() => setMenu(null)}
             />
-            <Link href="/writing" className={topCls(isActive("/writing"))}>
+            <Link
+              href="/writing"
+              data-astro-prefetch=""
+              className={topCls(isActive("/writing"))}
+            >
               Writing
             </Link>
             <NavDropdown
@@ -164,6 +173,7 @@ function NavDropdown({
               <Link
                 key={l.href}
                 href={l.href}
+                data-astro-prefetch=""
                 onClick={onClose}
                 className={`block rounded-md px-3 py-2 text-sm ${
                   isActive(l.href)

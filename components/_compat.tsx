@@ -14,6 +14,9 @@ type LinkProps = Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
   prefetch?: boolean;
   replace?: boolean;
   scroll?: boolean;
+  // Astro's prefetch runtime opts a link in when this attribute is present and
+  // empty (it reads `dataset.astroPrefetch`). Pass `data-astro-prefetch=""`.
+  "data-astro-prefetch"?: string;
 };
 
 export function Link({
