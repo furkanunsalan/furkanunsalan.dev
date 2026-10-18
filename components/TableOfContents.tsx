@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { Heading } from "@/lib/markdoc-render";
 
-export type Heading = { id: string; text: string; level: number };
+// Headings are computed on the server (lib/markdoc-render) and passed in, so the
+// TOC anchors match the rendered `id`s exactly. Re-exported for callers that
+// imported the type from here.
+export type { Heading };
 
 const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
 

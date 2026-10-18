@@ -1,8 +1,10 @@
 ---
 import PageLayout from "../../layouts/PageLayout.astro";
-import PostBody from "@/components/PostBody";
+import MarkdocBody from "@/components/MarkdocBody.astro";
 import { getPostContentBySlug } from "@/lib/content";
 import { getRelatedPosts } from "@/lib/search";
+import { renderBody } from "@/lib/markdoc-render";
+import { srcSetFor } from "@/lib/image-srcset";
 
 export const prerender = false;
 
@@ -13,6 +15,11 @@ const post = slug ? await getPostContentBySlug(slug) : null;
 if (!post) {
   return Astro.rewrite(`/404?from=/writing/${encodeURIComponent(slug ?? "")}`);
 }
+
+// Rendered on the server: the article text is in the HTML, so the reader does
+// not stare at an empty column while React + Markdoc download and parse it.
+const { segments, headings } = renderBody(post.content);
+const bannerSrcSet = post.banner ? srcSetFor(post.banner) : undefined;
 
 const SITE_BASE =
   process.env.NEXT_PUBLIC_SITE_URL || "https://furkanunsalan.dev";
@@ -100,6 +107,7 @@ const jsonLd = {
         post.banner && (
           <img
             src={post.banner}
+            srcset={bannerSrcSet}
             alt={post.title}
             sizes="(max-width: 1024px) 100vw, 768px"
             class="mt-6 max-h-[420px] w-auto h-auto max-w-full rounded-xl ring-1 ring-white/[0.06] animate-fade-in delay-100"
@@ -108,7 +116,7 @@ const jsonLd = {
       }
     </header>
 
-    <PostBody content={post.content} client:only="react" />
+    <MarkdocBody segments={segments} headings={headings} />
 
     {
       related.length > 0 && (
