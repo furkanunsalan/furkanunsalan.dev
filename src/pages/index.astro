@@ -1,44 +1,18 @@
 ---
 import PageLayout from "../layouts/PageLayout.astro";
-import {
-  getExperiences,
-  getHomeSettings,
-  getLatestThought,
-  getPosts,
-} from "@/lib/content";
-import { BOOKMARK_LISTS, getKarakeepLatestFromLists } from "@/lib/karakeep";
+import { getExperiences, getHomeSettings } from "@/lib/content";
 import { HomeSocialLink } from "@/components/HomeSocialLink";
 import HeroBanner from "@/components/HeroBanner";
+import CopyPgpKey from "@/components/CopyPgpKey";
 import GithubCommitHistory from "@/components/GithubCommitHistory";
 import Time from "@/components/Time";
-import {
-  Bookmark,
-  Briefcase,
-  Crosshair,
-  KeyRound,
-  MapPin,
-  PenLine,
-  Tv,
-  Wrench,
-} from "lucide-react";
+import { Briefcase, Clock } from "lucide-react";
 
 export const prerender = false;
 
-async function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
-  try {
-    return await fn();
-  } catch (e) {
-    console.error("[index] fetch failed:", e);
-    return fallback;
-  }
-}
-
-const [settings, experiences, posts, thought, bookmark] = await Promise.all([
+const [settings, experiences] = await Promise.all([
   getHomeSettings(),
   getExperiences(),
-  safe(() => getPosts(), []),
-  safe(() => getLatestThought(), null),
-  safe(() => getKarakeepLatestFromLists(BOOKMARK_LISTS.map((l) => l.id)), null),
 ]);
 
 // The admin's manual `order` decides which experience is primary (lowest
@@ -53,35 +27,6 @@ const current = [...experiences].sort((a, b) => {
   if (oa !== ob) return oa - ob;
   return parseDMY(b.start_date) - parseDMY(a.start_date);
 })[0];
-
-// Latest writing (post or thought, whichever is newer) → the "note" row.
-const latestPost = [...posts].sort(
-  (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-)[0];
-const noteCandidates: { date: string; title: string; href: string }[] = [];
-if (latestPost) {
-  noteCandidates.push({
-    date: latestPost.date,
-    title: latestPost.title,
-    href: `/writing/${latestPost.slug}`,
-  });
-}
-if (thought) {
-  const preview = thought.body.replace(/\s+/g, " ").trim();
-  noteCandidates.push({
-    date: thought.createdAt,
-    title:
-      preview.length > 60
-        ? `${preview.slice(0, 60)}…`
-        : preview || `Thought #${thought.id}`,
-    href: `/writing#t-${thought.id}`,
-  });
-}
-noteCandidates.sort(
-  (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-);
-const note = noteCandidates[0] ?? null;
-const save = bookmark ? { title: bookmark.title, href: bookmark.link } : null;
 
 // The @handle beside the name: read off the X/Twitter social rather than
 // hard-coding one, and only when it actually looks like a handle — so an empty
@@ -136,18 +81,36 @@ const personLd = {
           alt="Furkan Ünsalan"
           width="460"
           height="460"
-          class="animate-fade-in absolute -top-10 h-20 w-20 rounded-[30%] object-cover ring-4 ring-dark-primary sm:-top-12 sm:h-24 sm:w-24"
+          class="animate-fade-in absolute -top-10 h-20 w-20 rounded-[22%] object-cover ring-4 ring-dark-primary sm:-top-12 sm:h-24 sm:w-24"
         />
 
         <div class="animate-fade-in-down pt-12 sm:pt-16">
           <h1 class="text-lg font-bold text-white sm:text-xl">
             Furkan Ünsalan
           </h1>
-          {
-            handle && (
-              <p class="mt-0.5 font-mono text-xs text-light-fourth">{handle}</p>
-            )
-          }
+          {/* Identity line: [clock] @handle · live Istanbul time. The Time
+              island owns the digits and its own timezone suffix, so only the
+              separator lives here. */}
+          <p
+            class="mt-0.5 flex flex-wrap items-center gap-x-1.5 font-mono text-xs text-light-fourth"
+          >
+            <Clock className="h-3 w-3 shrink-0 text-zinc-500" />
+            {
+              handle && (
+                <>
+                  <span>{handle}</span>
+                  <span class="text-zinc-600">·</span>
+                </>
+              )
+            }
+            <span class="tabular-nums">
+              <Time
+                location={settings.timezone}
+                shortName={settings.timezoneLabel}
+                client:load
+              />
+            </span>
+          </p>
 
           {/* Iconised metadata, hugging the identity the way a profile's
               location/joined line does. The labels became icons, so each one
@@ -155,6 +118,20 @@ const personLd = {
           <ul
             class="mt-3 flex w-full select-none flex-col gap-1 text-[11px] leading-snug text-light-secondary sm:text-xs"
           >
+            {
+              settings.socials.length > 0 && (
+                <li class="flex items-center gap-2">
+                  <span class="sr-only">social</span>
+                  <div class="stagger flex flex-wrap items-center gap-3">
+                    {settings.socials.map((s) => (
+                      <HomeSocialLink social={s} />
+                    ))}
+                    <CopyPgpKey client:idle />
+                  </div>
+                </li>
+              )
+            }
+
             {
               current && (
                 <li class="flex items-start gap-2">
@@ -166,122 +143,6 @@ const personLd = {
                   >
                     {`${current.title} @ ${current.organization}`}
                   </a>
-                </li>
-              )
-            }
-
-            <li class="flex items-start gap-2">
-              <MapPin className="mt-[3px] h-3.5 w-3.5 shrink-0 text-zinc-500" />
-              <span class="sr-only">based</span>
-              <span class="min-w-0 whitespace-nowrap">
-                {settings.location}
-                <span class="text-zinc-600"> · </span>
-                <span class="tabular-nums [&>div]:inline">
-                  <Time
-                    location={settings.timezone}
-                    shortName={settings.timezoneLabel}
-                    client:load
-                  />
-                </span>
-              </span>
-            </li>
-
-            {
-              settings.focus && (
-                <li class="flex items-start gap-2">
-                  <Crosshair className="mt-[3px] h-3.5 w-3.5 shrink-0 text-zinc-500" />
-                  <span class="sr-only">focus</span>
-                  <span class="min-w-0">{settings.focus}</span>
-                </li>
-              )
-            }
-
-            {
-              settings.watching && (
-                <li class="flex items-start gap-2">
-                  <Tv className="mt-[3px] h-3.5 w-3.5 shrink-0 text-zinc-500" />
-                  <span class="sr-only">watching</span>
-                  <span class="min-w-0 truncate">{settings.watching}</span>
-                </li>
-              )
-            }
-
-            {
-              note && (
-                <li class="flex items-start gap-2">
-                  <PenLine className="mt-[3px] h-3.5 w-3.5 shrink-0 text-zinc-500" />
-                  <span class="sr-only">note</span>
-                  <a
-                    href={note.href}
-                    title={note.title}
-                    class="min-w-0 truncate text-light-third transition-colors duration-200 hover:text-accent-primary"
-                  >
-                    {note.title}
-                  </a>
-                </li>
-              )
-            }
-
-            {
-              save && (
-                <li class="flex items-start gap-2">
-                  <Bookmark className="mt-[3px] h-3.5 w-3.5 shrink-0 text-zinc-500" />
-                  <span class="sr-only">save</span>
-                  <a
-                    href={save.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={save.title}
-                    class="min-w-0 truncate text-light-third transition-colors duration-200 hover:text-accent-primary"
-                  >
-                    {save.title}
-                  </a>
-                </li>
-              )
-            }
-
-            <li class="flex items-start gap-2">
-              <Wrench className="mt-[3px] h-3.5 w-3.5 shrink-0 text-zinc-500" />
-              <span class="sr-only">gadgets</span>
-              <a
-                href="/gadgets"
-                class="group inline-flex items-center gap-1 text-light-third transition-colors duration-200 hover:text-accent-primary"
-              >
-                the gear I use daily
-                <span
-                  class="transition-transform duration-200 group-hover:translate-x-0.5"
-                >
-                  →
-                </span>
-              </a>
-            </li>
-
-            {
-              settings.pgpId && (
-                <li class="flex items-start gap-2">
-                  <KeyRound className="mt-[3px] h-3.5 w-3.5 shrink-0 text-zinc-500" />
-                  <span class="sr-only">pgp</span>
-                  <a
-                    href="/pgp.asc"
-                    title="Download PGP public key"
-                    class="min-w-0 truncate text-light-third transition-colors duration-200 hover:text-accent-primary"
-                  >
-                    {settings.pgpId}
-                  </a>
-                </li>
-              )
-            }
-
-            {
-              settings.socials.length > 0 && (
-                <li class="flex items-center gap-2">
-                  <span class="sr-only">social</span>
-                  {/* Aligned to the values above: icon width + gap. */}
-                  <div class="stagger flex flex-wrap items-center gap-3 pl-[22px]">
-                    {settings.socials.map((s) => (
-                      <HomeSocialLink social={s} />
-                    ))}
-                  </div>
                 </li>
               )
             }
