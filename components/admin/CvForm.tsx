@@ -36,7 +36,7 @@ type ExpRow = {
   title: string;
   kind: "work" | "volunteer";
 };
-type ProjRow = { slug: string; name: string };
+type ProjRow = { slug: string; name: string; visible: boolean };
 
 const rowInput =
   "bg-black ring-1 ring-white/[0.08] focus:ring-accent-primary/60 outline-none rounded-lg px-3 py-2 text-sm text-white placeholder:text-light-fourth";
@@ -311,7 +311,7 @@ export default function CvForm({
 
       <Field
         label="Projects"
-        hint="Pick projects, add a Tech Stack line, ✓ Short to include in the short résumé."
+        hint="Pick projects, add a Tech Stack line, ✓ Short to include in the short résumé. Hidden projects never render on the CV."
       >
         <div className="space-y-1.5">
           {availableProjects.map((p) => {
@@ -328,9 +328,18 @@ export default function CvForm({
                     onChange={() => toggleProj(p.slug)}
                     className="accent-accent-primary"
                   />
-                  <span className="min-w-0 flex-1 truncate text-sm text-white">
+                  <span
+                    className={`min-w-0 flex-1 truncate text-sm ${
+                      p.visible ? "text-white" : "text-light-fourth"
+                    }`}
+                  >
                     {p.name}
                   </span>
+                  {!p.visible && (
+                    <span className="inline-flex items-center rounded-full px-2 py-[3px] text-[10px] leading-none uppercase tracking-wider ring-1 ring-amber-400/40 bg-amber-400/10 text-amber-300 shrink-0">
+                      hidden
+                    </span>
+                  )}
                   {sel && (
                     <Toggle
                       value={sel.inShort}

@@ -41,6 +41,13 @@ if (!row) return new Response(null, { status: 404 });
           <h1 class="text-xl font-semibold tracking-tight truncate">
             {row.name}
           </h1>
+          {
+            !row.visible && (
+              <span class="inline-flex items-center rounded-full px-2 py-[3px] text-[10px] leading-none uppercase tracking-wider ring-1 ring-amber-400/40 bg-amber-400/10 text-amber-300 shrink-0">
+                hidden
+              </span>
+            )
+          }
         </div>
         <p class="mt-1 text-xs text-light-fourth">{`/projects/${row.slug}`}</p>
       </div>
@@ -57,6 +64,7 @@ if (!row) return new Response(null, { status: 404 });
         order: row.order,
         image: row.image || undefined,
         content: row.content,
+        visible: row.visible,
       }}
       client:load
     />

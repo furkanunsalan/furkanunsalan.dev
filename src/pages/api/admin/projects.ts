@@ -44,6 +44,9 @@ export const POST: APIRoute = async ({ request }) => {
         order: typeof body.order === "number" ? body.order : 100,
         image: body.image || null,
         content: body.content ?? "",
+        // Absent means listed; only an explicit `visible: false` hides a
+        // freshly created project.
+        visible: body.visible !== false,
       })
       .returning();
     revalidateCollection("projects", slug);

@@ -8,6 +8,7 @@ import {
   NumberInput,
   TextArea,
   ImageInput,
+  Toggle,
   SaveBar,
 } from "@/components/admin/form";
 
@@ -21,6 +22,7 @@ export type ProjectFormValue = {
   order: number | null;
   image: string | undefined;
   content: string;
+  visible: boolean;
 };
 
 export default function ProjectForm({
@@ -149,6 +151,17 @@ export default function ProjectForm({
           value={v.order}
           onChange={(n) => upd("order", n)}
           step={1}
+        />
+      </Field>
+
+      <Field
+        label="Visibility"
+        hint="Hidden projects stay here and at their /projects/<slug> URL, but leave the listing, search and the sitemap."
+      >
+        <Toggle
+          value={v.visible}
+          onChange={(b) => upd("visible", b)}
+          label={v.visible ? "listed on /projects" : "hidden from /projects"}
         />
       </Field>
 

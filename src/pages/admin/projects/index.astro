@@ -21,6 +21,10 @@ const [rows, ghRows] = await Promise.all([
       asc(schema.githubProjectVisibility.name),
     ),
 ]);
+
+// Hidden rows stay listed here on purpose — the badge below is the only place
+// the flag is visible, so filtering them out would make them unfindable again.
+const hiddenCount = rows.filter((r) => !r.visible).length;
 ---
 
 <AdminLayout title="Projects · admin">
@@ -36,7 +40,9 @@ const [rows, ghRows] = await Promise.all([
             </h1>
           </div>
           <p class="mt-1 text-xs text-light-fourth">
-            {rows.length} custom entries. Sorted by order field.
+            {rows.length} custom entries
+            {hiddenCount > 0 ? ` · ${hiddenCount} hidden` : ""}. Sorted by order
+            field.
           </p>
         </div>
         <a
@@ -102,6 +108,13 @@ const [rows, ghRows] = await Promise.all([
                       {p.language ? ` · ${p.language}` : ""}
                     </div>
                   </div>
+                  {
+                    !p.visible && (
+                      <span class="inline-flex items-center rounded-full px-2 py-[3px] text-[10px] leading-none uppercase tracking-wider ring-1 ring-amber-400/40 bg-amber-400/10 text-amber-300 shrink-0">
+                        hidden
+                      </span>
+                    )
+                  }
                 </div>
               </a>
             </li>
