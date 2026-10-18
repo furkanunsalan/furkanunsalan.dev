@@ -75,7 +75,10 @@ const personLd = {
     <header class="w-full">
       <HeroBanner src="/hero/banner.webp" client:load />
 
-      <div class="relative px-4 sm:px-6">
+      {/* No horizontal padding here: the banner above and the commit graph below
+          both sit on the container's own padding, so an extra layer made the
+          text column narrower than both and left the three edges misaligned. */}
+      <div class="relative">
         <img
           src="/hero/portrait.webp"
           alt="Furkan Ünsalan"
