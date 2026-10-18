@@ -1,6 +1,7 @@
 "use client";
 
 import { Image, type ImageProps } from "@/components/_compat";
+import { srcSetFor } from "@/lib/image-srcset";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +9,11 @@ import { cn } from "@/lib/utils";
 // keeps the picture hidden until the browser reports it fully decoded, then
 // cross-fades it in. Images stay `loading="lazy"` (next/image default) so
 // nothing below the fold fetches until it scrolls near the viewport.
+//
+// When a `sizes` hint is present and the src is served by /api/img, a `srcset`
+// of allowlisted derivative widths is emitted so a 280px tile can't pull the
+// stored 4.7 MB original. No `sizes` → no `srcset` (a srcset without sizes
+// makes the browser assume 100vw and pick a *larger* file).
 //
 // Two shapes:
 //   • fill         — drop-in for `<Image fill />`; the parent must be
@@ -24,11 +30,17 @@ export default function SmartImage({
   className,
   wrapperClassName,
   fill,
+  sizes,
+  src,
   onLoad,
   ...props
 }: SmartImageProps) {
   const [loaded, setLoaded] = useState(false);
   const ref = useRef<HTMLImageElement | null>(null);
+
+  const srcStr =
+    typeof src === "string" ? src : (src?.src as string | undefined);
+  const srcSet = sizes && srcStr ? srcSetFor(srcStr) : undefined;
 
   // Images already in the browser cache can finish before React attaches the
   // onLoad handler, so check `complete` once on mount as a fallback.
@@ -40,6 +52,9 @@ export default function SmartImage({
   const img = (
     <Image
       {...props}
+      src={src}
+      sizes={sizes}
+      srcSet={srcSet}
       fill={fill}
       ref={ref}
       onLoad={(e) => {
