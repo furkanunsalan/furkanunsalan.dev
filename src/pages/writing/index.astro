@@ -2,11 +2,14 @@
 import PageLayout from "../../layouts/PageLayout.astro";
 import FeedList, { type FeedItem } from "@/components/FeedList";
 import { getPosts, getThoughts } from "@/lib/content";
+import { renderMarkdownHtml } from "@/lib/markdoc-render";
 
 export const prerender = false;
 
 const [posts, thoughts] = await Promise.all([getPosts(), getThoughts()]);
 
+// Thought bodies are rendered to HTML here so Markdoc never reaches the client
+// bundle (it was ~139 KB on this route just to format four snippets).
 const feed: FeedItem[] = [
   ...posts.map(
     (p): FeedItem => ({
@@ -22,6 +25,7 @@ const feed: FeedItem[] = [
       id: String(t.id),
       date: t.createdAt,
       data: t,
+      html: renderMarkdownHtml(t.body),
     }),
   ),
 ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

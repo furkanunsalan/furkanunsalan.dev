@@ -1,0 +1,70 @@
+---
+import type { BodySegment, Heading } from "@/lib/markdoc-render";
+import Mermaid from "@/components/Mermaid";
+import PostBentoImages from "@/components/PostBentoImages";
+import TableOfContents from "@/components/TableOfContents";
+
+// Renders a post/project body. The prose itself is a server-rendered HTML
+// string; only the two genuinely interactive pieces stay React islands:
+//   • Mermaid         — lazily imports the mermaid bundle and renders an SVG
+//   • PostBentoImages — lightbox over an image run
+// TableOfContents gets its headings from the same server pass that produced the
+// heading `id`s, so anchors and TOC can't drift apart.
+//
+// `withToc={false}` (projects) drops the sidebar and the two-column grid: a
+// project column is narrow (max-w-3xl, matching the bespoke showcases) and has
+// no room for a sidebar. The heading ids are still emitted either way, because
+// search deep-links anchor to them.
+interface Props {
+  segments: BodySegment[];
+  headings: Heading[];
+  withToc?: boolean;
+}
+const { segments, headings, withToc = true } = Astro.props;
+
+const proseClass =
+  "prose prose-invert max-w-none animate-fade-in delay-150" +
+  " prose-a:text-accent-primary prose-a:transition-colors prose-a:duration-200" +
+  " prose-blockquote:border-l-accent-primary" +
+  " prose-code:text-accent-primary" +
+  " prose-headings:font-bold prose-headings:text-white prose-headings:scroll-mt-24" +
+  " text-light-secondary/90";
+---
+
+{
+  withToc ? (
+    <div class="lg:grid lg:grid-cols-[1fr_220px] lg:gap-12">
+      <article class="min-w-0">
+        <div class={proseClass}>
+          {segments.map((s) =>
+            s.kind === "html" ? (
+              <Fragment set:html={s.html} />
+            ) : s.kind === "mermaid" ? (
+              <Mermaid chart={s.chart} client:visible />
+            ) : (
+              <PostBentoImages images={s.images} client:load />
+            ),
+          )}
+        </div>
+      </article>
+
+      <aside class="hidden lg:block animate-slide-in-right delay-200">
+        <TableOfContents headings={headings} client:idle />
+      </aside>
+    </div>
+  ) : (
+    <article class="min-w-0">
+      <div class={proseClass}>
+        {segments.map((s) =>
+          s.kind === "html" ? (
+            <Fragment set:html={s.html} />
+          ) : s.kind === "mermaid" ? (
+            <Mermaid chart={s.chart} client:visible />
+          ) : (
+            <PostBentoImages images={s.images} client:load />
+          ),
+        )}
+      </div>
+    </article>
+  )
+}

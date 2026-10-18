@@ -3,8 +3,10 @@ import PageLayout from "../../layouts/PageLayout.astro";
 import { Sparkles, ExternalLink } from "lucide-react";
 import InfraShowcase from "@/components/InfraShowcase";
 import TeachfluenceStudioShowcase from "@/components/TeachfluenceStudioShowcase";
-import ProjectBody from "@/components/ProjectBody";
+import MarkdocBody from "@/components/MarkdocBody.astro";
 import { getCustomProjectContentBySlug } from "@/lib/content";
+import { renderBody } from "@/lib/markdoc-render";
+import { srcSetFor } from "@/lib/image-srcset";
 
 export const prerender = false;
 
@@ -23,6 +25,10 @@ if (slug && RENAMED[slug]) {
 const project = slug ? await getCustomProjectContentBySlug(slug) : null;
 if (!project)
   return Astro.rewrite(`/404?from=/projects/${encodeURIComponent(slug ?? "")}`);
+
+// Same server-side render as a post body (see writing/[slug].astro).
+const { segments, headings } = renderBody(project.content);
+const imageSrcSet = project.image ? srcSetFor(project.image) : undefined;
 
 // Bespoke slugs only need the metadata; the two showcase components are static
 // (no hooks/handlers) so they server-render with no client directive.
@@ -81,12 +87,14 @@ const description = project.description || `Details for ${project.name}`;
         {project.image && (
           <img
             src={project.image}
+            srcset={imageSrcSet}
+            sizes="(max-width: 1024px) 100vw, 768px"
             alt={project.name}
             class="mb-8 w-full rounded-xl border border-white/[0.06] animate-fade-in delay-100"
           />
         )}
 
-        <ProjectBody content={project.content} client:only="react" />
+        <MarkdocBody segments={segments} headings={headings} withToc={false} />
       </div>
     )
   }
