@@ -217,13 +217,14 @@ export default function FeedList({ items }: { items: FeedItem[] }) {
         )}
       </div>
 
+      {/* `border-b`, not `border-y`: the search bar above already draws its own
+          rule, so a top border on the list put a second line above the first
+          row with nothing in between. */}
       {filtered.length === 0 ? (
         <div className="rounded-xl ring-1 ring-white/[0.06] bg-zinc-950 px-4 py-10 text-center text-sm text-light-fourth">
           Nothing matches.
         </div>
       ) : (
-        {/* `border-b`, not `border-y`: the search bar above already draws its own
-            rule, so a top border here put a second line above the first row. */}
         <ul className="divide-y divide-white/[0.06] border-b border-white/[0.06]">
           {filtered.map((item) =>
             item.kind === "post" ? (
