@@ -92,6 +92,12 @@ export const projects = pgTable("projects", {
   order: integer("order").notNull().default(100),
   image: text("image"),
   content: text("content").notNull().default(""),
+  // Hides the project from the public listing without deleting it. Distinct
+  // from deleted_at: a soft-deleted row is recoverable only from /admin/trash,
+  // whereas `visible = false` keeps the row (and its direct /projects/<slug>
+  // URL) intact — the same shape posts give `draft`. Defaults to true so every
+  // pre-existing row stays listed.
+  visible: boolean("visible").notNull().default(true),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

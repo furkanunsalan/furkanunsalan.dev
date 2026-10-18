@@ -218,11 +218,17 @@ export const getExperiences = cachedReader(
 
 // ---- projects (custom) ------------------------------------------------
 
+// The public project set: non-deleted AND visible. `visible = false` is the
+// "hide it from the listing" switch (see db/schema.ts) — it is deliberately NOT
+// applied to the by-slug readers below, mirroring how a post's `draft` keeps a
+// direct /writing/<slug> hit viewable.
 async function getCustomProjectsQuery(): Promise<CustomProject[]> {
   const rows = await db
     .select()
     .from(schema.projects)
-    .where(isNull(schema.projects.deletedAt))
+    .where(
+      and(eq(schema.projects.visible, true), isNull(schema.projects.deletedAt)),
+    )
     .orderBy(asc(schema.projects.order));
   return rows.map((r) => {
     const image = projectImageUrl(r.image);
@@ -246,7 +252,28 @@ export const getCustomProjects = cachedReader(
   [],
 );
 
+// Slugs of every non-deleted custom project — hidden ones included. The
+// /projects listing and search use this to decide which GitHub repos a custom
+// write-up already covers (custom wins, see projects/index.astro). Keying that
+// on the *visible* set instead would resurrect the auto-generated repo card for
+// a project the moment it was hidden, which is the opposite of hiding it.
+async function getCustomProjectSlugsQuery(): Promise<string[]> {
+  const rows = await db
+    .select({ slug: schema.projects.slug })
+    .from(schema.projects)
+    .where(isNull(schema.projects.deletedAt));
+  return rows.map((r) => r.slug.toLowerCase());
+}
+export const getCustomProjectSlugs = cachedReader(
+  ["getCustomProjectSlugs"],
+  ["projects"],
+  getCustomProjectSlugsQuery,
+  [],
+);
+
 // Returns a Markdoc AST node — not serializable, so this reader stays uncached.
+// No `visible` filter, for the same reason getPostContentBySlug has no `draft`
+// filter: a direct slug hit stays viewable while hidden.
 export async function getCustomProjectBySlug(slug: string) {
   const [r] = await db
     .select()

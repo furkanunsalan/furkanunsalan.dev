@@ -24,7 +24,11 @@ const availableExperiences = await db
   .orderBy(asc(schema.experiences.order));
 
 const availableProjects = await db
-  .select({ slug: schema.projects.slug, name: schema.projects.name })
+  .select({
+    slug: schema.projects.slug,
+    name: schema.projects.name,
+    visible: schema.projects.visible,
+  })
   .from(schema.projects)
   .where(isNull(schema.projects.deletedAt))
   .orderBy(asc(schema.projects.order));

@@ -85,6 +85,13 @@
       "when": 1787341133093,
       "tag": "0011_search_vectors",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792332702801,
+      "tag": "0012_project_visibility",
+      "breakpoints": true
     }
   ]
 }

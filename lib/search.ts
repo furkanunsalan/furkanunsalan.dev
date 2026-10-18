@@ -77,7 +77,9 @@ const SOURCES: Source[] = [
     subtitle: "coalesce(t.description, '')",
     body: "t.content",
     date: "null::text",
-    where: "t.deleted_at is null",
+    // Mirrors the public listing's filter (getCustomProjects): hidden and
+    // trashed projects never surface in search.
+    where: "t.visible = true and t.deleted_at is null",
     fuzzy: "t.name",
   },
   {

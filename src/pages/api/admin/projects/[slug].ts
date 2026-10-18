@@ -42,6 +42,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
   if (typeof body.image === "string") patch.image = body.image || null;
   if (body.image === null) patch.image = null;
   if (typeof body.content === "string") patch.content = body.content;
+  if (typeof body.visible === "boolean") patch.visible = body.visible;
 
   try {
     const [before] = await db
