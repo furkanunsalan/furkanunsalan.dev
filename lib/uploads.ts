@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
+import sharp from "sharp";
 
 // Uploads live OUTSIDE the standalone bundle so they survive rsync deploys.
 // Default for dev is <repo>/.uploads (gitignored); in prod, set UPLOADS_DIR
@@ -22,6 +23,17 @@ const ALLOWED_MIME: Record<string, string> = {
 };
 
 const MAX_BYTES = 8 * 1024 * 1024; // 8 MB
+
+// Animated GIFs pass through untouched (re-encoding to webp flattens the
+// animation), so they get a tighter byte cap than the still-image cap — an
+// 8 MB GIF would otherwise land in storage as-is.
+const GIF_MAX_BYTES = 4 * 1024 * 1024;
+
+// Longest edge a stored upload may have, and the webp quality it gets. Mirrors
+// the client-side compressor (lib/image-compress.ts: 2200px / 0.82), applied
+// server-side too so the cap holds even when the browser skipped compression.
+const UPLOAD_MAX_EDGE = 2200;
+const UPLOAD_WEBP_QUALITY = 82;
 
 // Collections allowed to upload — keeps random POSTs from creating arbitrary
 // subdirectories on disk.
@@ -59,6 +71,40 @@ function randPrefix(): string {
   return randomBytes(6).toString("base64url");
 }
 
+type ProcessedUpload = { buf: Buffer; ext: string; mime: string };
+
+// Bound what actually lands on disk: downscale to UPLOAD_MAX_EDGE and re-encode
+// to webp. Falls back to the original bytes for animated GIFs and on any decode
+// failure, and keeps the original when re-encoding would both fail to shrink it
+// and not change its dimensions (a tiny PNG can grow through webp).
+async function processUpload(
+  buf: Buffer,
+  mime: string,
+): Promise<ProcessedUpload> {
+  const original: ProcessedUpload = { buf, ext: ALLOWED_MIME[mime], mime };
+  if (mime === "image/gif") return original;
+  try {
+    const meta = await sharp(buf, { failOn: "none" }).metadata();
+    const longest = Math.max(meta.width ?? 0, meta.height ?? 0);
+    const out = await sharp(buf, { failOn: "none" })
+      .rotate()
+      .resize({
+        width: UPLOAD_MAX_EDGE,
+        height: UPLOAD_MAX_EDGE,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: UPLOAD_WEBP_QUALITY })
+      .toBuffer();
+    const downscaled = longest > UPLOAD_MAX_EDGE;
+    if (!downscaled && out.length >= buf.length) return original;
+    return { buf: out, ext: ".webp", mime: "image/webp" };
+  } catch (e) {
+    console.error("[uploads] processUpload failed, storing original:", e);
+    return original;
+  }
+}
+
 export async function saveUpload(
   file: File,
   dir: string,
@@ -81,9 +127,18 @@ export async function saveUpload(
       error: `file size ${file.size} bytes out of range (max ${MAX_BYTES})`,
     };
   }
+  if (file.type === "image/gif" && file.size > GIF_MAX_BYTES) {
+    return {
+      ok: false,
+      status: 413,
+      error: `animated GIF too large (max ${GIF_MAX_BYTES} bytes)`,
+    };
+  }
 
-  const filename = `${randPrefix()}-${safeSlugBase(file.name)}${ext}`;
-  const buf = Buffer.from(await file.arrayBuffer());
+  const raw = Buffer.from(await file.arrayBuffer());
+  const processed = await processUpload(raw, file.type);
+  const buf = processed.buf;
+  const filename = `${randPrefix()}-${safeSlugBase(file.name)}${processed.ext}`;
 
   const remote = parseUploadRemote();
   if (remote) {
@@ -109,7 +164,7 @@ export async function saveUpload(
     ok: true,
     url: `/api/img/${dir}/${filename}`,
     bytes: buf.length,
-    mime: file.type,
+    mime: processed.mime,
   };
 }
 

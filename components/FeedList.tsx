@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@/components/_compat";
 import React from "react";
-import Markdoc from "@markdoc/markdoc";
 import {
   ArrowUpRight,
   Check,
@@ -20,7 +19,7 @@ import SmartImage from "@/components/SmartImage";
 
 export type FeedItem =
   | { kind: "post"; id: string; date: string; data: BlogPost }
-  | { kind: "thought"; id: string; date: string; data: Thought };
+  | { kind: "thought"; id: string; date: string; data: Thought; html: string };
 
 type TypeFilter = "all" | "essays" | "thoughts";
 
@@ -50,21 +49,6 @@ function formatRelative(iso: string): { relative: string; absolute: string } {
         d.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
     });
   return { relative, absolute };
-}
-
-function renderMarkdoc(body: string): React.ReactNode {
-  if (!body.trim()) return null;
-  try {
-    const ast = Markdoc.parse(body);
-    const transformed = Markdoc.transform(ast);
-    return Markdoc.renderers.react(transformed, React);
-  } catch {
-    return (
-      <pre className="whitespace-pre-wrap font-sans text-[15px] text-light-secondary/90">
-        {body}
-      </pre>
-    );
-  }
 }
 
 export default function FeedList({ items }: { items: FeedItem[] }) {
@@ -243,7 +227,11 @@ export default function FeedList({ items }: { items: FeedItem[] }) {
             item.kind === "post" ? (
               <PostRow key={`p-${item.id}`} post={item.data} />
             ) : (
-              <ThoughtRow key={`t-${item.id}`} thought={item.data} />
+              <ThoughtRow
+                key={`t-${item.id}`}
+                thought={item.data}
+                html={item.html}
+              />
             ),
           )}
         </ul>
@@ -299,6 +287,7 @@ function PostRow({ post }: { post: BlogPost }) {
     <li>
       <Link
         href={`/writing/${post.slug}`}
+        data-astro-prefetch=""
         className="group block py-5 -mx-3 px-3 rounded transition-colors hover:bg-white/[0.02]"
       >
         <div className="flex items-baseline gap-2 mb-1.5 text-[12px]">
@@ -361,7 +350,7 @@ function PostRow({ post }: { post: BlogPost }) {
   );
 }
 
-function ThoughtRow({ thought }: { thought: Thought }) {
+function ThoughtRow({ thought, html }: { thought: Thought; html: string }) {
   const time = formatRelative(thought.createdAt);
   const anchor = `t-${thought.id}`;
   return (
@@ -381,9 +370,12 @@ function ThoughtRow({ thought }: { thought: Thought }) {
       </div>
 
       {thought.body && (
-        <div className="prose prose-invert max-w-none prose-p:my-1.5 prose-a:text-accent-primary text-light-secondary/95 text-[15px] leading-relaxed whitespace-pre-line">
-          {renderMarkdoc(thought.body)}
-        </div>
+        <div
+          className="prose prose-invert max-w-none prose-p:my-1.5 prose-a:text-accent-primary text-light-secondary/95 text-[15px] leading-relaxed whitespace-pre-line"
+          // Server-rendered from the same Markdoc pipeline (lib/markdoc-render);
+          // authored by the admin, and Markdoc escapes its input.
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
       )}
 
       <ThoughtImageGallery images={thought.images} id={thought.id} />

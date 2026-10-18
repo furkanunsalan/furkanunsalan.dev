@@ -14,6 +14,9 @@ type LinkProps = Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
   prefetch?: boolean;
   replace?: boolean;
   scroll?: boolean;
+  // Astro's prefetch runtime opts a link in when this attribute is present and
+  // empty (it reads `dataset.astroPrefetch`). Pass `data-astro-prefetch=""`.
+  "data-astro-prefetch"?: string;
 };
 
 export function Link({
@@ -52,7 +55,7 @@ export const Image = React.forwardRef<HTMLImageElement, ImgProps>(
       fill,
       priority,
       quality: _q,
-      sizes: _sz,
+      sizes,
       loading,
       style,
       ...rest
@@ -75,6 +78,7 @@ export const Image = React.forwardRef<HTMLImageElement, ImgProps>(
         ref={ref}
         src={s}
         alt={alt}
+        sizes={sizes}
         loading={priority ? "eager" : loading || "lazy"}
         style={fillStyle}
         {...rest}
@@ -117,9 +121,12 @@ export function useRouter(): Router {
   };
 }
 
-export function usePathname(): string {
+export function usePathname(initialPathname?: string): string {
+  // `initialPathname` is the path the server rendered, so the first client
+  // render matches the SSR markup instead of always assuming "/".
   const [pathname, setPathname] = React.useState<string>(
-    typeof window !== "undefined" ? window.location.pathname : "/",
+    initialPathname ??
+      (typeof window !== "undefined" ? window.location.pathname : "/"),
   );
   React.useEffect(() => {
     const on = () => setPathname(window.location.pathname);

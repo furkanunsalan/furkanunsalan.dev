@@ -121,10 +121,9 @@ export const getPostMetaBySlug = cachedReader(
 );
 
 // Raw markdown + metadata for the post-detail page. The Markdoc pipeline runs
-// client-side (see components/PostBody.tsx), so this returns a serializable
-// row and stays cached — unlike getPostBySlug which returns an AST node. No
-// draft filter: a direct slug hit is viewable even while draft (mirrors
-// getPostBySlug).
+// server-side (lib/markdoc-render), so this returns a serializable row and
+// stays cached. No draft filter: a direct slug hit is viewable even while
+// draft (mirrors getPostBySlug).
 export type PostContent = {
   slug: string;
   title: string;

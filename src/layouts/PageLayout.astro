@@ -22,7 +22,11 @@ const { title, description, noindex, image, ogType, navMaxWidth } = Astro.props;
   ogType={ogType}
 >
   <slot name="head" slot="head" />
-  <SiteNav maxWidth={navMaxWidth} client:load />
+  <SiteNav
+    maxWidth={navMaxWidth}
+    initialPathname={Astro.url.pathname}
+    client:idle
+  />
   <slot />
   <CoastCipher client:idle />
 </Layout>

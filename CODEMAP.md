@@ -28,7 +28,7 @@ Where things live and what they're for. Pair with [`CLAUDE.md`](CLAUDE.md) for c
 
 ```
 src/
-├── middleware.ts            # iron-session gate for /admin/* + /api/admin/* + security headers
+├── middleware.ts            # iron-session gate for /admin/* + /api/admin/*, security headers, public HTML caching + ETag
 ├── env.d.ts                 # Astro ambient types
 ├── styles/globals.css       # base styles, page-enter, image shimmer
 ├── layouts/
@@ -38,8 +38,8 @@ src/
 │
 └── pages/
     ├── index.astro          # home: info card + AsciiPortrait + Time + GithubCommitHistory + latest thought
-    ├── writing/index.astro + writing/[slug].astro     # list + post (PostBody island renders Markdoc client-side)
-    ├── projects/index.astro + projects/[slug].astro   # list (ProjectsExplorer) + project (ProjectBody / showcases)
+    ├── writing/index.astro + writing/[slug].astro     # list + post (body server-rendered via MarkdocBody)
+    ├── projects/index.astro + projects/[slug].astro   # list (ProjectsExplorer) + project (MarkdocBody / showcases)
     ├── experience.astro · photos.astro · places.astro · bookmarks.astro · gadgets.astro · resume.astro
     ├── search.astro         # /search deep-link + no-JS fallback (modal opens over it, noindex)
     ├── 404.astro            # glitch 404 + did-you-mean suggestions via search
@@ -59,7 +59,7 @@ src/
         ├── health.ts                    # { status, checks: { db, uploads } } — used by the deploy health check
         ├── github/contributions.ts      # GraphQL contribution calendar (personal + work overlay)
         ├── tools.ts · search/index.ts (→ /api/search) · karakeep/…
-        ├── img/[...path].ts             # public stream from UPLOADS_DIR (traversal-safe)
+        ├── img/[...path].ts             # public stream from UPLOADS_DIR (traversal-safe; ?w= resized derivatives)
         ├── cv.ts · pdf-worker
         └── admin/                       # all gated by middleware
             ├── login.ts                 # argon2.verify + saveSession (rate-limited, audited)
@@ -91,13 +91,13 @@ React islands. Key ones:
 | File                                                                     | Role                                                                                           |
 | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
 | `_compat.tsx`                                                            | Drop-in shims for `next/*` (`Link`, `Image` (forwardRef), `useRouter`, …).                     |
-| `SiteNav.tsx` / `MainNavbar.tsx`                                         | Top nav; the magnifier opens the search modal (falls back to `/search` without JS).            |
+| `SiteNav.tsx` / `MainNavbar.tsx`                                         | Top nav; hydrates on idle, server-renders the active link; magnifier opens the search modal.   |
 | `SearchOverlay.tsx`                                                      | Portaled ⌘K/`/` search modal — animated shell, focus trap, scroll lock, deep-link boot.        |
 | `SearchResults.tsx` / `search-ui.tsx`                                    | Shared search body (filters + result rows + keyboard nav); kind labels/highlighting.           |
 | `HomeIntro.tsx` / `HomeSocialLink.tsx` / `Time.tsx`                      | Home bio block, socials, Istanbul clock.                                                       |
 | `AsciiPortrait.tsx`                                                      | Home ASCII portrait (data in `data/asciiPortrait.ts`).                                         |
 | `GithubCommitHistory.tsx` / `ContributionContainer.tsx`                  | Contribution heatmap + stats.                                                                  |
-| `PostBody.tsx` / `ProjectBody.tsx`                                       | Client-side Markdoc render (Mermaid, bento images, TOC) for post/project bodies.               |
+| `MarkdocBody.astro`                                                      | Server-rendered prose from lib/markdoc-render; islands only for Mermaid + bento + TOC.         |
 | `TableOfContents.tsx` / `PostBentoImages.tsx` / `Mermaid.tsx`            | Post-body building blocks.                                                                     |
 | `ProjectsExplorer.tsx` / `ProjectContainer.tsx`                          | Projects list + card.                                                                          |
 | `InfraShowcase.tsx` / `TeachfluenceStudioShowcase.tsx`                   | Bespoke project showcases.                                                                     |
@@ -108,7 +108,7 @@ React islands. Key ones:
 | `ThoughtImageGallery.tsx`                                                | Thought lightbox with swipeable image carousel.                                                |
 | `SmartImage.tsx`                                                         | Lazy, load-gated image with shimmer + cross-fade.                                              |
 | `ResumePdfPages.tsx`                                                     | react-pdf viewer for `/resume` (worker served by `pdf-worker`).                                |
-| `FaviconAnimator.tsx` / `TopProgressBar.tsx` / `ScrambleText.tsx`        | Favicon animation, route progress, text scramble.                                              |
+| `FaviconAnimator.tsx` / `TopProgressBar.tsx`                             | Favicon animation, route progress.                                                             |
 | `admin/*`                                                                | Admin form widgets (`PostForm`, `ProjectForm`, `ToolForm`, `PlaceForm`, shared `form.tsx`, …). |
 | `ui/`                                                                    | shadcn-style Radix wrappers (dropdown-menu, select, tabs, breadcrumb).                         |
 
@@ -125,7 +125,7 @@ React islands. Key ones:
 | `search.ts`                                                                                                                                    | `search(q, {limit, kinds})` — weighted tsvector union across the six searchable tables, with a pg_trgm typo-tolerant fallback tier. Fails soft. Also `getRelatedPosts` (shared-tag + text similarity, two relevance floors).                    |
 | `search-query.ts`                                                                                                                              | Pure half of search: `parseQuery` (phrases, -exclusions, as-you-type prefix), `makeSnippet`, `hrefFor`, kind types, and the modal's view state (`toggleKind`, `nextSelectedIndex`, `searchStatusText`). No DB import — safe for client islands. |
 | `search-open.ts`                                                                                                                               | `openSearch(q?)` / `onOpenSearch` — the window-event bus that opens the search modal from other islands.                                                                                                                                        |
-| `headings.ts`                                                                                                                                  | `slugifyHeading` / `splitSections` — the single definition of heading anchor ids, shared by `PostBody`/`ProjectBody` and search deep-links.                                                                                                     |
+| `headings.ts`                                                                                                                                  | `slugifyHeading` / `splitSections` — the single definition of heading anchor ids, shared by the server-side body render and search deep-links.                                                                                                  |
 | `validate.ts`                                                                                                                                  | `readJson(req, schema)` — zod body validation returning `{ data }` or a `400` `Response`.                                                                                                                                                       |
 | `db-errors.ts`                                                                                                                                 | `friendlyDbError(e, resource)` — maps PG error codes to clean `{ error, status }`, strips SQL.                                                                                                                                                  |
 | `og.ts`                                                                                                                                        | `renderOgImage(...)` — hand-built SVG rasterized by `@resvg/resvg-js` with self-hosted Inter.                                                                                                                                                   |
@@ -133,6 +133,7 @@ React islands. Key ones:
 | `github.ts`                                                                                                                                    | `getGithubRepos`, `getGithubRepo`, `getGithubReadme`, `getContributionCalendar`.                                                                                                                                                                |
 | `karakeep.ts`                                                                                                                                  | Karakeep bookmarks API wrapper.                                                                                                                                                                                                                 |
 | `slugify.ts` / `excerpt.ts` / `validators.ts`                                                                                                  | Slug generation, card excerpts, admin input cleaners.                                                                                                                                                                                           |
+| `markdoc-render.ts` / `image-srcset.ts`                                                                                                        | Server-side Markdoc pipeline (body → HTML segments + headings) and the allowlisted derivative widths / `srcset` builder.                                                                                                                        |
 | `place-resolve.ts` / `place-list-icons.ts`                                                                                                     | Maps-URL resolver (SSRF-hardened) + icon registry.                                                                                                                                                                                              |
 | `health.ts` · `audit.ts` · `image-compress.ts` · `photoImport.ts` · `backup-collections.ts` · `db-tables.ts` · `uploadRefs.ts` · `cv/build.ts` | Health check, audit log, image processing, photo EXIF import, backup/restore, DB console, upload GC, CV PDF build.                                                                                                                              |
 
@@ -156,6 +157,8 @@ It runs on the host (not in compose) and reaches Postgres at `127.0.0.1:5432`, s
 | `scripts/db-migrate.mjs`                | Applies Drizzle migrations against `DATABASE_URL`.                             |
 | `scripts/admin-set-password.mjs`        | Hashes a password with argon2id and writes the plain PHC hash to `.env.local`. |
 | `scripts/dev-tunnel.mjs`                | Idempotent SSH tunnel to the VPS Postgres for local dev (`predev`).            |
+| `scripts/compress-uploads.mjs`          | Re-compresses stored uploads (dry-run by default; `--apply` backs up first).   |
+| `scripts/perf-check.mjs`                | Live transfer-size / cache-header / compression budget check (`--base`).       |
 | `.github/workflows/ci.yml`              | Typecheck (`astro check`) + unit tests + build on PRs and `main`.              |
 | `.github/workflows/deploy.yml`          | rsync build context to VPS → `docker compose up -d --build` → health check.    |
 | `.github/workflows/deploy-terminal.yml` | Cross-compile Go binary → ship to VPS → restart systemd unit.                  |

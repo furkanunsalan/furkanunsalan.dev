@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Image } from "@/components/_compat";
 import SmartImage from "@/components/SmartImage";
+import { derivativeUrl, isDerivable } from "@/lib/image-srcset";
 
 type ImgChild = { src: string; alt?: string };
 
@@ -123,7 +124,7 @@ export default function PostBentoImages({ images }: { images: ImgChild[] }) {
         >
           <div className="animate-scale-in">
             <Image
-              src={open}
+              src={isDerivable(open) ? derivativeUrl(open, 1920) : open}
               alt="Expanded image"
               width={1600}
               height={1000}

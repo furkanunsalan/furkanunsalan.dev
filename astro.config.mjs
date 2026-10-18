@@ -13,6 +13,11 @@ const root = fileURLToPath(new URL("./", import.meta.url));
 export default defineConfig({
   output: "server",
   adapter: node({ mode: "standalone" }),
+  // Prefetch same-origin links on hover so a click is served from the HTTP
+  // cache instead of paying a full document round-trip. `prefetchAll: false`
+  // keeps it to links the reader actually hovers (prefetchAll would fire a
+  // request for every link on load).
+  prefetch: { prefetchAll: false, defaultStrategy: "hover" },
   integrations: [react(), tailwind({ applyBaseStyles: false })],
   vite: {
     resolve: {
