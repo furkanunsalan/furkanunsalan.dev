@@ -146,8 +146,10 @@ describe("blendAlpha", () => {
   });
 
   it("warms an edge up toward its lit alpha rather than switching", () => {
+    // Derived from the two alphas rather than hardcoded: what is being asserted
+    // is the midpoint, not a particular weight.
     expect(blendAlpha(EDGE_REST_ALPHA, EDGE_LIT_ALPHA, 0.5)).toBeCloseTo(
-      0.33,
+      EDGE_REST_ALPHA + (EDGE_LIT_ALPHA - EDGE_REST_ALPHA) * 0.5,
       6,
     );
   });

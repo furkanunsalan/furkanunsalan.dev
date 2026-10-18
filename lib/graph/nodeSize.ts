@@ -26,21 +26,21 @@
 // node grow into the room the layout already left for it.
 
 /**
- * Base node radius, in graph units. myne's `nodeSize` default, which moved
- * 5 -> 6 with the same curation pass: at the zoom a whole-vault graph fits at, a
- * 5px radius reads as a speck rather than as a node. This graph has the same
- * problem and the same answer — its bookmarks were drawn at a flat 3, which is
- * what "the leaves read as tiny dust" meant.
+ * Base node radius, in graph units. myne's `nodeSize` default is 6, but this
+ * graph does not want it: at the zoom the whole cloud fits at, 6 made the
+ * leaves read as their own objects competing with the hubs rather than as
+ * spokes around them. 4.5 keeps a leaf visible — well clear of the flat 3 that
+ * read as dust — while leaving the hub as the thing the eye lands on.
  */
-export const NODE_SIZE = 6;
+export const NODE_SIZE = 4.5;
 
 /**
  * How strongly a bookmark's tag count grows its radius beyond
- * {@link NODE_SIZE}. myne's `nodeSizeStrength` default. With
- * {@link MAX_DEGREE_FOR_SIZE} it spans 6 (a bookmark with no surviving tag
- * edge) to 30 (one claimed by twenty tags).
+ * {@link NODE_SIZE}. Held below myne's 1.2 for the same reason: a leaf's size
+ * should hint at how many tags claim it, not make a five-tag bookmark a third
+ * the size of a hub.
  */
-export const NODE_SIZE_STRENGTH = 1.2;
+export const NODE_SIZE_STRENGTH = 0.9;
 
 /**
  * The degree at which a node's radius stops growing. myne raised this 10 -> 20
@@ -58,8 +58,11 @@ export const MAX_DEGREE_FOR_SIZE = 20;
  * magnitude — the "planet" the reference's own plan warned about. It must still
  * grow, though: a size that ignored its count entirely made a hub
  * indistinguishable from its own spokes.
+ *
+ * Raised from 1.6 when the leaves came down, so the hubs keep the on-screen size
+ * they had: the request was for smaller children, not a smaller hierarchy.
  */
-export const TAG_NODE_RADIUS_FACTOR = 1.6;
+export const TAG_NODE_RADIUS_FACTOR = 2.1;
 
 /** A tag hub's degree dose as a fraction of a bookmark's. Expressed as a
  *  fraction so the relationship between the two is readable at the definition. */
