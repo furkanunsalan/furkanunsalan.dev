@@ -5,15 +5,14 @@ import { getSession } from "@/lib/session";
 // Reachable without a session.
 const PUBLIC_ADMIN = new Set<string>(["/admin/login", "/api/admin/login"]);
 
-// Public HTML caching policy. The pages are DB-backed and admin-editable, so the
-// window is deliberately short: 60 s of freshness means a repeat navigation is
-// instant and an edit is visible within a minute without any manual purge.
-// stale-while-revalidate=300 lets the browser keep serving the cached copy while
-// it revalidates in the background, so a revalidation never blocks the reader.
-// s-maxage mirrors max-age — there is no shared cache in front of the origin
-// today (single Caddy), but it makes the intent explicit if a CDN is ever added.
-const HTML_CACHE =
-  "public, max-age=60, s-maxage=60, stale-while-revalidate=300";
+// Public HTML caching policy. The pages are DB-backed and admin-editable, and a
+// freshness window turned out to be the wrong trade for content that is edited
+// live: a 60 s window means the owner flips a toggle, reloads, and sees the old
+// page. So the browser revalidates on every navigation instead — which is cheap,
+// because the weak ETag below turns it into a header-only 304 rather than a
+// re-download. No stale-while-revalidate either: it only pays off with a
+// freshness window, and `must-revalidate` is what makes the 304 unconditional.
+const HTML_CACHE = "public, max-age=0, must-revalidate";
 
 // Weak ETag + 304 for HTML so revalidation is a round-trip of headers, not body.
 // Only HTML is buffered — API/image responses stream through untouched, so this

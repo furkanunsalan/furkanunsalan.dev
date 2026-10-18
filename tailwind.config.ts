@@ -23,7 +23,11 @@ const config: Config = {
         "light-primary": "#e4e4e7", // zinc-200
         "light-secondary": "#d4d4d4", // zinc-300
         "light-third": "#bbbdc1", // custom; a darker shade of zinc-300, but much lighter than zinc-400
-        "light-fourth": "71717a", // zinc-500
+        "light-fourth": "#71717a", // zinc-500 — the '#' was missing, so every
+        // text-light-fourth utility compiled to an invalid declaration and was
+        // dropped by the browser, leaving those elements on their inherited
+        // colour. Restoring it dims secondary text site-wide, which is what the
+        // token always said.
         // ACCENT
         "accent-primary": "#6366F1", // indigo-500 // change also line 23 in global.css
       },
