@@ -35,6 +35,7 @@ import {
   advancePresence,
   hoverCardFrame,
 } from "@/lib/graph/hoverCard";
+import { ACCENT_INK, inkFor, layoutGraph } from "@/lib/graph/layout";
 import { classifyRelease, crossedDragThreshold } from "@/lib/graph/pointer";
 
 type RawNode = {
@@ -55,70 +56,16 @@ type Raw = {
   stats: { bookmarks: number; tags: number };
 };
 
-type N = RawNode & { r: number; x: number; y: number; vx: number; vy: number };
+type N = RawNode & { r: number; x: number; y: number; group: number };
 type L = { a: N; b: N };
 
-const TAG = "129,140,248"; // indigo-400
-const BM = "148,163,184"; // slate
 const NAV = 64;
-
-const REPULSION = 4800;
-const SPRING = 0.025;
-const REST = 44;
-const GRAVITY = 0.03;
-const DAMPING = 0.9;
 
 // How far outside the viewport (in screen px) a node may be and still have its
 // label considered: half of a long tag label, plus the 40px of overshoot the
 // label pass already tolerates, or a long label would pop at the edge. Divided
 // by k to reach graph units.
 const LABEL_CULL_PAD_PX = 200;
-
-/** One physics tick (mutates node velocities/positions). Run off-screen to
- *  pre-settle the layout so the graph appears already laid out. */
-function tick(nodes: N[], links: L[], alpha: number) {
-  for (let i = 0; i < nodes.length; i++) {
-    const a = nodes[i];
-    for (let j = i + 1; j < nodes.length; j++) {
-      const b = nodes[j];
-      let dx = a.x - b.x;
-      let dy = a.y - b.y;
-      let d2 = dx * dx + dy * dy;
-      if (d2 < 0.01) {
-        dx = Math.random() - 0.5;
-        dy = Math.random() - 0.5;
-        d2 = 0.01;
-      }
-      const d = Math.sqrt(d2);
-      // tag hubs push apart harder so their labels don't collide
-      const rep =
-        a.kind === "tag" && b.kind === "tag" ? REPULSION * 2.8 : REPULSION;
-      const f = (rep * alpha) / d2;
-      a.vx += (dx / d) * f;
-      a.vy += (dy / d) * f;
-      b.vx -= (dx / d) * f;
-      b.vy -= (dy / d) * f;
-    }
-  }
-  for (const l of links) {
-    const dx = l.b.x - l.a.x;
-    const dy = l.b.y - l.a.y;
-    const d = Math.hypot(dx, dy) || 0.01;
-    const f = SPRING * (d - REST) * alpha;
-    l.a.vx += (dx / d) * f;
-    l.a.vy += (dy / d) * f;
-    l.b.vx -= (dx / d) * f;
-    l.b.vy -= (dy / d) * f;
-  }
-  for (const n of nodes) {
-    n.vx -= n.x * GRAVITY * alpha;
-    n.vy -= n.y * GRAVITY * alpha;
-    n.vx *= DAMPING;
-    n.vy *= DAMPING;
-    n.x += n.vx;
-    n.y += n.vy;
-  }
-}
 
 /** A camera move in flight: the framing it left and the one it is heading for.
  *  `fit` marks the opening framing, whose target is a function of the canvas
@@ -242,7 +189,10 @@ export default function BookmarkGraph() {
     s.tween = { from: { ...s.view }, to, start: performance.now(), fit };
   };
 
-  // ---- fetch + pre-settle ----
+  // ---- fetch + lay out ----
+  // The layout is COMPUTED, not settled: see lib/graph/layout.ts. Nothing here
+  // runs a tick loop or touches Math.random, so the same bookmarks produce the
+  // same picture every time the page loads.
   useEffect(() => {
     let alive = true;
     fetch("/api/karakeep/graph")
@@ -250,19 +200,16 @@ export default function BookmarkGraph() {
       .then((data: Raw) => {
         if (!alive) return;
         if (!data.nodes?.length) return setStatus("empty");
+        const laid = layoutGraph({ nodes: data.nodes, links: data.links });
+        const raw = new Map(data.nodes.map((n) => [n.id, n]));
         const byId = new Map<string, N>();
-        const R = 26 * Math.sqrt(data.nodes.length);
-        let maxRadius = 3;
-        for (const n of data.nodes) {
-          const r = n.kind === "tag" ? 5 + Math.sqrt(n.weight ?? 1) * 3 : 3;
-          if (r > maxRadius) maxRadius = r;
-          byId.set(n.id, {
-            ...n,
-            r,
-            x: (Math.random() - 0.5) * R,
-            y: (Math.random() - 0.5) * R,
-            vx: 0,
-            vy: 0,
+        for (const p of laid.nodes) {
+          byId.set(p.id, {
+            ...raw.get(p.id)!,
+            r: p.radius,
+            x: p.x,
+            y: p.y,
+            group: p.group,
           });
         }
         const links: L[] = [];
@@ -282,14 +229,14 @@ export default function BookmarkGraph() {
           add(a.id, b.id);
           add(b.id, a.id);
         }
-        const nodes = [...byId.values()];
-        // pre-settle off-screen
-        let alpha = 1;
-        for (let i = 0; i < 420 && alpha > 0.005; i++) {
-          tick(nodes, links, alpha);
-          alpha *= 0.985;
-        }
-        Object.assign(g.current, { nodes, links, pairs, adj, byId, maxRadius });
+        Object.assign(g.current, {
+          nodes: [...byId.values()],
+          links,
+          pairs,
+          adj,
+          byId,
+          maxRadius: laid.maxRadius,
+        });
         setStats(data.stats);
         setStatus("ready");
       })
@@ -470,7 +417,9 @@ export default function BookmarkGraph() {
             dim,
           ) * op;
         if (alpha < 0.004) continue;
-        const rgb = edgeShowsAccent(src, l.a.id, l.b.id) ? TAG : "255,255,255";
+        const rgb = edgeShowsAccent(src, l.a.id, l.b.id)
+          ? ACCENT_INK
+          : "255,255,255";
         ctx.strokeStyle = `rgba(${rgb},${alpha})`;
         ctx.beginPath();
         ctx.moveTo(l.a.x * ps, l.a.y * ps);
@@ -484,8 +433,26 @@ export default function BookmarkGraph() {
         if (a < 0.004) continue;
         ctx.beginPath();
         ctx.arc(n.x * ps, n.y * ps, n.r * rs, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${n.kind === "tag" ? TAG : BM},${a})`;
+        // A node is drawn in its cluster's ink, so a hub and its ring of leaves
+        // read as one object; an unclaimed node recedes to the neutral slate.
+        // (myne-md/myne#727's colour-groups, reduced to one ink per hub.)
+        ctx.fillStyle = `rgba(${inkFor(n.group)},${a})`;
         ctx.fill();
+      }
+
+      // A tag hub carries a ring in the neutral ink on top of its cluster
+      // colour, so it reads as a hub against any of them — a tag is a category
+      // rather than a bookmark. Drawn after every disc so it is never buried
+      // under a neighbour, and it dims with the highlight exactly like a fill.
+      ctx.lineWidth = 1.5 / s.view.k;
+      for (const n of s.nodes) {
+        if (n.kind !== "tag" || !inView(n)) continue;
+        const a = blendAlpha(1, nodeTargetAlpha(src, n.id), dim) * op;
+        if (a < 0.004) continue;
+        ctx.strokeStyle = `rgba(226,232,240,${a})`;
+        ctx.beginPath();
+        ctx.arc(n.x * ps, n.y * ps, n.r * rs, 0, Math.PI * 2);
+        ctx.stroke();
       }
 
       // The hovered node's anchor ring, drawn after every disc so it sits above
@@ -495,7 +462,7 @@ export default function BookmarkGraph() {
       const anchor = src?.hover ? s.byId.get(src.hover.id) : undefined;
       if (anchor && dim > 0.02 && inView(anchor)) {
         ctx.lineWidth = 2 / s.view.k;
-        ctx.strokeStyle = `rgba(${TAG},${0.95 * dim})`;
+        ctx.strokeStyle = `rgba(${ACCENT_INK},${0.95 * dim})`;
         ctx.beginPath();
         ctx.arc(anchor.x * ps, anchor.y * ps, anchor.r * rs, 0, Math.PI * 2);
         ctx.stroke();
@@ -504,12 +471,18 @@ export default function BookmarkGraph() {
       // ---- labels in screen space: fixed size + collision avoidance so the
       // biggest hubs stay readable and never overlap (skipped labels reappear
       // as you zoom in / hover) ----
+      //
+      // Placed to the RIGHT of the node and vertically centred on it, the way
+      // myne sets a label (`n.x + radiusOf(n) + 2`, middle baseline) rather than
+      // centred under it. Under a node a label costs its own height in vertical
+      // space and collides with the ring of leaves beneath; beside it, it sits
+      // in the clear gap the ring was laid out around.
       const W = s.cssW;
       const H = s.cssH;
       ctx.setTransform(s.dpr, 0, 0, s.dpr, 0, 0);
       ctx.font = "12px ui-monospace, monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
       const drawn: [number, number, number, number][] = [];
       if (labelOp > 0.02) {
         // Lit labels claim their space first, then the big hubs: a dimmed
@@ -518,15 +491,15 @@ export default function BookmarkGraph() {
           .filter((n) => n.kind === "tag" && inView(n))
           .sort((a, b) => Number(lit(b)) - Number(lit(a)) || b.r - a.r);
         for (const n of tags) {
-          const sx = s.view.x + s.view.k * n.x * ps;
-          const sy = s.view.y + s.view.k * n.y * ps + n.r * rs * s.view.k + 3;
+          const sx = s.view.x + s.view.k * (n.x * ps + n.r * rs) + 4;
+          const sy = s.view.y + s.view.k * n.y * ps;
           if (sx < -40 || sx > W + 40 || sy < NAV - 20 || sy > H + 20) continue;
           const w = ctx.measureText(n.label).width;
           const box: [number, number, number, number] = [
-            sx - w / 2 - 3,
-            sy - 1,
-            sx + w / 2 + 3,
-            sy + 13,
+            sx - 2,
+            sy - 7,
+            sx + w + 2,
+            sy + 7,
           ];
           const force = lit(n);
           const hit = drawn.some(
@@ -785,9 +758,7 @@ export default function BookmarkGraph() {
                   >
                     <span
                       className="h-1.5 w-1.5 shrink-0 rounded-full"
-                      style={{
-                        background: `rgb(${n.kind === "tag" ? TAG : BM})`,
-                      }}
+                      style={{ background: `rgb(${inkFor(n.group)})` }}
                     />
                     <span className="truncate">
                       {n.kind === "tag" ? `#${n.label}` : n.label}
