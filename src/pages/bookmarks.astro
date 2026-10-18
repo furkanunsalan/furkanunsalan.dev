@@ -5,10 +5,13 @@ import BookmarkGraph from "@/components/BookmarkGraph";
 export const prerender = false;
 ---
 
+{/* `noFooter={true}`, not the bare `noFooter` shorthand: a bare component
+    attribute arrives as "" rather than true, which is falsy but misses the
+    destructuring default, so the footer rendered anyway. */}
 <PageLayout
   title="Bookmarks | Furkan Ünsalan"
   description="A graph of my curated bookmarks and the tags that connect them, from around the web."
-  noFooter
+  noFooter={true}
 >
   <BookmarkGraph client:only="react" />
 </PageLayout>
