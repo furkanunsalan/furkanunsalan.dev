@@ -18,6 +18,8 @@
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:studio": "drizzle-kit studio",
     "admin:set-password": "node scripts/admin-set-password.mjs",
+    "perf:check": "node scripts/perf-check.mjs",
+    "uploads:compress": "node scripts/compress-uploads.mjs",
     "prepare": "husky"
   },
   "dependencies": {
