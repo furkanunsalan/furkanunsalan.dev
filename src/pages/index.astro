@@ -68,10 +68,15 @@ const personLd = {
           alt="Furkan Ünsalan"
           width="460"
           height="460"
-          class="animate-fade-in absolute -top-10 h-20 w-20 rounded-[15%] object-cover ring-4 ring-dark-primary sm:-top-12 sm:h-24 sm:w-24"
+          class="animate-fade-in absolute left-4 -top-10 h-20 w-20 rounded-[15%] object-cover ring-4 ring-dark-primary sm:left-6 sm:-top-12 sm:h-24 sm:w-24"
         />
 
         <div class="animate-fade-in-down pt-12 sm:pt-16">
+          {/* The identity is inset from the banner the way a profile header is:
+              banner full-bleed, avatar and identity sitting in from its edge.
+              The intro paragraph below is deliberately NOT in here — that one is
+              body copy and spans the column. */}
+          <div class="px-4 sm:px-6">
           {/* Name and identity line share a baseline: the clock is a qualifier on
               the name, not a second line under it. It wraps rather than
               overflowing on a narrow screen. */}
@@ -125,6 +130,7 @@ const personLd = {
               )
             }
           </ul>
+          </div>
 
           <p
             class="mt-4 whitespace-pre-line text-sm leading-relaxed text-light-secondary sm:text-base"
