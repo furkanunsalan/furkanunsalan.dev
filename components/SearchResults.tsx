@@ -304,7 +304,17 @@ export default function SearchResults({
                 <Icon className="w-4 h-4 mt-1 shrink-0 text-light-fourth" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-sm text-white group-hover:text-accent-primary transition-colors">
+                    {/* Same hover as the writing feed: the title stays white and
+                        sweeps a hairline underline in from the left, rather than
+                        turning accent. Inline-block so the rule matches the title
+                        instead of the row's full width. */}
+                    <span
+                      className="leading-snug relative inline-block text-sm text-white
+                        after:absolute after:bottom-0.5 after:left-0 after:h-px after:w-full
+                        after:origin-left after:scale-x-0 after:bg-white
+                        after:transition-transform after:duration-300 after:ease-out
+                        group-hover:after:scale-x-100"
+                    >
                       {highlightTerms(item.title, terms)}
                     </span>
                     {external ? (
