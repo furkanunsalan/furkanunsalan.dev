@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import ScrambleText from "@/components/ScrambleText";
 import { Search as SearchIcon } from "lucide-react";
+import { openSearch, isSearchReady } from "@/lib/search-open";
 
 const NAME = "Furkan Ünsalan";
 const SHORT = "FÜ";
@@ -59,7 +60,17 @@ export default function SiteNav({
             <Link
               href="/search"
               aria-label="Search"
-              className={topCls(isActive("/search"))}
+              className={topCls(false)}
+              onClick={(e) => {
+                // Real navigation stays as the no-JS fallback; with JS the
+                // magnifier opens the modal in place. Modifier-clicks still get
+                // the /search tab the user asked for, and an overlay that has
+                // not hydrated yet falls through to the route.
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                if (!isSearchReady()) return;
+                e.preventDefault();
+                openSearch();
+              }}
             >
               <SearchIcon className="h-4 w-4" />
             </Link>

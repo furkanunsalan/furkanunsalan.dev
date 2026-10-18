@@ -154,6 +154,58 @@ export function hrefFor(
   }
 }
 
+// ---- result-view state ----------------------------------------------------
+
+/**
+ * Add or remove a kind from the active filter set. The modal and the fallback
+ * page share this so a filter toggles identically on both.
+ */
+export function toggleKind(kinds: HitKind[], kind: HitKind): HitKind[] {
+  return kinds.includes(kind)
+    ? kinds.filter((k) => k !== kind)
+    : [...kinds, kind];
+}
+
+/**
+ * Move a list selection by `delta`, clamped to `count`. An empty list has no
+ * valid selection, so it collapses to 0 rather than -1.
+ */
+export function nextSelectedIndex(
+  current: number,
+  delta: number,
+  count: number,
+): number {
+  if (count <= 0) return 0;
+  return Math.max(0, Math.min(count - 1, current + delta));
+}
+
+export type SearchStatus = {
+  pending: boolean;
+  query: string;
+  /** A query has completed at least once (false after the first keystroke). */
+  searched: boolean;
+  count: number;
+  /** The surface lists recent content instead of prompting when the box is
+   *  empty — true for the modal, false for the no-JS page. */
+  recent?: boolean;
+};
+
+/** The one line under the filters: searching → count → empty-state prompt. */
+export function searchStatusText({
+  pending,
+  query,
+  searched,
+  count,
+  recent = false,
+}: SearchStatus): string {
+  if (pending) return "Searching…";
+  if (!query.trim()) {
+    return recent ? "Recent" : "Type to search everything on the site.";
+  }
+  if (!searched) return "";
+  return `${count} result${count === 1 ? "" : "s"}`;
+}
+
 /**
  * Tags that describe a post's form rather than its subject. Counting them as
  * topical overlap relates any two English posts to each other, or any two

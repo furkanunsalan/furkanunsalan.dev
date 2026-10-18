@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   anyQueryText,
   makeSnippet,
+  nextSelectedIndex,
   parseQuery,
   relatedQueryText,
+  searchStatusText,
+  toggleKind,
 } from "@/lib/search-query";
 import { slugifyHeading, splitSections } from "@/lib/headings";
 
@@ -143,5 +146,94 @@ describe("anyQueryText", () => {
 
   it("is empty when nothing survives", () => {
     expect(anyQueryText(["a", "of"])).toBe("");
+  });
+});
+
+describe("toggleKind", () => {
+  it("adds a kind that isn't active", () => {
+    expect(toggleKind(["post"], "place")).toEqual(["post", "place"]);
+  });
+
+  it("removes a kind that is, without disturbing the others", () => {
+    expect(toggleKind(["post", "place", "tool"], "place")).toEqual([
+      "post",
+      "tool",
+    ]);
+  });
+
+  it("returns a new array, so React sees a state change", () => {
+    const before: ("post" | "place")[] = ["post"];
+    const after = toggleKind(before, "place");
+    expect(after).not.toBe(before);
+  });
+});
+
+describe("nextSelectedIndex", () => {
+  it("clamps down at the start", () => {
+    expect(nextSelectedIndex(0, -1, 5)).toBe(0);
+  });
+
+  it("clamps up at the last result", () => {
+    expect(nextSelectedIndex(4, 1, 5)).toBe(4);
+  });
+
+  it("moves within bounds", () => {
+    expect(nextSelectedIndex(1, 1, 5)).toBe(2);
+    expect(nextSelectedIndex(3, -1, 5)).toBe(2);
+  });
+
+  it("collapses to 0 when there is nothing to select", () => {
+    expect(nextSelectedIndex(3, 1, 0)).toBe(0);
+  });
+});
+
+describe("searchStatusText", () => {
+  it("reports work in flight first", () => {
+    expect(
+      searchStatusText({
+        pending: true,
+        query: "x",
+        searched: false,
+        count: 0,
+      }),
+    ).toBe("Searching…");
+  });
+
+  it("prompts on the page but shows Recent in the modal", () => {
+    const base = { pending: false, query: "  ", searched: false, count: 0 };
+    expect(searchStatusText(base)).toBe(
+      "Type to search everything on the site.",
+    );
+    expect(searchStatusText({ ...base, recent: true })).toBe("Recent");
+  });
+
+  it("stays blank until the first search of a typed query resolves", () => {
+    expect(
+      searchStatusText({
+        pending: false,
+        query: "postgres",
+        searched: false,
+        count: 0,
+      }),
+    ).toBe("");
+  });
+
+  it("counts results, singular included", () => {
+    expect(
+      searchStatusText({
+        pending: false,
+        query: "postgres",
+        searched: true,
+        count: 1,
+      }),
+    ).toBe("1 result");
+    expect(
+      searchStatusText({
+        pending: false,
+        query: "postgres",
+        searched: true,
+        count: 7,
+      }),
+    ).toBe("7 results");
   });
 });

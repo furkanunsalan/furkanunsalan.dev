@@ -2,7 +2,7 @@
 import "../styles/globals.css";
 import "@fontsource-variable/inter";
 import FaviconAnimator from "@/components/FaviconAnimator";
-import CommandPalette from "@/components/CommandPalette";
+import SearchOverlay from "@/components/SearchOverlay";
 
 interface Props {
   title?: string;
@@ -63,7 +63,7 @@ const ogImage = image.startsWith("http")
   </head>
   <body class="page-enter">
     <slot />
-    <CommandPalette client:idle />
+    <SearchOverlay client:idle />
     <FaviconAnimator client:idle />
   </body>
 </html>
