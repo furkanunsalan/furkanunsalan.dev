@@ -756,10 +756,15 @@ html {
 
 /* Scroll room for the reveal. The page's natural end lands with the band fully
    parked, so reaching the bottom shows no footer at all; the extra 0.35 of a
-   band is the deliberate "keep scrolling and it appears". */
+   band is the deliberate "keep scrolling and it appears". The box's height is
+   whatever the spacer plus the band come to — nothing declares it, so the two
+   can't drift apart — and the reveal reads the measured height at runtime. */
 .coast-reveal {
-  height: calc(var(--coast-band-height) * 1.35);
   margin-top: 4rem;
+}
+
+.coast-reveal__spacer {
+  height: calc(var(--coast-band-height) * 0.35);
 }
 
 /* Pinned to the bottom of the viewport and clipped: the art slides up inside a

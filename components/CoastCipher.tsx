@@ -393,6 +393,13 @@ export default function CoastCipher() {
 
   return (
     <div ref={revealRef} className="coast-reveal">
+      {/* The band must sit at the BOTTOM of the reveal box in normal flow, with
+          the scroll room above it. `position: sticky; bottom: 0` only pins while
+          the element's natural position is still below the viewport; with the
+          band first, it un-pins as soon as its natural spot scrolls into view,
+          scrolls away with the content, and leaves the box's leftover height as
+          a gap underneath the art. */}
+      <div className="coast-reveal__spacer" aria-hidden="true" />
       <footer
         ref={boxRef}
         className="coast-band"
