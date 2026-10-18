@@ -2,7 +2,6 @@
 import PageLayout from "../../layouts/PageLayout.astro";
 import GithubCommitHistory from "@/components/GithubCommitHistory";
 import ProjectsExplorer from "@/components/ProjectsExplorer";
-import SshChip from "@/components/SshChip";
 import {
   getCustomProjects,
   getCustomProjectSlugs,
@@ -100,12 +99,7 @@ const cards = [...customCards, ...githubCards].sort((a, b) => {
   description="Public open-source GitHub projects plus a few hand-curated builds."
 >
   <div class="mt-24 pb-24 min-h-screen max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div
-      class="mb-8 flex flex-col gap-4 animate-fade-in-down sm:flex-row sm:items-center sm:justify-between"
-    >
-      <h1 class="text-xl font-semibold text-white">Projects</h1>
-      <SshChip className="max-w-full" client:load />
-    </div>
+    {/* No page title and no SSH chip: the page opens on the commit graph. */}
     <div class="mb-10 animate-fade-in">
       <GithubCommitHistory client:load />
     </div>
