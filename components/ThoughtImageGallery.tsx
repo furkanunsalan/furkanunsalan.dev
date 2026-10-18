@@ -3,6 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import SmartImage from "@/components/SmartImage";
+import { derivativeUrl, isDerivable } from "@/lib/image-srcset";
+
+// The full-screen viewer used to load the stored original — up to ~4.7 MB for a
+// camera JPEG. Point it at the largest allowlisted derivative instead.
+const LIGHTBOX_WIDTH = 1920;
+const lightboxSrc = (src: string) =>
+  isDerivable(src) ? derivativeUrl(src, LIGHTBOX_WIDTH) : src;
 
 export default function ThoughtImageGallery({
   images,
@@ -195,7 +202,7 @@ export default function ThoughtImageGallery({
                   className="flex min-w-full items-center justify-center p-4 sm:p-8"
                 >
                   <img
-                    src={src}
+                    src={lightboxSrc(src)}
                     alt=""
                     loading="eager"
                     draggable={false}
