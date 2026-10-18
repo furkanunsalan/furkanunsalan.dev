@@ -1,6 +1,23 @@
 /* AMOLED-tinted overrides for Leaflet's popup chrome. Scoped to .places-map
    so they only apply inside this map instance. */
 
+/* ---------- basemap labels ---------- */
+
+/* CARTO's dark basemap paints street names in #3b3b3b–#585858. Over a #1a1b1d
+   base that is roughly 1.6:1 — below even the 3:1 floor for large text, so
+   roads read as unlabelled. Rather than swapping providers (which would mean
+   another key and another style to keep in sync), the label-only layer is
+   brightened in place: 2.2x puts the text in the #82–#c2 range, a comfortable
+   ~4.5:1+ against the base, while the basemap itself keeps its true blacks.
+
+   The filter is deliberately on the tile IMAGES and not on the `.leaflet-layer`
+   container: Leaflet pans by transforming that container, so filtering it would
+   re-rasterise the whole pane every frame during a drag. Filtering each decoded
+   tile instead lets the compositor cache them as textures. */
+.places-map .places-map__labels img.leaflet-tile {
+  filter: brightness(2.2);
+}
+
 .places-map .leaflet-popup-content-wrapper {
   background: #000000;
   color: #ffffff;
