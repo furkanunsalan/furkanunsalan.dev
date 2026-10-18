@@ -2,6 +2,40 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Search, ArrowUpRight } from "lucide-react";
+import {
+  CAMERA_TWEEN_MS,
+  K_MIN,
+  clampK,
+  fitTransform,
+  tweenTransform,
+} from "@/lib/graph/camera";
+import {
+  isEdgeVisible,
+  isNodeVisible,
+  visibleBounds,
+  type Bounds,
+  type ViewTransform,
+} from "@/lib/graph/culling";
+import {
+  EDGE_REST_ALPHA,
+  blendAlpha,
+  buildHoverHighlight,
+  dimmingAfter,
+  edgeShowsAccent,
+  edgeTargetAlpha,
+  nodeTargetAlpha,
+  type DimSource,
+  type HoverHighlight,
+} from "@/lib/graph/hover";
+import {
+  HOVER_CARD_IN_MS,
+  HOVER_CARD_OUT_MS,
+  HOVER_DIM_IN_MS,
+  HOVER_DIM_OUT_MS,
+  advancePresence,
+  hoverCardFrame,
+} from "@/lib/graph/hoverCard";
+import { classifyRelease, crossedDragThreshold } from "@/lib/graph/pointer";
 
 type RawNode = {
   id: string;
@@ -34,8 +68,14 @@ const REST = 44;
 const GRAVITY = 0.03;
 const DAMPING = 0.9;
 
-// One physics tick (mutates node velocities/positions). Run off-screen to
-// pre-settle the layout so the graph appears already laid out.
+// How far outside the viewport (in screen px) a node may be and still have its
+// label considered: half of a long tag label, plus the 40px of overshoot the
+// label pass already tolerates, or a long label would pop at the edge. Divided
+// by k to reach graph units.
+const LABEL_CULL_PAD_PX = 200;
+
+/** One physics tick (mutates node velocities/positions). Run off-screen to
+ *  pre-settle the layout so the graph appears already laid out. */
 function tick(nodes: N[], links: L[], alpha: number) {
   for (let i = 0; i < nodes.length; i++) {
     const a = nodes[i];
@@ -80,6 +120,62 @@ function tick(nodes: N[], links: L[], alpha: number) {
   }
 }
 
+/** A camera move in flight: the framing it left and the one it is heading for.
+ *  `fit` marks the opening framing, whose target is a function of the canvas
+ *  box — so a resize recomputes it rather than dropping it (see the observer). */
+type CameraTween = {
+  from: ViewTransform;
+  to: ViewTransform;
+  start: number;
+  fit: boolean;
+};
+
+// Everything the render loop and the pointer handlers share without going
+// through React: a hover must never re-render the island, and a pan must never
+// commit state. Grouped in one mutable object because it is one graph.
+type GraphState = {
+  nodes: N[];
+  links: L[];
+  /** The links as raw id pairs, for `buildHoverHighlight`. */
+  pairs: { source: string; target: string }[];
+  adj: Map<string, Set<string>>;
+  byId: Map<string, N>;
+  /** Node ids matching the search, or null when no search is active. */
+  matches: Set<string> | null;
+  view: ViewTransform;
+  tween: CameraTween | null;
+  /** The highlight the pointer is on, or null. */
+  hover: HoverHighlight | null;
+  /** The classification the dim layer is (or was) blending toward. Retained
+   *  after a highlight ends until the dim reaches 0, so the release fades
+   *  instead of collapsing. */
+  dimSource: DimSource | null;
+  dim: number;
+  dimTarget: 0 | 1;
+  reduce: boolean;
+  panning: boolean;
+  press: N | null;
+  px: number;
+  py: number;
+  downX: number;
+  downY: number;
+  moved: boolean;
+  raf: number;
+  frameAt: number;
+  /** The canvas CSS box and DPR, kept live so the render loop never measures
+   *  the DOM (a rect read per frame forces layout). */
+  cssW: number;
+  cssH: number;
+  dpr: number;
+  introAt: number;
+  maxRadius: number;
+  /** The node whose card is mounted, and its presence animation. */
+  card: N | null;
+  cardTarget: 0 | 1;
+  cardProgress: number;
+  cardPos: { x: number; y: number } | null;
+};
+
 export default function BookmarkGraph() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -93,48 +189,57 @@ export default function BookmarkGraph() {
   } | null>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<N[]>([]);
-  const [hover, setHover] = useState<N | null>(null);
+  // The node whose hover card is MOUNTED. Deliberately survives the hover
+  // ending: the card fades out and unmounts once its presence reaches 0, rather
+  // than disappearing on the frame the pointer left.
+  const [card, setCard] = useState<N | null>(null);
 
-  const g = useRef({
-    nodes: [] as N[],
-    links: [] as L[],
-    adj: new Map<string, Set<string>>(),
-    byId: new Map<string, N>(),
-    matches: null as Set<string> | null,
-    tx: 0,
-    ty: 0,
-    k: 1,
-    hover: null as N | null,
+  const g = useRef<GraphState>({
+    nodes: [],
+    links: [],
+    pairs: [],
+    adj: new Map(),
+    byId: new Map(),
+    matches: null,
+    view: { x: 0, y: 0, k: 1 },
+    tween: null,
+    hover: null,
+    dimSource: null,
+    dim: 0,
+    dimTarget: 0,
+    reduce: false,
     panning: false,
-    press: null as N | null,
+    press: null,
     px: 0,
     py: 0,
     downX: 0,
     downY: 0,
     moved: false,
     raf: 0,
+    frameAt: 0,
+    cssW: 0,
+    cssH: 0,
     dpr: 1,
-    introStart: 0,
+    introAt: 0,
+    maxRadius: 3,
+    card: null,
+    cardTarget: 0,
+    cardProgress: 0,
+    cardPos: null,
   });
 
-  const fitTo = (nodes: N[], w: number, h: number) => {
-    if (!nodes.length) return;
-    // Percentile bounds so a few escaped outliers don't blow up the framing —
-    // the dense cluster fills the view; stragglers sit just past the edges.
-    const xs = nodes.map((n) => n.x).sort((a, b) => a - b);
-    const ys = nodes.map((n) => n.y).sort((a, b) => a - b);
-    const lo = Math.floor(nodes.length * 0.03);
-    const hi = Math.min(nodes.length - 1, Math.ceil(nodes.length * 0.97));
-    const minX = xs[lo],
-      maxX = xs[hi],
-      minY = ys[lo],
-      maxY = ys[hi];
-    const bw = maxX - minX || 1;
-    const bh = maxY - minY || 1;
+  /** Start a programmatic camera move. It always tweens; only the reduced-motion
+   *  gate snaps, and only a gesture bypasses it (by writing `view` directly). */
+  const startCamera = (to: ViewTransform, fit = false) => {
     const s = g.current;
-    s.k = Math.max(0.4, Math.min((w * 0.78) / bw, (h * 0.72) / bh, 1.5));
-    s.tx = w / 2 - ((minX + maxX) / 2) * s.k;
-    s.ty = h / 2 - ((minY + maxY) / 2) * s.k;
+    if (s.reduce) {
+      s.tween = null;
+      s.view = to;
+      return;
+    }
+    // From the frame the user can actually see, not from the previous target:
+    // retargeting mid-flight has to continue the motion, not restart it.
+    s.tween = { from: { ...s.view }, to, start: performance.now(), fit };
   };
 
   // ---- fetch + pre-settle ----
@@ -147,8 +252,10 @@ export default function BookmarkGraph() {
         if (!data.nodes?.length) return setStatus("empty");
         const byId = new Map<string, N>();
         const R = 26 * Math.sqrt(data.nodes.length);
+        let maxRadius = 3;
         for (const n of data.nodes) {
           const r = n.kind === "tag" ? 5 + Math.sqrt(n.weight ?? 1) * 3 : 3;
+          if (r > maxRadius) maxRadius = r;
           byId.set(n.id, {
             ...n,
             r,
@@ -159,6 +266,7 @@ export default function BookmarkGraph() {
           });
         }
         const links: L[] = [];
+        const pairs: { source: string; target: string }[] = [];
         const adj = new Map<string, Set<string>>();
         const add = (id: string, o: string) => {
           let set = adj.get(id);
@@ -170,6 +278,7 @@ export default function BookmarkGraph() {
           const b = byId.get(l.t);
           if (!a || !b) continue;
           links.push({ a, b });
+          pairs.push({ source: a.id, target: b.id });
           add(a.id, b.id);
           add(b.id, a.id);
         }
@@ -180,10 +289,7 @@ export default function BookmarkGraph() {
           tick(nodes, links, alpha);
           alpha *= 0.985;
         }
-        Object.assign(g.current, { nodes, links, adj, byId });
-        const w = wrapRef.current?.clientWidth || window.innerWidth;
-        const h = wrapRef.current?.clientHeight || window.innerHeight;
-        fitTo(nodes, w, h);
+        Object.assign(g.current, { nodes, links, pairs, adj, byId, maxRadius });
         setStats(data.stats);
         setStatus("ready");
       })
@@ -197,13 +303,23 @@ export default function BookmarkGraph() {
   useEffect(() => {
     const q = query.trim().toLowerCase();
     const s = g.current;
-    if (!q || status !== "ready") {
-      s.matches = null;
-      setResults([]);
-      return;
-    }
-    const m = s.nodes.filter((n) => n.label.toLowerCase().includes(q));
-    s.matches = new Set(m.map((n) => n.id));
+    const matches =
+      !q || status !== "ready"
+        ? null
+        : new Set(
+            s.nodes
+              .filter((n) => n.label.toLowerCase().includes(q))
+              .map((n) => n.id),
+          );
+    s.matches = matches;
+    // A search is the same kind of answer a hover is, so it dims through the
+    // same layer — and the classification it starts from is kept while the dim
+    // fades in, exactly like a hover's.
+    const dim = dimmingAfter(s.dimSource, s.hover, matches);
+    s.dimSource = dim.source;
+    s.dimTarget = dim.target;
+    if (!matches) return setResults([]);
+    const m = s.nodes.filter((n) => matches.has(n.id));
     m.sort((a, b) =>
       a.kind === b.kind
         ? (b.weight ?? 0) - (a.weight ?? 0) || a.label.localeCompare(b.label)
@@ -223,51 +339,139 @@ export default function BookmarkGraph() {
     const ctx = canvas.getContext("2d")!;
     const s = g.current;
 
-    const resize = () => {
+    // The reduced-motion gate. It has to be a JavaScript read: a media query
+    // provably cannot reach a canvas, which is drawn by script, so the global
+    // CSS rule that zeroes animation does not cover any of this.
+    const reduceMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    );
+    const readReduceMotion = () => {
+      s.reduce = reduceMotion?.matches === true;
+    };
+    readReduceMotion();
+    reduceMotion?.addEventListener?.("change", readReduceMotion);
+
+    // Returns whether anything actually changed, so the notification the
+    // observer fires on `observe()` — which arrives AFTER the opening camera
+    // move was started — cannot cancel it.
+    const resize = (): boolean => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      s.dpr = dpr;
       const w = wrap.clientWidth;
       const h = wrap.clientHeight;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
+      if (w === s.cssW && h === s.cssH && dpr === s.dpr) return false;
+      s.dpr = dpr;
+      s.cssW = w;
+      s.cssH = h;
+      canvas.width = Math.max(1, Math.floor(w * dpr));
+      canvas.height = Math.max(1, Math.floor(h * dpr));
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
+      return true;
     };
     resize();
-    const ro = new ResizeObserver(resize);
+    const ro = new ResizeObserver(() => {
+      if (!resize()) return;
+      // A camera move in flight was aimed at a box that no longer exists, so it
+      // is dropped rather than completed: finishing a stale target is what
+      // would move the graph off screen. The OPENING framing is the exception,
+      // because its target is not stale — it is whatever fits the new box — and
+      // dropping it would leave the graph unframed for good.
+      if (s.tween?.fit)
+        startCamera(fitTransform(s.nodes, s.cssW, s.cssH), true);
+      else s.tween = null;
+    });
     ro.observe(wrap);
 
-    const draw = () => {
+    // The opening framing. It tweens because every programmatic move does — the
+    // cloud settles into frame instead of teleporting into it, which is the
+    // same "arrive rather than appear" the entrance bloom is doing.
+    startCamera(fitTransform(s.nodes, s.cssW, s.cssH), true);
+
+    const draw = (now: number) => {
+      const dt = s.frameAt === 0 ? 16 : Math.min(64, now - s.frameAt);
+      s.frameAt = now;
+
+      // --- camera: a programmatic move tweens; a gesture has already written
+      // the view, and cancelled any move that was in flight ---
+      if (s.tween) {
+        const tw = s.tween;
+        const t = Math.min(1, (now - tw.start) / CAMERA_TWEEN_MS);
+        if (t >= 1) {
+          s.view = tw.to;
+          s.tween = null;
+        } else {
+          s.view = tweenTransform(tw.from, tw.to, t);
+        }
+      }
+
+      // --- the highlight dim eases toward its target instead of switching ---
+      s.dim = s.reduce
+        ? s.dimTarget
+        : advancePresence(
+            s.dim,
+            s.dimTarget,
+            dt,
+            HOVER_DIM_IN_MS,
+            HOVER_DIM_OUT_MS,
+          );
+      if (s.dimTarget === 0 && s.dim === 0) s.dimSource = null;
+
+      // --- the hover card's presence, driven here rather than by React so a
+      // fade never waits on a re-render ---
+      s.cardProgress = s.reduce
+        ? s.cardTarget
+        : advancePresence(
+            s.cardProgress,
+            s.cardTarget,
+            dt,
+            HOVER_CARD_IN_MS,
+            HOVER_CARD_OUT_MS,
+          );
+
+      const src = s.dimSource;
+      const dim = s.dim;
+      const lit = (n: N) => nodeTargetAlpha(src, n.id) === 1;
+
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.scale(s.dpr, s.dpr);
-      ctx.translate(s.tx, s.ty);
-      ctx.scale(s.k, s.k);
-
-      const hov = s.hover;
-      const nbrs = hov ? s.adj.get(hov.id) : null;
-      const matches = s.matches;
-      const isActive = (n: N) =>
-        matches
-          ? matches.has(n.id)
-          : !hov || n.id === hov.id || (nbrs ? nbrs.has(n.id) : false);
+      ctx.translate(s.view.x, s.view.y);
+      ctx.scale(s.view.k, s.view.k);
 
       // entrance: nodes bloom outward from center + fade in (minimal, one-shot)
-      if (!s.introStart) s.introStart = performance.now();
-      const raw = Math.min(1, (performance.now() - s.introStart) / 850);
+      if (!s.introAt) s.introAt = now;
+      const raw = Math.min(1, (now - s.introAt) / 850);
       const et = 1 - Math.pow(1 - raw, 3);
       const ps = 0.9 + 0.1 * et; // position scale (bloom)
       const rs = 0.4 + 0.6 * et; // radius scale
       const op = Math.min(1, et * 1.15); // opacity
       const labelOp = Math.max(0, (raw - 0.4) / 0.6) * 0.92;
 
-      ctx.lineWidth = 1 / s.k;
+      // The viewport box in graph units, grown so a node whose radius or label
+      // pokes into view is not culled. Culling itself only starts once the
+      // entrance is over: the bloom draws nodes away from the settled positions
+      // the bounds were measured against.
+      const bounds: Bounds = visibleBounds(
+        s.view,
+        s.cssW,
+        s.cssH,
+        s.maxRadius + LABEL_CULL_PAD_PX / Math.max(s.view.k, K_MIN),
+      );
+      const culling = raw >= 1;
+      const inView = (n: N) => !culling || isNodeVisible(n, bounds);
+
+      ctx.lineWidth = 1 / s.view.k;
       for (const l of s.links) {
-        const lit = hov && (l.a.id === hov.id || l.b.id === hov.id);
-        const faded = matches || (hov && !lit);
-        ctx.strokeStyle = lit
-          ? `rgba(${TAG},${0.6 * op})`
-          : `rgba(255,255,255,${(faded ? 0.02 : 0.06) * op})`;
+        if (culling && !isEdgeVisible(l.a, l.b, bounds)) continue;
+        const alpha =
+          blendAlpha(
+            EDGE_REST_ALPHA,
+            edgeTargetAlpha(src, l.a.id, l.b.id),
+            dim,
+          ) * op;
+        if (alpha < 0.004) continue;
+        const rgb = edgeShowsAccent(src, l.a.id, l.b.id) ? TAG : "255,255,255";
+        ctx.strokeStyle = `rgba(${rgb},${alpha})`;
         ctx.beginPath();
         ctx.moveTo(l.a.x * ps, l.a.y * ps);
         ctx.lineTo(l.b.x * ps, l.b.y * ps);
@@ -275,36 +479,47 @@ export default function BookmarkGraph() {
       }
 
       for (const n of s.nodes) {
-        const active = isActive(n);
-        const a = (active ? 1 : 0.12) * op;
+        if (!inView(n)) continue;
+        const a = blendAlpha(1, nodeTargetAlpha(src, n.id), dim) * op;
+        if (a < 0.004) continue;
         ctx.beginPath();
         ctx.arc(n.x * ps, n.y * ps, n.r * rs, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${n.kind === "tag" ? TAG : BM},${a})`;
         ctx.fill();
-        if (n === hov) {
-          ctx.lineWidth = 2 / s.k;
-          ctx.strokeStyle = `rgba(${TAG},0.95)`;
-          ctx.stroke();
-        }
+      }
+
+      // The hovered node's anchor ring, drawn after every disc so it sits above
+      // its neighbours: with several nodes the same size, the anchor of the
+      // highlight has to be unmistakable. It fades with the dim, so releasing a
+      // hover lets the ring go rather than plucking it off.
+      const anchor = src?.hover ? s.byId.get(src.hover.id) : undefined;
+      if (anchor && dim > 0.02 && inView(anchor)) {
+        ctx.lineWidth = 2 / s.view.k;
+        ctx.strokeStyle = `rgba(${TAG},${0.95 * dim})`;
+        ctx.beginPath();
+        ctx.arc(anchor.x * ps, anchor.y * ps, anchor.r * rs, 0, Math.PI * 2);
+        ctx.stroke();
       }
 
       // ---- labels in screen space: fixed size + collision avoidance so the
       // biggest hubs stay readable and never overlap (skipped labels reappear
       // as you zoom in / hover) ----
-      const W = wrap.clientWidth;
-      const H = wrap.clientHeight;
+      const W = s.cssW;
+      const H = s.cssH;
       ctx.setTransform(s.dpr, 0, 0, s.dpr, 0, 0);
       ctx.font = "12px ui-monospace, monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
       const drawn: [number, number, number, number][] = [];
       if (labelOp > 0.02) {
+        // Lit labels claim their space first, then the big hubs: a dimmed
+        // label must never push a highlighted one out of the way.
         const tags = s.nodes
-          .filter((n) => n.kind === "tag" && isActive(n))
-          .sort((a, b) => b.r - a.r);
+          .filter((n) => n.kind === "tag" && inView(n))
+          .sort((a, b) => Number(lit(b)) - Number(lit(a)) || b.r - a.r);
         for (const n of tags) {
-          const sx = s.tx + s.k * n.x * ps;
-          const sy = s.ty + s.k * n.y * ps + n.r * rs * s.k + 3;
+          const sx = s.view.x + s.view.k * n.x * ps;
+          const sy = s.view.y + s.view.k * n.y * ps + n.r * rs * s.view.k + 3;
           if (sx < -40 || sx > W + 40 || sy < NAV - 20 || sy > H + 20) continue;
           const w = ctx.measureText(n.label).width;
           const box: [number, number, number, number] = [
@@ -313,7 +528,7 @@ export default function BookmarkGraph() {
             sx + w / 2 + 3,
             sy + 13,
           ];
-          const force = n === hov || (!!matches && matches.has(n.id));
+          const force = lit(n);
           const hit = drawn.some(
             (d) =>
               !(
@@ -324,24 +539,44 @@ export default function BookmarkGraph() {
               ),
           );
           if (force || !hit) {
-            ctx.fillStyle = `rgba(226,232,240,${labelOp})`;
+            const a = blendAlpha(1, nodeTargetAlpha(src, n.id), dim);
+            ctx.fillStyle = `rgba(226,232,240,${labelOp * a})`;
             ctx.fillText(n.label, sx, sy);
             drawn.push(box);
           }
         }
       }
 
-      if (hov && cardRef.current) {
-        const card = cardRef.current;
-        const sx = s.tx + s.k * hov.x;
-        const sy = s.ty + s.k * hov.y;
-        const cw = card.offsetWidth;
-        const ch = card.offsetHeight;
-        let left = sx + hov.r * s.k + 14;
-        if (left + cw > W - 12) left = sx - hov.r * s.k - 14 - cw;
+      if (s.card && cardRef.current) {
+        const el = cardRef.current;
+        const sx = s.view.x + s.view.k * s.card.x;
+        const sy = s.view.y + s.view.k * s.card.y;
+        const cw = el.offsetWidth;
+        const ch = el.offsetHeight;
+        let left = sx + s.card.r * s.view.k + 14;
+        if (left + cw > W - 12) left = sx - s.card.r * s.view.k - 14 - cw;
         left = Math.max(12, Math.min(left, W - cw - 12));
         const top = Math.max(NAV, Math.min(sy - ch / 2, H - ch - 12));
-        card.style.transform = `translate(${left}px, ${top}px)`;
+        // Eased rather than assigned: hovering the next node slides the card
+        // across instead of teleporting it there.
+        if (s.cardPos === null || s.reduce) {
+          s.cardPos = { x: left, y: top };
+        } else {
+          const ease = 1 - Math.exp(-dt / 90);
+          s.cardPos.x += (left - s.cardPos.x) * ease;
+          s.cardPos.y += (top - s.cardPos.y) * ease;
+        }
+        const frame = hoverCardFrame(s.cardProgress);
+        el.style.opacity = String(frame.opacity);
+        el.style.transform =
+          `translate(${s.cardPos.x}px, ${s.cardPos.y}px) ` +
+          `translateY(${frame.lift}px) scale(${frame.scale})`;
+      }
+      // Unmount only once the fade has actually finished.
+      if (s.cardTarget === 0 && s.cardProgress <= 0 && s.card !== null) {
+        s.card = null;
+        s.cardPos = null;
+        setCard(null);
       }
 
       s.raf = requestAnimationFrame(draw);
@@ -349,14 +584,16 @@ export default function BookmarkGraph() {
     s.raf = requestAnimationFrame(draw);
     return () => {
       cancelAnimationFrame(s.raf);
+      s.tween = null;
       ro.disconnect();
+      reduceMotion?.removeEventListener?.("change", readReduceMotion);
     };
   }, [status]);
 
   // ---- interactions (pan + zoom + click; no node dragging) ----
   const toGraph = (px: number, py: number) => {
     const s = g.current;
-    return { x: (px - s.tx) / s.k, y: (py - s.ty) / s.k };
+    return { x: (px - s.view.x) / s.view.k, y: (py - s.view.y) / s.view.k };
   };
   const pick = (px: number, py: number): N | null => {
     const s = g.current;
@@ -365,7 +602,7 @@ export default function BookmarkGraph() {
     let bestD = Infinity;
     for (const n of s.nodes) {
       const d = Math.hypot(n.x - p.x, n.y - p.y);
-      if (d < n.r + 7 / s.k && d < bestD) {
+      if (d < n.r + 7 / s.view.k && d < bestD) {
         bestD = d;
         best = n;
       }
@@ -376,11 +613,43 @@ export default function BookmarkGraph() {
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
+
+  /** Point the highlight at a node (or nothing), and show/hide its card.
+   *  The card's removal is only REQUESTED here; the render loop owns the fade
+   *  and unmounts when the presence has run out. */
   const setHovered = (n: N | null) => {
-    if (g.current.hover !== n) {
-      g.current.hover = n;
-      setHover(n);
+    const s = g.current;
+    const nextId = n?.id ?? null;
+    if ((s.hover?.id ?? null) === nextId) return;
+    s.hover = n ? buildHoverHighlight(n.id, s.pairs) : null;
+    const dim = dimmingAfter(s.dimSource, s.hover, s.matches);
+    s.dimSource = dim.source;
+    s.dimTarget = dim.target;
+    if (n) {
+      if (s.card?.id !== n.id) {
+        s.card = n;
+        setCard(n);
+      }
+      s.cardTarget = 1;
+    } else {
+      s.cardTarget = 0;
     }
+  };
+
+  const centerOn = (n: N) => {
+    const s = g.current;
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    // Target from the framing the camera is heading for, not the one frame it
+    // happens to be on, so a click during a wheel-zoom does not fight it.
+    const from = s.tween ? s.tween.to : s.view;
+    const k = Math.max(from.k, 1.3);
+    startCamera({
+      x: wrap.clientWidth / 2 - n.x * k,
+      y: wrap.clientHeight / 2 - n.y * k,
+      k,
+    });
+    setHovered(n);
   };
 
   const onDown = (e: React.PointerEvent) => {
@@ -399,10 +668,21 @@ export default function BookmarkGraph() {
     const s = g.current;
     const { x, y } = xy(e);
     if (s.panning) {
-      if (Math.hypot(x - s.downX, y - s.downY) > 4) {
+      // Measured from the press, not from the previous event: a slow drag still
+      // crosses the threshold, so a deliberate pan is never mistaken for a click.
+      if (!s.moved && crossedDragThreshold(x - s.downX, y - s.downY)) {
         s.moved = true;
-        s.tx += x - s.px;
-        s.ty += y - s.py;
+        // The hand takes the camera over the moment the press becomes a drag:
+        // an in-flight programmatic move must not keep writing a target the
+        // drag is contradicting. Deliberately HERE and not on pointerdown, so a
+        // press that turns out to be a click cannot freeze a move in progress
+        // (the opening framing is a move in progress).
+        s.tween = null;
+      }
+      if (s.moved) {
+        // 1:1 with the hand. A tween here would read as the interface lagging.
+        s.view.x += x - s.px;
+        s.view.y += y - s.py;
       }
     } else {
       setHovered(pick(x, y));
@@ -417,7 +697,8 @@ export default function BookmarkGraph() {
   };
   const onUp = (e: React.PointerEvent) => {
     const s = g.current;
-    if (!s.moved && s.press) {
+    const intent = classifyRelease(s.press?.id ?? null, s.moved);
+    if (intent.kind === "node-click" && s.press) {
       if (s.press.kind === "bookmark" && s.press.url)
         window.open(s.press.url, "_blank", "noopener,noreferrer");
       else if (s.press.kind === "tag") centerOn(s.press);
@@ -433,20 +714,18 @@ export default function BookmarkGraph() {
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const mx = e.clientX - r.left;
     const my = e.clientY - r.top;
-    const k2 = Math.min(4, Math.max(0.15, s.k * Math.exp(-e.deltaY * 0.0015)));
-    s.tx = mx - ((mx - s.tx) * k2) / s.k;
-    s.ty = my - ((my - s.ty) * k2) / s.k;
-    s.k = k2;
-  };
-
-  const centerOn = (n: N) => {
-    const s = g.current;
-    const wrap = wrapRef.current;
-    if (!wrap) return;
-    s.k = Math.max(s.k, 1.3);
-    s.tx = wrap.clientWidth / 2 - n.x * s.k;
-    s.ty = wrap.clientHeight / 2 - n.y * s.k;
-    setHovered(n);
+    // Zoom is accumulated on the TARGET, so a fast wheel spins through the
+    // steps instead of every event restarting from wherever the tween is —
+    // while the visible move stays smooth.
+    const from = s.tween ? s.tween.to : s.view;
+    const k2 = clampK(from.k * Math.exp(-e.deltaY * 0.0015));
+    // Still anchored at the pointer: the graph point under the cursor is the
+    // one that stays under it once the zoom lands.
+    startCamera({
+      x: mx - (mx - from.x) * (k2 / from.k),
+      y: my - (my - from.y) * (k2 / from.k),
+      k: k2,
+    });
   };
 
   return (
@@ -526,17 +805,20 @@ export default function BookmarkGraph() {
         </div>
       </div>
 
-      {/* hover card */}
-      {hover && (
+      {/* hover card — its position, opacity and settle are written by the render
+          loop (the presence animation runs there), so it renders transparent at
+          the origin and is placed on the next frame. */}
+      {card && (
         <div
           ref={cardRef}
           className="pointer-events-none absolute left-0 top-0 w-[280px] overflow-hidden rounded-xl border border-white/10 bg-zinc-950/95 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.9)] backdrop-blur will-change-transform"
+          style={{ opacity: 0, transformOrigin: "left center" }}
         >
-          {hover.kind === "bookmark" ? (
+          {card.kind === "bookmark" ? (
             <>
-              {hover.cover && (
+              {card.cover && (
                 <img
-                  src={hover.cover}
+                  src={card.cover}
                   alt=""
                   className="h-28 w-full object-cover"
                 />
@@ -544,17 +826,17 @@ export default function BookmarkGraph() {
               <div className="p-3">
                 <div className="flex items-start gap-1.5">
                   <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-white">
-                    {hover.label}
+                    {card.label}
                   </h3>
                   <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-primary" />
                 </div>
-                {hover.excerpt && (
+                {card.excerpt && (
                   <p className="mt-1 line-clamp-2 text-xs text-light-secondary/70">
-                    {hover.excerpt}
+                    {card.excerpt}
                   </p>
                 )}
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {(hover.tags ?? []).slice(0, 5).map((t) => (
+                  {(card.tags ?? []).slice(0, 5).map((t) => (
                     <span
                       key={t}
                       className="rounded-full bg-accent-primary/10 px-1.5 py-0.5 text-[10px] text-accent-primary/90"
@@ -564,10 +846,10 @@ export default function BookmarkGraph() {
                   ))}
                 </div>
                 <div className="mt-2 flex items-center gap-2 font-mono text-[10px] text-light-fourth">
-                  {hover.list && <span>{hover.list}</span>}
-                  {hover.created && (
+                  {card.list && <span>{card.list}</span>}
+                  {card.created && (
                     <span>
-                      {new Date(hover.created).toLocaleDateString("en-US", {
+                      {new Date(card.created).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -581,14 +863,14 @@ export default function BookmarkGraph() {
             <div className="p-3">
               <div className="flex items-baseline justify-between gap-2">
                 <h3 className="font-mono text-sm font-semibold text-accent-primary">
-                  #{hover.label}
+                  #{card.label}
                 </h3>
                 <span className="text-xs text-light-fourth">
-                  {hover.weight} bookmark{hover.weight === 1 ? "" : "s"}
+                  {card.weight} bookmark{card.weight === 1 ? "" : "s"}
                 </span>
               </div>
               <ul className="mt-2 space-y-1">
-                {[...(g.current.adj.get(hover.id) ?? [])]
+                {[...(g.current.adj.get(card.id) ?? [])]
                   .slice(0, 6)
                   .map((id) => g.current.byId.get(id))
                   .filter((n): n is N => !!n)
@@ -600,9 +882,9 @@ export default function BookmarkGraph() {
                       · {n.label}
                     </li>
                   ))}
-                {(g.current.adj.get(hover.id)?.size ?? 0) > 6 && (
+                {(g.current.adj.get(card.id)?.size ?? 0) > 6 && (
                   <li className="text-[11px] text-light-fourth">
-                    +{(g.current.adj.get(hover.id)?.size ?? 0) - 6} more
+                    +{(g.current.adj.get(card.id)?.size ?? 0) - 6} more
                   </li>
                 )}
               </ul>
