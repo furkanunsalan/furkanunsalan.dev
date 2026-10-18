@@ -94,6 +94,7 @@ export default function SiteNav({
       {menu && (
         <button
           aria-hidden
+          data-cursor="hide"
           tabIndex={-1}
           onClick={() => setMenu(null)}
           className="fixed inset-0 z-30 cursor-default"
