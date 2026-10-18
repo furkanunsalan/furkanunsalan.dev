@@ -37,7 +37,7 @@ src/
 │   └── AdminLayout.astro     # admin chrome (nav / logout / view-link islands)
 │
 └── pages/
-    ├── index.astro          # home: info card + AsciiPortrait + Time + GithubCommitHistory + latest thought
+    ├── index.astro          # home: profile header (banner, portrait, clock, socials) + intro + commit graph
     ├── writing/index.astro + writing/[slug].astro     # list + post (body server-rendered via MarkdocBody)
     ├── projects/index.astro + projects/[slug].astro   # list (ProjectsExplorer) + project (MarkdocBody / showcases)
     ├── experience.astro · photos.astro · places.astro · bookmarks.astro · gadgets.astro · resume.astro
@@ -94,7 +94,7 @@ React islands. Key ones:
 | `SiteNav.tsx` / `MainNavbar.tsx`                                         | Top nav; hydrates on idle, server-renders the active link; magnifier opens the search modal.   |
 | `SearchOverlay.tsx`                                                      | Portaled ⌘K/`/` search modal — animated shell, focus trap, scroll lock, deep-link boot.        |
 | `SearchResults.tsx` / `search-ui.tsx`                                    | Shared search body (filters + result rows + keyboard nav); kind labels/highlighting.           |
-| `HomeIntro.tsx` / `HomeSocialLink.tsx` / `Time.tsx`                      | Home bio block, socials, Istanbul clock.                                                       |
+| `HomeIntro.tsx` / `HomeSocialLink.tsx` / `Time.tsx` / `CopyPgpKey.tsx`   | Home bio block, socials, Istanbul clock, PGP copy button.                                      |
 | `AsciiPortrait.tsx`                                                      | Home ASCII portrait (data in `data/asciiPortrait.ts`).                                         |
 | `GithubCommitHistory.tsx` / `ContributionContainer.tsx`                  | Contribution heatmap + stats.                                                                  |
 | `MarkdocBody.astro`                                                      | Server-rendered prose from lib/markdoc-render; islands only for Mermaid + bento + TOC.         |
