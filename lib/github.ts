@@ -1,3 +1,5 @@
+import { cachedReader } from "@/lib/cache";
+
 const GITHUB_API = "https://api.github.com";
 const GITHUB_GRAPHQL = "https://api.github.com/graphql";
 
@@ -61,7 +63,7 @@ function authHeaders(extra: Record<string, string> = {}) {
   };
 }
 
-export async function getGithubRepos(): Promise<GithubRepo[]> {
+async function getGithubReposQuery(): Promise<GithubRepo[]> {
   const url = `${GITHUB_API}/users/${githubUser}/repos?per_page=100&type=owner&sort=updated`;
   const res = await fetch(url, {
     headers: authHeaders(),
@@ -106,6 +108,18 @@ export async function getGithubRepos(): Promise<GithubRepo[]> {
     .sort((a, b) => b.stargazers_count - a.stargazers_count);
 }
 
+// The repo list and per-repo commit activity used to be fetched from GitHub on
+// every /projects request (and every /api/search request) — that is what made
+// /projects' TTFB ~1 s. Both go through the in-memory tagged cache now (1 h
+// backstop) and are busted by the admin "Sync from GitHub" action, which calls
+// revalidateCollection("github").
+export const getGithubRepos = cachedReader(
+  ["getGithubRepos"],
+  ["github"],
+  getGithubReposQuery,
+  [],
+);
+
 export async function getGithubRepo(name: string): Promise<GithubRepo | null> {
   const url = `${GITHUB_API}/repos/${githubUser}/${name}`;
   const res = await fetch(url, {
@@ -136,7 +150,7 @@ export async function getGithubRepo(name: string): Promise<GithubRepo | null> {
 // Last ~52 weeks of weekly commit totals for a single repo, for sparklines.
 // Returns [] on any failure or while GitHub is still computing the stats (a 202
 // with no usable body), so the caller simply renders no sparkline that round.
-export async function getRepoCommitActivity(
+async function getRepoCommitActivityQuery(
   owner: string,
   name: string,
 ): Promise<number[]> {
@@ -154,6 +168,15 @@ export async function getRepoCommitActivity(
     return [];
   }
 }
+
+// One GitHub call per repo on the /projects request path was the other half of
+// its ~1 s TTFB; cached per (owner, name) and busted with the repo list above.
+export const getRepoCommitActivity = cachedReader(
+  ["getRepoCommitActivity"],
+  ["github"],
+  getRepoCommitActivityQuery,
+  [],
+);
 
 export async function getGithubReadme(
   owner: string,
