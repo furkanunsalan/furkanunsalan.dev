@@ -67,7 +67,7 @@ export default function ExperienceContainer({
           <>
             <div className="flex flex-col md:flex-row items-start gap-3">
               {work.logo && (
-                <div className="relative mt-1 shrink-0 w-11 h-11 overflow-hidden rounded-lg bg-white/[0.04]">
+                <div className="relative mt-0.5 shrink-0 w-11 h-11 overflow-hidden rounded-lg bg-white/[0.04]">
                   <Image
                     src={work.logo}
                     alt={`${work.organization} logo`}
@@ -78,10 +78,17 @@ export default function ExperienceContainer({
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-sm text-light-fourth mt-1">
+                {/* Company above dates, company in white — the same order and
+                    weight as the multi-role company header in
+                    CompanyExperienceGroup, so a single-role company reads the
+                    same as one with several roles. */}
+                <h3 className="text-lg font-semibold text-white">
+                  {work.organization}
+                </h3>
+                <p className="text-sm text-light-fourth mt-0.5">
                   {work.start_date} - {work.end_date || "Current"}
+                  {durationLabel ? ` · ${durationLabel}` : ""}
                 </p>
-                <p className="text-light-fourth">{work.organization}</p>
               </div>
             </div>
             <h3 className="mt-4 text-lg font-semibold text-white">
