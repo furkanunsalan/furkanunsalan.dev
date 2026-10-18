@@ -26,25 +26,23 @@ export const HOVER_DIM_ALPHA = 0.18;
  *  ~15/255, and where it crosses the pixel grid at a shallow angle the
  *  antialiased coverage splits across two rows at roughly half that each — so
  *  the line stops reading as a line and starts reading as a dithered trail with
- *  gaps in it, which is what "the edges look low resolution" was. Raising it to
- *  0.16 puts the resting edge around 40/255: still clearly subordinate to the
- *  nodes, but with enough contrast to hold a continuous edge across the whole
- *  line. Paired with a slightly thicker stroke (see the renderer's lineWidth),
- *  coverage stops being marginal.
+ *  gaps in it, which is what "the edges look low resolution" was. The fix for
+ *  that is contrast, not weight: 0.10 puts the resting edge around 26/255, clear
+ *  of the coverage cliff, and the renderer's slightly thicker stroke does the
+ *  rest. Paired with that stroke it reads as a continuous line.
  *
- *  Still below myne's 0.5 against its own palette, so a dense hub does not turn
- *  into a solid fan that out-weighs the bookmarks. */
-export const EDGE_REST_ALPHA = 0.16;
+ *  Deliberately BELOW the 0.16 it briefly held: at that weight the edges were
+ *  what you noticed first and the nodes became the background of their own
+ *  graph. Edges are the structure, the nodes are the content. */
+export const EDGE_REST_ALPHA = 0.1;
 
 /** Alpha for an edge touching the hovered node: clearly the brightest thing on
  *  screen, because it is answering "which connections are this node's", but not
  *  a hard accent line across a whole hub. */
 export const EDGE_LIT_ALPHA = 0.6;
 
-/** Alpha for an edge with something hovered that it is not incident to. Raised
- *  with the rest alpha so the dim layer stays a legible step down rather than
- *  vanishing, which is what the hover highlight's 0.18 node floor implies. */
-export const EDGE_DIM_ALPHA = 0.04;
+/** Alpha for an edge with something hovered that it is not incident to. */
+export const EDGE_DIM_ALPHA = 0.03;
 
 /** The node ids and edge keys a highlight keeps at full strength. */
 export interface HoverHighlight {

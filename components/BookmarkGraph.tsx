@@ -18,6 +18,7 @@ import {
   type Bounds,
   type ViewTransform,
 } from "@/lib/graph/culling";
+import { LABEL_FADE_MIN, labelFade } from "@/lib/graph/labels";
 import {
   EDGE_REST_ALPHA,
   blendAlpha,
@@ -96,6 +97,9 @@ type GraphState = {
   /** The wheel's destination, when one is pending. The wheel writes here and
    *  the loop eases `view` toward it; a tween and a zoom target never coexist. */
   zoomTarget: ViewTransform | null;
+  /** The zoom the opening fit chose. Label visibility is expressed relative to
+   *  it, so the default framing shows labels whatever the viewport size. */
+  kFit: number;
   /** The highlight the pointer is on, or null. */
   hover: HoverHighlight | null;
   /** The classification the dim layer is (or was) blending toward. Retained
@@ -135,10 +139,6 @@ export default function BookmarkGraph() {
   const [status, setStatus] = useState<"loading" | "ready" | "empty" | "error">(
     "loading",
   );
-  const [stats, setStats] = useState<{
-    bookmarks: number;
-    tags: number;
-  } | null>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<N[]>([]);
   // The node whose hover card is MOUNTED. Deliberately survives the hover
@@ -156,6 +156,7 @@ export default function BookmarkGraph() {
     view: { x: 0, y: 0, k: 1 },
     tween: null,
     zoomTarget: null,
+    kFit: 1,
     hover: null,
     dimSource: null,
     dim: 0,
@@ -246,7 +247,6 @@ export default function BookmarkGraph() {
           byId,
           maxRadius: laid.maxRadius,
         });
-        setStats(data.stats);
         setStatus("ready");
       })
       .catch(() => alive && setStatus("error"));
@@ -325,6 +325,16 @@ export default function BookmarkGraph() {
       return true;
     };
     resize();
+
+    // The opening framing, and the zoom that label visibility is expressed
+    // against. Recorded whenever the fit is (re)chosen, not just once, so a
+    // resized window keeps showing labels at its own default view.
+    const fitAndRecord = () => {
+      const fit = fitTransform(s.nodes, s.cssW, s.cssH);
+      s.kFit = fit.k;
+      startCamera(fit, true);
+    };
+
     const ro = new ResizeObserver(() => {
       if (!resize()) return;
       // A camera move in flight was aimed at a box that no longer exists, so it
@@ -332,16 +342,15 @@ export default function BookmarkGraph() {
       // would move the graph off screen. The OPENING framing is the exception,
       // because its target is not stale — it is whatever fits the new box — and
       // dropping it would leave the graph unframed for good.
-      if (s.tween?.fit)
-        startCamera(fitTransform(s.nodes, s.cssW, s.cssH), true);
+      if (s.tween?.fit) fitAndRecord();
       else s.tween = null;
     });
     ro.observe(wrap);
 
-    // The opening framing. It tweens because every programmatic move does — the
-    // cloud settles into frame instead of teleporting into it, which is the
-    // same "arrive rather than appear" the entrance bloom is doing.
-    startCamera(fitTransform(s.nodes, s.cssW, s.cssH), true);
+    // It tweens because every programmatic move does — the cloud settles into
+    // frame instead of teleporting into it, which is the same "arrive rather
+    // than appear" the entrance bloom is doing.
+    fitAndRecord();
 
     const draw = (now: number) => {
       const dt = s.frameAt === 0 ? 16 : Math.min(64, now - s.frameAt);
@@ -504,7 +513,11 @@ export default function BookmarkGraph() {
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
       const drawn: [number, number, number, number][] = [];
-      if (labelOp > 0.02) {
+      // Labels are a zoom level's worth of information, not a constant: at the
+      // whole-cloud framing 66 of them have nowhere to sit, so they fade out as
+      // the view pulls back and the pass is skipped entirely once they are gone.
+      const fade = labelFade(s.view.k, s.kFit);
+      if (labelOp > LABEL_FADE_MIN && fade > LABEL_FADE_MIN) {
         // Lit labels claim their space first, then the big hubs: a dimmed
         // label must never push a highlighted one out of the way.
         const tags = s.nodes
@@ -533,7 +546,7 @@ export default function BookmarkGraph() {
           );
           if (force || !hit) {
             const a = blendAlpha(1, nodeTargetAlpha(src, n.id), dim);
-            ctx.fillStyle = `rgba(226,232,240,${labelOp * a})`;
+            ctx.fillStyle = `rgba(226,232,240,${labelOp * a * fade})`;
             ctx.fillText(n.label, sx, sy);
             drawn.push(box);
           }
@@ -767,11 +780,6 @@ export default function BookmarkGraph() {
               placeholder="Search tags & bookmarks…"
               className="w-full bg-transparent text-sm text-light-secondary placeholder:text-light-fourth focus:outline-none"
             />
-            {stats && (
-              <span className="shrink-0 font-mono text-[11px] text-light-fourth">
-                {stats.tags}·{stats.bookmarks}
-              </span>
-            )}
           </div>
 
           {results.length > 0 && (
