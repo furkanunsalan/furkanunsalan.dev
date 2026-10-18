@@ -743,3 +743,52 @@ html {
 * {
   -ms-overflow-style: none; /* Internet Explorer and Edge */
 }
+
+/* ---------- coast cipher footer band ---------- */
+
+/* The band is the last thing on the page and is revealed by scroll, so its own
+   box is the reveal window: the art rises and fades in from below on the final
+   band-height of scrolling (see components/CoastCipher.tsx). The plane's colour
+   is the art's own background, which is what keeps the reserved box reading as
+   plain page instead of an empty footer. `overflow: hidden` clips the rise. */
+.coast-band {
+  position: relative;
+  overflow: hidden;
+  background-color: #07070a;
+  border-top: 1px solid #27272a;
+}
+
+/* cqw is measured against this box, so the glyph size follows the real width
+   rather than a breakpoint guess. */
+.coast-band__container {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  container-type: inline-size;
+}
+
+/* 201 cells at 0.6em advance against 34 rows at 1.2em line height. Reserving it
+   as an aspect ratio means the box exists before hydration — no CLS. */
+.coast-band__art {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1206 / 408;
+  will-change: transform, opacity;
+}
+
+.coast-band__pre {
+  margin: 0;
+  white-space: pre;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: calc(100cqw / 120.6);
+  line-height: 1.2;
+  color: rgba(212, 212, 212, 0.4);
+}
+
+/* Covers the <pre> once hydrated; its own pixels are opaque, so the fallback
+   never shows through. */
+.coast-band__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
