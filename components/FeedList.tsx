@@ -222,7 +222,9 @@ export default function FeedList({ items }: { items: FeedItem[] }) {
           Nothing matches.
         </div>
       ) : (
-        <ul className="divide-y divide-white/[0.06] border-y border-white/[0.06]">
+        {/* `border-b`, not `border-y`: the search bar above already draws its own
+            rule, so a top border here put a second line above the first row. */}
+        <ul className="divide-y divide-white/[0.06] border-b border-white/[0.06]">
           {filtered.map((item) =>
             item.kind === "post" ? (
               <PostRow key={`p-${item.id}`} post={item.data} />
