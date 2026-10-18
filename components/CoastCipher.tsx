@@ -19,11 +19,12 @@ import {
 // the SSR `<pre>` below is the no-JS/colourless fallback, and the canvas paints
 // over it once the island hydrates.
 //
-// The band is revealed by scroll, not placed in view: it is the last thing on
-// the page, and the art condenses in over the final band-height of scrolling
-// (see `reveal()`). The plane's background is the art's own background, so the
-// reserved box reads as plain page until the art arrives — that is what makes
-// the reveal read as "hidden scroll" rather than an empty footer.
+// The band is *not* revealed by its own height the way an ordinary footer is.
+// It sits in a sticky window pinned to the bottom of the viewport (`.coast-band`
+// inside `.coast-reveal`), with the art parked one window-height below it. So
+// when the page reaches its natural end the band is invisible, and only the
+// extra scroll of the reveal box slides the art up into place. That is the whole
+// reason the markup is a container + a sticky child rather than one <footer>.
 //
 // Everything here is hand-rolled: no dependency, one rAF loop that only runs
 // while something is actually moving.
@@ -31,9 +32,6 @@ import {
 const DECODE_MS = 1500;
 const SETTLE_MS = 260; // pointer shimmer decay, ported from AsciiPortrait
 const SHIMMER_SPAN = 0.12; // of the band width
-// The reveal finishes before the page bottoms out, so the art is at rest for
-// the last stretch instead of still settling when the scroll stops.
-const REVEAL_AT = 0.85;
 const FONT_STACK = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
 const CELLS = coastCols * coastRows;
@@ -69,26 +67,43 @@ const colourIndexAt = (() => {
   return out;
 })();
 
-// "rgb(150 220 255)" -> the numbers a gradient stop needs.
-function rgbTriplet(css: string): [number, number, number] {
-  const nums = css.match(/\d+/g);
-  if (!nums || nums.length < 3) return [255, 255, 255];
-  return [Number(nums[0]), Number(nums[1]), Number(nums[2])];
-}
+// The bloom as a CSS radial gradient — `cqw` is the band's own width, which is
+// exactly the basis the data's `radius` is expressed in. Stops sample
+// `strength * (1 - t) ** falloff`, the same curve the canvas composite used.
+const GLOW_BACKGROUND = (() => {
+  const [r, g, b] = (coastGlow.tint.match(/\d+/g) ?? ["255", "255", "255"]).map(
+    Number,
+  );
+  const STOPS = 16;
+  const stops: string[] = [];
+  for (let i = 0; i <= STOPS; i++) {
+    const t = i / STOPS;
+    const alpha = coastGlow.strength * (1 - t) ** coastGlow.falloff;
+    stops.push(
+      `rgb(${r} ${g} ${b} / ${alpha.toFixed(4)}) ${(t * 100).toFixed(2)}%`,
+    );
+  }
+  const cx = (coastGlow.cx * 100).toFixed(3);
+  const cy = (coastGlow.cy * 100).toFixed(3);
+  const radius = (coastGlow.radius * 100).toFixed(3);
+  return `radial-gradient(circle ${radius}cqw at ${cx}% ${cy}%, ${stops.join(", ")})`;
+})();
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 const clamp01 = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : t);
 
 export default function CoastCipher() {
+  const revealRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLElement>(null);
   const artRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    const revealBox = revealRef.current;
     const box = boxRef.current;
     const art = artRef.current;
     const canvas = canvasRef.current;
-    if (!box || !art || !canvas) return;
+    if (!revealBox || !box || !art || !canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return; // leaves the SSR <pre> in place, which is the fallback
@@ -99,9 +114,7 @@ export default function CoastCipher() {
 
     let cellW = 0;
     let cellH = 0;
-    let fontPx = 0;
     let ready = false;
-    let grad: CanvasGradient | null = null;
 
     // Per-cell decode threshold — column-biased then row-biased, so the crest
     // resolves left to right and top down rather than in a straight wipe.
@@ -118,7 +131,7 @@ export default function CoastCipher() {
     const noiseGlyph = () =>
       coastNoise[(Math.random() * coastNoise.length) | 0];
 
-    // ---- geometry + one-time paint ----------------------------------------
+    // ---- geometry ---------------------------------------------------------
 
     // Cell width comes from the box, not from the font: the art fills its
     // container exactly, and the glyph size is then derived from the measured
@@ -140,29 +153,10 @@ export default function CoastCipher() {
 
       cellW = w / coastCols;
       cellH = coastCellAspect * cellW;
-      fontPx = advance > 0 ? cellW / advance : cellW;
+      const fontPx = advance > 0 ? cellW / advance : cellW;
       ctx!.font = `${fontPx}px ${FONT_STACK}`;
       ctx!.textAlign = "left";
       ctx!.textBaseline = "middle";
-
-      // The bloom is a screen-blended radial gradient. It is applied as a
-      // clipped fill rather than left baked in, because partial redraws (decode,
-      // shimmer) clear their cells and would otherwise punch holes in the glow.
-      const [r, g, b] = rgbTriplet(coastGlow.tint);
-      grad = ctx!.createRadialGradient(
-        coastGlow.cx * w,
-        coastGlow.cy * h,
-        0,
-        coastGlow.cx * w,
-        coastGlow.cy * h,
-        coastGlow.radius * w,
-      );
-      const STOPS = 16;
-      for (let i = 0; i <= STOPS; i++) {
-        const t = i / STOPS;
-        const alpha = coastGlow.strength * (1 - t) ** coastGlow.falloff;
-        grad.addColorStop(t, `rgba(${r},${g},${b},${alpha.toFixed(4)})`);
-      }
       return true;
     }
 
@@ -171,8 +165,8 @@ export default function CoastCipher() {
       const y = (i / coastCols) | 0;
       const px = x * cellW;
       const py = y * cellH;
-      // Opaque cell: fill the background, then the glyph. No clearRect — the
-      // canvas is meant to be opaque so nothing behind it shows through.
+      // Opaque cell: the canvas's own pixels are the art, so nothing behind it
+      // (including the fallback <pre>) can show through.
       ctx!.fillStyle = coastBackground;
       ctx!.fillRect(px, py, cellW + 1, cellH + 1);
       ctx!.fillStyle = colourOf(colourIndexAt[i]);
@@ -188,41 +182,13 @@ export default function CoastCipher() {
         ctx!.fillStyle = colourOf(colourIndexAt[i]);
         ctx!.fillText(glyphs[i], x * cellW, y * cellH + cellH / 2);
       }
-      paintBloom(0, 0, coastCols * cellW, coastRows * cellH);
+      // No bloom here — it is the `.coast-band__glow` layer, so a partial
+      // repaint can never brighten it.
     }
 
-    function paintBloom(x: number, y: number, w: number, h: number) {
-      if (!grad) return;
-      ctx!.save();
-      ctx!.beginPath();
-      ctx!.rect(x, y, w, h);
-      ctx!.clip();
-      ctx!.globalCompositeOperation = "screen";
-      ctx!.fillStyle = grad;
-      ctx!.fillRect(0, 0, coastCols * cellW, coastRows * cellH);
-      ctx!.globalCompositeOperation = "source-over";
-      ctx!.restore();
-    }
-
-    // Bounding box of the cells a frame touched, so the bloom is re-applied to
-    // exactly the region that lost it.
-    function flush(changed: number[], glyphs: string[]) {
+    const flush = (changed: number[], glyphs: string[]) => {
       for (const i of changed) paintCell(i, glyphs[i]);
-      if (!changed.length) return;
-      let minX = Infinity;
-      let minY = Infinity;
-      let maxX = -Infinity;
-      let maxY = -Infinity;
-      for (const i of changed) {
-        const x = (i % coastCols) * cellW;
-        const y = ((i / coastCols) | 0) * cellH;
-        if (x < minX) minX = x;
-        if (y < minY) minY = y;
-        if (x > maxX) maxX = x;
-        if (y > maxY) maxY = y;
-      }
-      paintBloom(minX, minY, maxX - minX + cellW + 1, maxY - minY + cellH + 1);
-    }
+    };
 
     // ---- animation --------------------------------------------------------
 
@@ -230,22 +196,20 @@ export default function CoastCipher() {
     let introDone = false;
     let raf = 0;
 
-    const restingGlyphs = glyphAt;
     function restingFrame() {
-      restingGlyphs.forEach((g, i) => (live[i] = g));
+      glyphAt.forEach((g, i) => (live[i] = g));
       if (!ready) return;
-      paintAll(restingGlyphs);
+      paintAll(glyphAt);
     }
 
     function startDecode() {
-      if (introDone) return;
+      if (introDone || !ready) return;
+      introDone = true;
       if (reduced) {
-        introDone = true;
         restingFrame();
         return;
       }
       const started = performance.now();
-      introDone = true;
       let last = 0;
       const changed: number[] = [];
       const frame = (ts: number) => {
@@ -346,24 +310,19 @@ export default function CoastCipher() {
 
     // ---- scroll reveal ----------------------------------------------------
 
-    // Progress is purely geometric: 0 when the band's top edge reaches the
-    // viewport bottom (i.e. exactly when the page's content ends) and 1 once the
-    // band has scrolled fully in. Squared-off against REVEAL_AT so it settles
-    // early rather than still moving when the scroll stops.
+    // Progress runs over the whole reveal box, which is exactly the scroll
+    // distance between "the content has ended" and "the page can't scroll any
+    // further". So it is 0 at the natural bottom (band parked, nothing visible)
+    // and 1 at the very end (art fully risen) with nothing in between loose.
     function reveal() {
-      if (!art) return;
       if (reduced) {
-        art.style.transform = "";
-        art.style.opacity = "";
+        art!.style.transform = "";
         return;
       }
-      const rect = box!.getBoundingClientRect();
-      const travel = rect.height || 1;
-      const p = easeOutCubic(
-        clamp01((window.innerHeight - rect.top) / travel / REVEAL_AT),
-      );
-      art.style.transform = `translate3d(0, ${((1 - p) * 12).toFixed(2)}%, 0) scale(${(0.985 + 0.015 * p).toFixed(4)})`;
-      art.style.opacity = p.toFixed(4);
+      const rect = revealBox!.getBoundingClientRect();
+      const span = rect.height || 1;
+      const p = easeOutCubic(clamp01((window.innerHeight - rect.top) / span));
+      art!.style.transform = `translate3d(0, ${((1 - p) * 100).toFixed(3)}%, 0)`;
     }
 
     let scrollRaf = 0;
@@ -379,9 +338,6 @@ export default function CoastCipher() {
       if (!measure()) return false;
       ready = true;
       restingFrame();
-      // A short page (or a restored scroll position) can be showing the band
-      // already; the observer below then fires immediately, which is the
-      // intended "it is in view, decode now".
       reveal();
       return true;
     }
@@ -391,8 +347,10 @@ export default function CoastCipher() {
 
     if (setup()) {
       if (reduced) {
+        // No loop at all: the resting frame is the finished art, and the reveal
+        // is skipped so the band simply sits where it belongs.
         introDone = true;
-        shimmerGate = false;
+        art.style.transform = "";
       } else {
         observer = new IntersectionObserver(
           (entries) => {
@@ -407,19 +365,18 @@ export default function CoastCipher() {
           { threshold: 0.35 },
         );
         observer.observe(box);
-      }
 
-      resizeObserver = new ResizeObserver(() => {
-        if (!measure()) return;
-        paintAll(introDone && !shimmering ? restingGlyphs : live);
-      });
-      resizeObserver.observe(art);
-
-      if (!reduced) {
         window.addEventListener("scroll", onScroll, { passive: true });
         window.addEventListener("resize", onScroll);
         window.addEventListener("pointermove", onPointer, { passive: true });
       }
+
+      resizeObserver = new ResizeObserver(() => {
+        if (!measure()) return;
+        paintAll(introDone && !shimmering ? glyphAt : live);
+        reveal();
+      });
+      resizeObserver.observe(art);
     }
 
     return () => {
@@ -435,26 +392,34 @@ export default function CoastCipher() {
   }, []);
 
   return (
-    <footer
-      ref={boxRef}
-      className="coast-band"
-      // Decorative, so the accessibility story is one image: the <pre> is
-      // aria-hidden and the wrapper carries the description.
-      role="img"
-      aria-label={coastAlt}
-    >
-      <div className="coast-band__container">
-        <div ref={artRef} className="coast-band__art">
-          <pre aria-hidden="true" className="coast-band__pre">
-            {coastGlyphs.join("\n")}
-          </pre>
-          <canvas
-            ref={canvasRef}
-            className="coast-band__canvas"
-            aria-hidden="true"
-          />
+    <div ref={revealRef} className="coast-reveal">
+      <footer
+        ref={boxRef}
+        className="coast-band"
+        // Decorative, so the accessibility story is one image: the <pre> is
+        // aria-hidden and the band carries the description.
+        role="img"
+        aria-label={coastAlt}
+      >
+        <div className="coast-band__container">
+          <div ref={artRef} className="coast-band__art">
+            <pre aria-hidden="true" className="coast-band__pre">
+              {coastGlyphs.join("\n")}
+            </pre>
+            <canvas
+              ref={canvasRef}
+              className="coast-band__canvas"
+              aria-hidden="true"
+            />
+            <div
+              className="coast-band__glow"
+              aria-hidden="true"
+              style={{ background: GLOW_BACKGROUND }}
+            />
+          </div>
         </div>
-      </div>
-    </footer>
+        <div className="coast-band__fade" aria-hidden="true" />
+      </footer>
+    </div>
   );
 }

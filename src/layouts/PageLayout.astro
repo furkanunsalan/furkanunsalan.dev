@@ -10,8 +10,19 @@ interface Props {
   image?: string;
   ogType?: "website" | "article";
   navMaxWidth?: string;
+  /** Skip the coast band. `/bookmarks` is a full-viewport fixed canvas, so a
+   *  band that slides up from the bottom has nowhere to go but over the graph. */
+  noFooter?: boolean;
 }
-const { title, description, noindex, image, ogType, navMaxWidth } = Astro.props;
+const {
+  title,
+  description,
+  noindex,
+  image,
+  ogType,
+  navMaxWidth,
+  noFooter = false,
+} = Astro.props;
 ---
 
 <Layout
@@ -28,5 +39,5 @@ const { title, description, noindex, image, ogType, navMaxWidth } = Astro.props;
     client:idle
   />
   <slot />
-  <CoastCipher client:idle />
+  {!noFooter && <CoastCipher client:idle />}
 </Layout>
