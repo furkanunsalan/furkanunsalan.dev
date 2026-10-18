@@ -20,7 +20,15 @@ export default function ProjectContainer({
         className="group block py-5 transition-colors"
       >
         <div className="flex items-start justify-between gap-3">
-          <p className="truncate text-base font-semibold text-white transition-colors duration-300 group-hover:text-accent-primary">
+          {/* Same hover as the writing feed and the search results: the name
+              stays white and sweeps a hairline underline in from the left. */}
+          <p
+            className="leading-snug relative inline-block truncate text-base font-semibold text-white
+              after:absolute after:bottom-1 after:left-0 after:h-px after:w-full
+              after:origin-left after:scale-x-0 after:bg-white
+              after:transition-transform after:duration-300 after:ease-out
+              group-hover:after:scale-x-100"
+          >
             {project.name}
           </p>
           <div className="flex shrink-0 items-center gap-3 text-sm text-light-fourth">
@@ -39,7 +47,7 @@ export default function ProjectContainer({
               </>
             ) : (
               project.metric && (
-                <span className="whitespace-nowrap font-medium text-accent-primary/90">
+                <span className="whitespace-nowrap font-medium text-light-fourth">
                   {project.metric}
                 </span>
               )
