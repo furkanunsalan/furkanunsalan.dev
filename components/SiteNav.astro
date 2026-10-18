@@ -1,0 +1,221 @@
+---
+// Static nav — no React island, no hydration. The active link is decided on the
+// server from the request path, so it renders correctly in the SSR HTML (the
+// old React island rendered "/" as active on every page until hydration fixed
+// it). Dropdowns open on hover/focus via CSS; a ~30-line script adds click
+// toggling + Escape for touch and keyboard.
+interface Props {
+  maxWidth?: string;
+}
+const { maxWidth = "max-w-3xl" } = Astro.props;
+
+const pathname = Astro.url.pathname;
+
+const NAME = "Furkan Ünsalan";
+const SHORT = "FÜ";
+
+const WORK = [
+  { label: "Experience", href: "/experience" },
+  { label: "Projects", href: "/projects" },
+];
+const HOBBY = [
+  { label: "Places", href: "/places" },
+  { label: "Photos", href: "/photos" },
+  { label: "Bookmarks", href: "/bookmarks" },
+];
+
+const isActive = (href: string) =>
+  href === "/"
+    ? pathname === "/"
+    : pathname === href || pathname.startsWith(href + "/");
+const groupActive = (items: { href: string }[]) =>
+  items.some((i) => isActive(i.href));
+
+const topCls = (active: boolean) =>
+  `inline-flex items-center gap-1 text-sm transition-colors duration-200 ${
+    active ? "text-accent-primary" : "text-light-secondary hover:text-white"
+  }`;
+const itemCls = (active: boolean) =>
+  `block rounded-md px-3 py-2 text-sm ${
+    active
+      ? "text-accent-primary"
+      : "text-light-secondary hover:bg-white/[0.04] hover:text-white"
+  }`;
+---
+
+{
+  /* Solid black + fixed: no translucent gray seam, and it stays pinned on
+     overscroll instead of floating down over the background. */
+}
+<header class="fixed inset-x-0 top-0 z-40 border-b border-white/[0.06] bg-dark-primary animate-fade-in-down">
+  <div
+    class={`mx-auto flex ${maxWidth} items-center justify-between px-4 py-3 sm:px-6 lg:px-8`}
+  >
+    <a href="/" class="shrink-0 text-sm font-semibold text-white">
+      <span data-scramble class="md:hidden">{SHORT}</span>
+      <span data-scramble class="hidden md:inline">{NAME}</span>
+    </a>
+    <nav class="flex items-center gap-4 sm:gap-5">
+      <a href="/search" aria-label="Search" class={topCls(isActive("/search"))}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="h-4 w-4"
+          aria-hidden="true"
+          ><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"
+          ></path></svg
+        >
+      </a>
+      <div class="nav-dd" data-nav-dd>
+        <button type="button" aria-haspopup="true" aria-expanded="false" class={topCls(groupActive(WORK))}>
+          Work
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-3.5 w-3.5 transition-transform nav-chev"
+            aria-hidden="true"
+            ><path d="m6 9 6 6 6-6"></path></svg
+          >
+        </button>
+        <div class="nav-dd-menu absolute left-0 top-full z-50 pt-3">
+          <div
+            class="w-44 overflow-hidden rounded-lg border border-white/[0.08] bg-zinc-950 p-1 shadow-xl"
+          >
+            {
+              WORK.map((l) => (
+                <a href={l.href} class={itemCls(isActive(l.href))}>
+                  {l.label}
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+
+      <a href="/writing" class={topCls(isActive("/writing"))}>Writing</a>
+
+      <div class="nav-dd" data-nav-dd>
+        <button type="button" aria-haspopup="true" aria-expanded="false" class={topCls(groupActive(HOBBY))}>
+          Hobby
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-3.5 w-3.5 transition-transform nav-chev"
+            aria-hidden="true"
+            ><path d="m6 9 6 6 6-6"></path></svg
+          >
+        </button>
+        <div class="nav-dd-menu absolute right-0 top-full z-50 pt-3">
+          <div
+            class="w-44 overflow-hidden rounded-lg border border-white/[0.08] bg-zinc-950 p-1 shadow-xl"
+          >
+            {
+              HOBBY.map((l) => (
+                <a href={l.href} class={itemCls(isActive(l.href))}>
+                  {l.label}
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .nav-dd-menu {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+  .nav-dd:hover .nav-dd-menu,
+  .nav-dd:focus-within .nav-dd-menu,
+  .nav-dd.nav-open .nav-dd-menu {
+    visibility: visible;
+    opacity: 1;
+  }
+  .nav-dd:hover .nav-chev,
+  .nav-dd:focus-within .nav-chev,
+  .nav-dd.nav-open .nav-chev {
+    transform: rotate(180deg);
+  }
+</style>
+
+<script>
+  // Dropdown toggling for touch/keyboard (CSS handles hover + focus-within).
+  const dropdowns = Array.from(
+    document.querySelectorAll<HTMLElement>("[data-nav-dd]"),
+  );
+
+  function closeAll(except?: HTMLElement) {
+    for (const dd of dropdowns) {
+      if (dd === except) continue;
+      dd.classList.remove("nav-open");
+      dd.querySelector("button")?.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  for (const dd of dropdowns) {
+    const button = dd.querySelector("button");
+    button?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = dd.classList.contains("nav-open");
+      closeAll(dd);
+      dd.classList.toggle("nav-open", !open);
+      button.setAttribute("aria-expanded", String(!open));
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (!(e.target as Element)?.closest("[data-nav-dd]")) closeAll();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeAll();
+  });
+
+  // Hover scramble on the name (was a React component; same effect, no island).
+  const CHARS = "!<>-_\\/[]{}=+*^?#________01";
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  for (const el of Array.from(
+    document.querySelectorAll<HTMLElement>("[data-scramble]"),
+  )) {
+    const original = el.textContent ?? "";
+    const run = () => {
+      if (reduceMotion.matches) return;
+      const duration = 500;
+      const start = performance.now();
+      const frame = (now: number) => {
+        const p = Math.min(1, (now - start) / duration);
+        const reveal = p * original.length;
+        let out = "";
+        for (let i = 0; i < original.length; i++) {
+          const c = original[i];
+          if (c === " ") out += " ";
+          else if (i < reveal - 0.5) out += c;
+          else out += CHARS[(Math.random() * CHARS.length) | 0];
+        }
+        el.textContent = out;
+        if (p < 1) requestAnimationFrame(frame);
+        else el.textContent = original;
+      };
+      requestAnimationFrame(frame);
+    };
+    el.addEventListener("mouseenter", run);
+  }
+</script>
