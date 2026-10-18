@@ -324,7 +324,20 @@ function PostRow({ post }: { post: BlogPost }) {
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <h3 className="text-base sm:text-lg font-semibold text-white group-hover:text-accent-primary transition-colors leading-snug">
+            {/* Hover reads as a left-to-right underline sweeping in, rather
+                than the title turning accent. Inline-block is what makes that
+                work: an absolutely positioned ::after resolves its width against
+                the nearest block container, so a plain block h3 would sweep a
+                rule the width of the whole column instead of the width of the
+                title. */}
+            <h3
+              className="leading-snug relative inline-block text-base font-semibold text-white
+                after:absolute after:bottom-1 after:left-0 after:h-px after:w-full
+                after:origin-left after:scale-x-0 after:bg-white
+                after:transition-transform after:duration-300 after:ease-out
+                group-hover:after:scale-x-100
+                sm:text-lg"
+            >
               {post.title}
             </h3>
             {post.excerpt && (
