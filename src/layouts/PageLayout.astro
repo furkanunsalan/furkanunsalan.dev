@@ -1,6 +1,7 @@
 ---
 import Layout from "./Layout.astro";
 import SiteNav from "@/components/SiteNav";
+import CoastCipher from "@/components/CoastCipher";
 
 interface Props {
   title?: string;
@@ -23,4 +24,5 @@ const { title, description, noindex, image, ogType, navMaxWidth } = Astro.props;
   <slot name="head" slot="head" />
   <SiteNav maxWidth={navMaxWidth} client:load />
   <slot />
+  <CoastCipher client:idle />
 </Layout>
