@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ArrowUpRight,
   Bookmark,
   Check,
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
   Heart,
   LayoutGrid,
   Search,
@@ -317,7 +317,7 @@ export default function PlacesList({ places, lists, onSelect }: Props) {
           No places match.
         </div>
       ) : (
-        <ul className="divide-y divide-white/[0.04] ring-1 ring-white/[0.06] rounded-xl overflow-hidden bg-zinc-950">
+        <ul className="divide-y divide-white/[0.06] border-b border-white/[0.06]">
           {visible.map((p) => {
             const meta = STATUS_META[p.status];
             const ik = iconByList.get(p.list || "") ?? iconKey(null);
@@ -326,7 +326,7 @@ export default function PlacesList({ places, lists, onSelect }: Props) {
             return (
               <li
                 key={p.slug}
-                className="px-4 py-3 flex items-center gap-3 hover:bg-white/[0.02] transition-colors cursor-pointer"
+                className="group -mx-3 flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 ring-1 ring-transparent transition-[background-color,box-shadow] duration-200 hover:bg-white/[0.055] hover:ring-white/[0.08]"
                 role="button"
                 tabIndex={0}
                 onClick={handleRowActivate}
@@ -340,12 +340,22 @@ export default function PlacesList({ places, lists, onSelect }: Props) {
                 <span
                   aria-label={meta.label}
                   title={`${meta.label}${p.list ? ` · ${p.list}` : ""}`}
-                  className={`inline-flex items-center justify-center w-7 h-7 rounded-full bg-black ring-2 ${meta.ring} text-white shrink-0`}
+                  className={`inline-flex items-center justify-center w-7 h-7 rounded-[28%] bg-black ring-2 ${meta.ring} text-white shrink-0`}
                 >
                   <RowIcon className="w-3.5 h-3.5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm text-white truncate">{p.name}</div>
+                  {/* Same hover as the other lists: the name stays white and
+                      sweeps a hairline underline in from the left. */}
+                  <div
+                    className="leading-snug relative inline-block truncate text-sm text-white
+                      after:absolute after:bottom-0.5 after:left-0 after:h-px after:w-full
+                      after:origin-left after:scale-x-0 after:bg-white
+                      after:transition-transform after:duration-300 after:ease-out
+                      group-hover:after:scale-x-100"
+                  >
+                    {p.name}
+                  </div>
                   {(p.address || p.city) && (
                     <div className="text-xs text-light-fourth truncate">
                       {[p.address, p.city].filter(Boolean).join(" · ")}
@@ -390,11 +400,11 @@ export default function PlacesList({ places, lists, onSelect }: Props) {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="text-light-fourth hover:text-white transition-colors shrink-0 self-center"
+                    className="shrink-0 self-center text-accent-primary transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                     aria-label="Open in Google Maps"
                     title="Open in Google Maps"
                   >
-                    <ExternalLink className="w-4 h-4" />
+                    <ArrowUpRight className="w-4 h-4" />
                   </a>
                 )}
               </li>

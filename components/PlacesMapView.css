@@ -59,6 +59,26 @@
   background-color: transparent;
 }
 
+/* ---------- card focus ---------- */
+
+/* An open card — from hover, a click, or a list selection — dims everything
+   behind it. The popup pane is deliberately NOT in the list, so the card stays
+   the one thing at full strength. Filtering the panes rather than covering them
+   with an overlay: an overlay would have to slot between the marker pane (z 600)
+   and the popup pane (z 700) inside Leaflet's own pane stack, which means
+   reaching into its DOM. */
+.places-map .leaflet-tile-pane,
+.places-map .leaflet-marker-pane,
+.places-map .leaflet-shadow-pane {
+  transition: filter 220ms ease;
+}
+
+.places-map--card-open .leaflet-tile-pane,
+.places-map--card-open .leaflet-marker-pane,
+.places-map--card-open .leaflet-shadow-pane {
+  filter: brightness(0.42) saturate(0.85);
+}
+
 /* ---------- popup card ---------- */
 
 .places-map .popup-card {

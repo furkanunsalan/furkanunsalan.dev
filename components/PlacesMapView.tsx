@@ -39,15 +39,17 @@ const STATUS_RING_CLASS: Record<PlaceStatus, string> = {
   favorite: "ring-rose-500",
 };
 
-// Black coin, status-colored ring, white list icon centered. The list icon's
+// Black squircle, status-colored ring, white list icon centered. The list icon's
 // SVG content comes from PLACE_LIST_ICONS so it stays consistent with the
-// admin picker and list chips.
+// admin picker and list chips. Squircle rather than a circle so the pin matches
+// the row icons and the portrait: a 25-unit box at rx 7.5 is the ~30% corner
+// that reads as a squircle at this size.
 function makeIcon(status: PlaceStatus, iconK: ListIconKey): L.DivIcon {
   const stroke = STATUS_COLOR[status];
   const iconContent = PLACE_LIST_ICON_PATHS[iconK];
   const html = `
     <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" style="display:block;filter:drop-shadow(0 1.5px 2px rgba(0,0,0,.35));">
-      <circle cx="14" cy="14" r="12.5" fill="#000000" stroke="${stroke}" stroke-width="3"/>
+      <rect x="1.5" y="1.5" width="25" height="25" rx="7.5" ry="7.5" fill="#000000" stroke="${stroke}" stroke-width="3"/>
       <g transform="translate(8,8) scale(0.5)" fill="none" stroke="white" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
         ${iconContent}
       </g>
@@ -140,9 +142,35 @@ export default function PlacesMapView({
         iconByList={iconByList}
         iconCache={iconCache}
         markerRefs={markerRefs}
+        selectedSlug={selectedSlug}
       />
+      <CardFocus />
     </MapContainer>
   );
+}
+
+// Dims the map behind an open card — the tiles, pins and pin shadows, but not the
+// popup pane, so the card stays the one bright thing on screen. Driven by
+// Leaflet's own popupopen/popupclose rather than by whichever gesture opened it,
+// so hover, click and list selection all get it from the same place. A filter on
+// the panes rather than an overlay div: an overlay would have to sit between the
+// marker pane (600) and the popup pane (700) inside Leaflet's own pane stack,
+// which means reaching into its DOM.
+function CardFocus() {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    const on = () => container.classList.add("places-map--card-open");
+    const off = () => container.classList.remove("places-map--card-open");
+    map.on("popupopen", on);
+    map.on("popupclose", off);
+    return () => {
+      map.off("popupopen", on);
+      map.off("popupclose", off);
+      container.classList.remove("places-map--card-open");
+    };
+  }, [map]);
+  return null;
 }
 
 // Wraps the marker rendering so we can call useMap() and attach a click
@@ -154,11 +182,13 @@ function PlaceMarkers({
   iconByList,
   iconCache,
   markerRefs,
+  selectedSlug,
 }: {
   places: Place[];
   iconByList: Map<string, ListIconKey>;
   iconCache: (status: PlaceStatus, ik: ListIconKey) => L.DivIcon;
   markerRefs: React.MutableRefObject<Map<string, L.Marker>>;
+  selectedSlug: string | null;
 }) {
   const map = useMap();
   return (
@@ -166,6 +196,16 @@ function PlaceMarkers({
       {places.map((p) => {
         const ik = iconByList.get(p.list || "") ?? iconKey(null);
         const IconComp = PLACE_LIST_ICON_COMPONENTS[ik];
+        // Hovering a pin opens its card, so the card is reachable without a
+        // click. Closing waits a beat and then checks whether the pointer made it
+        // onto the card itself — otherwise moving from the pin towards its own
+        // "Open" link would dismiss it. A selected place never auto-closes: that
+        // is the click state, and it stays until something else takes over.
+        let closeTimer: number | undefined;
+        const cancelClose = () => {
+          if (closeTimer !== undefined) window.clearTimeout(closeTimer);
+          closeTimer = undefined;
+        };
         return (
           <Marker
             key={p.slug}
@@ -175,6 +215,20 @@ function PlaceMarkers({
               click: () => {
                 const desiredZoom = Math.max(map.getZoom(), 15);
                 map.flyTo([p.lat, p.lng], desiredZoom, { duration: 0.6 });
+              },
+              mouseover: (e) => {
+                cancelClose();
+                (e.target as L.Marker).openPopup();
+              },
+              mouseout: (e) => {
+                const marker = e.target as L.Marker;
+                cancelClose();
+                closeTimer = window.setTimeout(() => {
+                  if (p.slug === selectedSlug) return;
+                  const el = marker.getPopup()?.getElement();
+                  if (el?.matches(":hover")) return;
+                  marker.closePopup();
+                }, 220);
               },
             }}
             ref={(m) => {
@@ -187,7 +241,7 @@ function PlaceMarkers({
                 <div className="popup-head">
                   <span
                     aria-hidden
-                    className={`popup-badge inline-flex items-center justify-center w-6 h-6 rounded-full bg-black ring-2 ${STATUS_RING_CLASS[p.status]} text-white shrink-0`}
+                    className={`popup-badge inline-flex items-center justify-center w-6 h-6 rounded-[28%] bg-black ring-2 ${STATUS_RING_CLASS[p.status]} text-white shrink-0`}
                   >
                     <IconComp className="w-3 h-3" />
                   </span>
