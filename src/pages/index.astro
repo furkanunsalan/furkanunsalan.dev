@@ -8,7 +8,7 @@ import {
 } from "@/lib/content";
 import { BOOKMARK_LISTS, getKarakeepLatestFromLists } from "@/lib/karakeep";
 import { HomeSocialLink } from "@/components/HomeSocialLink";
-import AsciiPortrait from "@/components/AsciiPortrait";
+import HeroBanner from "@/components/HeroBanner";
 import GithubCommitHistory from "@/components/GithubCommitHistory";
 import Time from "@/components/Time";
 
@@ -73,6 +73,16 @@ noteCandidates.sort(
 const note = noteCandidates[0] ?? null;
 const save = bookmark ? { title: bookmark.title, href: bookmark.link } : null;
 
+// The @handle beside the name: read off the X/Twitter social rather than
+// hard-coding one, and only when it actually looks like a handle — so an empty
+// or oddly-shaped URL yields no handle instead of a wrong one.
+const xSocial = settings.socials.find((s) => s.icon === "x");
+const handle = (() => {
+  if (!xSocial) return null;
+  const seg = xSocial.url.replace(/\/+$/, "").split("/").pop() ?? "";
+  return /^[A-Za-z0-9_]{1,15}$/.test(seg) ? `@${seg}` : null;
+})();
+
 // Person JSON-LD (from the committed app/(pages)/page.tsx).
 const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://furkanunsalan.dev";
 const sameAs = settings.socials
@@ -104,148 +114,167 @@ const personLd = {
   <div
     class="mt-24 flex w-full max-w-3xl flex-col items-start px-4 text-left mx-auto sm:px-6 lg:px-8"
   >
-    <div
-      class="mb-8 flex w-full select-none flex-col items-start gap-6 sm:flex-row sm:gap-8"
+    {/* Twitter/X-style profile header: a banner strip, the portrait as a round
+        avatar overlapping it, then name / handle / bio. The info rows and the
+        graph follow below, unchanged. */}
+    <header
+      class="w-full overflow-hidden rounded-2xl border border-white/[0.06] bg-zinc-950/50"
     >
-      <AsciiPortrait className="animate-fade-in" client:load />
+      <HeroBanner src="/hero/banner.webp" client:load />
 
-      <div
-        class="min-w-0 flex-1 animate-fade-in-down font-mono text-[11px] leading-relaxed sm:text-xs"
-      >
-        <dl class="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5">
+      <div class="relative px-4 pb-5 sm:px-6">
+        <img
+          src="/hero/portrait.webp"
+          alt="Furkan Ünsalan"
+          width="460"
+          height="460"
+          class="animate-fade-in absolute -top-10 h-20 w-20 rounded-full object-cover ring-4 ring-zinc-950 sm:-top-12 sm:h-24 sm:w-24"
+        />
+
+        <div class="animate-fade-in-down pt-12 sm:pt-16">
+          <h1 class="text-lg font-bold text-white sm:text-xl">
+            Furkan Ünsalan
+          </h1>
           {
-            current && (
-              <>
-                <dt class="text-light-fourth/60">role</dt>
-                <dd class="min-w-0 text-light-secondary">
-                  <a
-                    href="/experience"
-                    class="text-light-secondary hover:text-accent-primary transition-colors duration-200"
-                  >
-                    {`${current.title} @ ${current.organization}`}
-                  </a>
-                </dd>
-              </>
+            handle && (
+              <p class="mt-0.5 font-mono text-xs text-light-fourth">{handle}</p>
             )
           }
-
-          <dt class="text-light-fourth/60">based</dt>
-          <dd class="min-w-0 text-light-secondary">
-            <span class="whitespace-nowrap">
-              {settings.location}
-              <span class="text-light-fourth/50"> · </span>
-              <span class="text-light-third tabular-nums [&>div]:inline">
-                <Time
-                  location={settings.timezone}
-                  shortName={settings.timezoneLabel}
-                  client:load
-                />
-              </span>
-            </span>
-          </dd>
-
-          <dt class="text-light-fourth/60">focus</dt>
-          <dd class="min-w-0 text-light-secondary">{settings.focus}</dd>
-
-          <dt class="text-light-fourth/60">watching</dt>
-          <dd class="min-w-0 text-light-secondary">{settings.watching}</dd>
-
-          {
-            note && (
-              <>
-                <dt class="text-light-fourth/60">note</dt>
-                <dd class="min-w-0 text-light-secondary">
-                  <a
-                    href={note.href}
-                    class="block truncate text-light-third hover:text-accent-primary transition-colors duration-200"
-                    title={note.title}
-                  >
-                    {note.title}
-                  </a>
-                </dd>
-              </>
-            )
-          }
-
-          {
-            save && (
-              <>
-                <dt class="text-light-fourth/60">save</dt>
-                <dd class="min-w-0 text-light-secondary">
-                  <a
-                    href={save.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="block truncate text-light-third hover:text-accent-primary transition-colors duration-200"
-                    title={save.title}
-                  >
-                    {save.title}
-                  </a>
-                </dd>
-              </>
-            )
-          }
-
-          <dt class="text-light-fourth/60">gadgets</dt>
-          <dd class="min-w-0 text-light-secondary">
-            <a
-              href="/gadgets"
-              class="group inline-flex items-center gap-1 text-light-third transition-colors duration-200 hover:text-accent-primary"
-            >
-              the gear I use daily
-              <span
-                class="transition-transform duration-200 group-hover:translate-x-0.5"
-              >
-                →
-              </span>
-            </a>
-          </dd>
-
-          {
-            settings.pgpId && (
-              <>
-                <dt class="text-light-fourth/60">pgp</dt>
-                <dd class="min-w-0 text-light-secondary">
-                  <a
-                    href="/pgp.asc"
-                    class="text-light-third hover:text-accent-primary transition-colors duration-200"
-                    title="Download PGP public key"
-                  >
-                    {settings.pgpId}
-                  </a>
-                </dd>
-              </>
-            )
-          }
-
-          {
-            settings.socials.length > 0 && (
-              <>
-                <dt class="text-light-fourth/60">social</dt>
-                <dd class="min-w-0 text-light-secondary">
-                  <div class="flex flex-wrap items-center gap-3 stagger">
-                    {settings.socials.map((s) => (
-                      <HomeSocialLink social={s} />
-                    ))}
-                  </div>
-                </dd>
-              </>
-            )
-          }
-        </dl>
+          <p
+            class="mt-4 whitespace-pre-line text-sm leading-relaxed text-light-secondary sm:text-base"
+          >
+            {settings.intro}
+          </p>
+        </div>
       </div>
-    </div>
+    </header>
 
-    {/* On mobile the graph sits above the intro text; on sm+ the text comes first. */}
-    <div class="flex w-full flex-col gap-8 pb-16">
-      <p
-        class="order-2 text-base text-justify animate-fade-in-up delay-200 whitespace-pre-line sm:order-1"
-      >
-        {settings.intro}
-      </p>
-      <section class="order-1 w-full animate-fade-in-up delay-300 sm:order-2">
-        <GithubCommitHistory client:load />
-      </section>
-    </div>
+    <dl
+      class="mt-8 grid w-full select-none grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 font-mono text-[11px] leading-relaxed sm:text-xs"
+    >
+      {
+        current && (
+          <>
+            <dt class="text-light-fourth/60">role</dt>
+            <dd class="min-w-0 text-light-secondary">
+              <a
+                href="/experience"
+                class="text-light-secondary hover:text-accent-primary transition-colors duration-200"
+              >
+                {`${current.title} @ ${current.organization}`}
+              </a>
+            </dd>
+          </>
+        )
+      }
+
+      <dt class="text-light-fourth/60">based</dt>
+      <dd class="min-w-0 text-light-secondary">
+        <span class="whitespace-nowrap">
+          {settings.location}
+          <span class="text-light-fourth/50"> · </span>
+          <span class="text-light-third tabular-nums [&>div]:inline">
+            <Time
+              location={settings.timezone}
+              shortName={settings.timezoneLabel}
+              client:load
+            />
+          </span>
+        </span>
+      </dd>
+
+      <dt class="text-light-fourth/60">focus</dt>
+      <dd class="min-w-0 text-light-secondary">{settings.focus}</dd>
+
+      <dt class="text-light-fourth/60">watching</dt>
+      <dd class="min-w-0 text-light-secondary">{settings.watching}</dd>
+
+      {
+        note && (
+          <>
+            <dt class="text-light-fourth/60">note</dt>
+            <dd class="min-w-0 text-light-secondary">
+              <a
+                href={note.href}
+                class="block truncate text-light-third hover:text-accent-primary transition-colors duration-200"
+                title={note.title}
+              >
+                {note.title}
+              </a>
+            </dd>
+          </>
+        )
+      }
+
+      {
+        save && (
+          <>
+            <dt class="text-light-fourth/60">save</dt>
+            <dd class="min-w-0 text-light-secondary">
+              <a
+                href={save.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="block truncate text-light-third hover:text-accent-primary transition-colors duration-200"
+                title={save.title}
+              >
+                {save.title}
+              </a>
+            </dd>
+          </>
+        )
+      }
+
+      <dt class="text-light-fourth/60">gadgets</dt>
+      <dd class="min-w-0 text-light-secondary">
+        <a
+          href="/gadgets"
+          class="group inline-flex items-center gap-1 text-light-third transition-colors duration-200 hover:text-accent-primary"
+        >
+          the gear I use daily
+          <span
+            class="transition-transform duration-200 group-hover:translate-x-0.5"
+          >
+            →
+          </span>
+        </a>
+      </dd>
+
+      {
+        settings.pgpId && (
+          <>
+            <dt class="text-light-fourth/60">pgp</dt>
+            <dd class="min-w-0 text-light-secondary">
+              <a
+                href="/pgp.asc"
+                class="text-light-third hover:text-accent-primary transition-colors duration-200"
+                title="Download PGP public key"
+              >
+                {settings.pgpId}
+              </a>
+            </dd>
+          </>
+        )
+      }
+
+      {
+        settings.socials.length > 0 && (
+          <>
+            <dt class="text-light-fourth/60">social</dt>
+            <dd class="min-w-0 text-light-secondary">
+              <div class="flex flex-wrap items-center gap-3 stagger">
+                {settings.socials.map((s) => (
+                  <HomeSocialLink social={s} />
+                ))}
+              </div>
+            </dd>
+          </>
+        )
+      }
+    </dl>
+
+    <section class="mt-8 w-full animate-fade-in-up delay-300">
+      <GithubCommitHistory client:load />
+    </section>
   </div>
 </PageLayout>

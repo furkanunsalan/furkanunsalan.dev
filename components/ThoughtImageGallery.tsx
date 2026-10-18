@@ -175,6 +175,7 @@ export default function ThoughtImageGallery({
           {/* sliding track — tap to dismiss, drag/swipe to move */}
           <div
             className="h-full w-full touch-pan-y select-none overflow-hidden"
+            data-cursor="drag"
             onPointerDown={onDown}
             onPointerMove={onMove}
             onPointerUp={onUp}
