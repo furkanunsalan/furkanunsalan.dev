@@ -4,10 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@/components/_compat";
 import React from "react";
 import {
-  ArrowUpRight,
   Check,
   MessageSquare,
-  PenLine,
   Rss,
   Search,
   SlidersHorizontal,
@@ -293,27 +291,6 @@ function PostRow({ post }: { post: BlogPost }) {
         data-astro-prefetch=""
         className="group block py-5 -mx-3 px-3 rounded transition-colors hover:bg-white/[0.02]"
       >
-        <div className="flex items-baseline gap-2 mb-1.5 text-[12px]">
-          <PenLine className="w-3 h-3 text-white shrink-0 self-center" />
-          <span className="font-mono tabular-nums text-light-fourth">
-            {dateLabel}
-          </span>
-          {post.readingTime && (
-            <>
-              <span className="text-light-fourth/30" aria-hidden>
-                ·
-              </span>
-              <span className="text-[10px] uppercase tracking-wider text-light-fourth/70">
-                {post.readingTime}
-              </span>
-            </>
-          )}
-          <ArrowUpRight
-            aria-hidden
-            className="ml-auto w-3.5 h-3.5 text-accent-primary opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
-          />
-        </div>
-
         <div className="flex gap-3">
           {post.banner && (
             <div className="relative shrink-0 w-24 h-16 sm:w-32 sm:h-20 rounded-md overflow-hidden ring-1 ring-white/[0.06] group-hover:ring-accent-primary/40 transition-[box-shadow] duration-300">
@@ -348,6 +325,22 @@ function PostRow({ post }: { post: BlogPost }) {
                 {post.excerpt}
               </p>
             )}
+            {/* Date and reading time sit directly above the tags in grey. The
+                pen-icon row that used to carry them (and the hover arrow) is
+                gone: the title's underline is the row's hover affordance now. */}
+            <div className="mt-1.5 flex items-baseline gap-1.5 font-mono text-[11px] tabular-nums text-light-fourth">
+              <time dateTime={post.date}>{dateLabel}</time>
+              {post.readingTime && (
+                <>
+                  <span className="text-light-fourth/40" aria-hidden>
+                    ·
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wider text-light-fourth/70">
+                    {post.readingTime}
+                  </span>
+                </>
+              )}
+            </div>
             {post.tags && post.tags.length > 0 && (
               <ul className="mt-1.5 flex flex-wrap gap-1.5">
                 {post.tags.map((t) => (
